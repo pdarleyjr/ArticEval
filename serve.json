@@ -1,0 +1,30 @@
+{
+  "headers": [
+    {
+      "source": "**/*.js",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/javascript"
+        }
+      ]
+    },
+    {
+      "source": "**/*.mjs",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/javascript"
+        }
+      ]
+    }
+  ],
+  "public": ".",
+  "directoryListing": false,
+  "unlisted": [
+    ".git",
+    ".github",
+    "node_modules"
+  ],
+  "cleanUrls": true
+}

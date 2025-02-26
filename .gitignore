@@ -1,0 +1,22 @@
+# Node modules
+node_modules/
+
+# Backup files
+*.bak
+*.bak*
+full-backup-*/
+
+# Test files
+test-*.html
+test-*.js
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Credentials
+.git-credentials

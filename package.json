@@ -1,0 +1,39 @@
+{
+  "name": "articulation-eval",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Speech-Language Evaluation System",
+  "scripts": {
+    "start": "npx serve -s dist -l 3000",
+    "dev": "npx serve . -l 3000",
+   "build": "esbuild assets/js/main.js --bundle --outfile=dist/bundle.js --format=esm",
+    "test-articulation": "npx serve . -l 3001",
+    "test-articulation-node": "node test-articulation-info.js"
+ },
+  "dependencies": {
+     "jspdf": "^3.0.0",
+     "serve": "^14.2.1"
+  },
+  "serve": {
+    "headers": [
+      {
+        "source": "**/*.js",
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "text/javascript"
+          }
+        ]
+      },
+      {
+        "source": "**/*.mjs",
+        "headers": [
+          {
+            "key": "Content-Type",
+            "value": "text/javascript"
+          }
+        ]
+      }
+    ]
+  }
+}
