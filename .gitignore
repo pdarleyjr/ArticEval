@@ -20,3 +20,8 @@ Thumbs.db
 
 # Credentials
 .git-credentials
+
+# AI Analysis Documentation (Local Only)
+ai-project-documentation.json
+*-ai-documentation.json
+ai-analysis-*.json
