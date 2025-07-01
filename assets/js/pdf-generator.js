@@ -273,7 +273,18 @@ class PDFGenerator {
             content += `<li>Other: ${formData.otherComponentText}</li>`;
         }
 
-        content += `</ul></div></div>`;
+        content += `</ul></div>`;
+
+        // Add the assessment summary paragraph with language dropdown
+        content += `
+            <div class="assessment-summary">
+                <p>
+                    This thorough process allows us to gain a clear picture of your child's speech strengths and challenges and to make informed recommendations for therapy. All measures were performed in: <strong>${formData.assessmentSummaryLanguage || 'Language not specified'}</strong>. Results of all formal and informal assessments appear to be reliable.
+                </p>
+            </div>
+        `;
+
+        content += `</div>`;
         return content;
     }
     
