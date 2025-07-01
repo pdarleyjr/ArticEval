@@ -1,0 +1,32 @@
+{
+  "name": "artic-eval-v2",
+  "version": "2.0.0",
+  "type": "module",
+  "description": "IPLC ArticEval - Cloudflare Pages + Functions implementation with Lucia v2 auth and Formeo v2",
+  "scripts": {
+    "dev": "wrangler pages dev public --d1=DB",
+    "build": "node build.js",
+    "deploy": "wrangler pages deploy public",
+    "db:migrate": "wrangler d1 execute artic_eval_db --file=schema.sql",
+    "db:query": "wrangler d1 execute artic_eval_db --command"
+  },
+  "dependencies": {
+    "formeo": "^3.1.3",
+    "pdfmake": "^0.2.7",
+    "bcryptjs": "^2.4.3",
+    "openai": "^4.20.1",
+    "chart.js": "^4.4.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.19.12"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pdarleyjr/ArticEval.git"
+  },
+  "author": "IPLC",
+  "license": "MIT"
+}

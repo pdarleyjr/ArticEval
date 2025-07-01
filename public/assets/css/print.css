@@ -1,0 +1,368 @@
+/* Print and PDF Generation Styles */
+@media print {
+    /* Root level print adjustments */
+    :root {
+        --page-margin: 0.5in; /* Changed from 6mm to 0.5in for consistent margins */
+        --content-width: 7.5in; /* Changed from 190mm to 7.5in (8.5in - 2*0.5in margins) */
+        /* Reduced to account for margins */
+        --content-height: 10in; /* Changed from 277mm to 10in (11in - 2*0.5in margins) */
+        /* Reduced to account for margins */
+        --section-spacing: 0.4em; /* Reduced from 0.6em to 0.4em to save space */
+        --field-spacing: 3pt;
+        --iplc-blue: #0073e6;
+    }
+
+    /* Reset and base styles */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+        box-sizing: border-box !important;
+    }
+
+    body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+        font-family: 'Segoe UI', Arial, sans-serif !important;
+        font-size: 14pt !important;
+ /* Increased from 10.5pt to 14pt for better readability */
+        line-height: 1.4 !important;
+ /* Increased from 1.3 to 1.4 for better readability */
+        color: #000 !important;
+        -webkit-font-smoothing: antialiased !important;
+        text-rendering: optimizeLegibility !important;
+        letter-spacing: 0 !important;
+        width: 100% !important;
+        max-width: var(--content-width) !important;
+    }
+
+    /* PDF Container */
+    .pdf-container, .container-fluid {
+        width: 100% !important;
+        max-width: var(--content-width) !important;
+        margin: 0 auto !important;
+        background: white !important;
+        position: relative !important;
+        padding: var(--page-margin) !important;
+        overflow: visible !important;
+    }
+
+    /* Logo Header */
+    .logo-header {
+        position: relative !important;
+        width: 100% !important;
+        margin-bottom: calc(var(--section-spacing) * 0.8) !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        padding: 0 !important;
+    }
+
+    /* Logo specific styling */
+    .logo-header img {
+        width: 130px !important;
+        height: auto !important;
+        margin: 0 auto 6px !important;
+        display: block !important;
+    }
+
+    .contact-info {
+        text-align: center !important;
+        margin-bottom: 10px !important;
+        font-size: 9pt !important;
+        line-height: 1.1 !important;
+    }
+
+    /* Headers with IPLC blue dividers */
+    h1, h2, h3, h4 {
+        margin: 10px 0 6px 0 !important;
+        color: var(--iplc-blue) !important;
+        page-break-after: avoid !important;
+        page-break-before: auto !important;
+        break-after: avoid !important; 
+        break-before: auto !important;
+        font-weight: 600 !important;
+    }
+
+    h1 { font-size: 15pt !important; text-align: center !important; }
+    h2 { 
+        font-size: 14pt !important;
+ /* Increased from 13pt to 14pt for better readability */
+        position: relative !important;
+        padding: 8px 0 !important;
+        margin: 12px 0 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+    }
+    h3 { font-size: 13pt !important; }
+ /* Increased from 11.5pt to 13pt for better readability */
+    h4 { font-size: 12pt !important; }
+ /* Increased from 10.5pt to 12pt for better readability */
+
+    /* IPLC blue dividers for section headers */
+    h2::before,
+    h2::after {
+        content: '' !important;
+        position: absolute !important;
+        left: 0 !important;
+        right: 0 !important;
+        height: 2px !important;
+        background-color: var(--iplc-blue) !important;
+    }
+
+    h2::before {
+        top: 0 !important;
+    }
+
+    h2::after {
+        bottom: 0 !important;
+    }
+
+    /* Form Elements */
+    .field-group {
+        margin: var(--field-spacing) 0 !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+ /* Reduced from 6px to 4px to save space */
+    }
+
+    /* Checkbox and Radio Groups */
+    .checkbox-group, .radio-group {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: var(--field-spacing) !important;
+    }
+
+    .intelligibility-group {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 12px !important;
+        margin: var(--field-spacing) 0 !important;
+    }
+
+    /* Input Styling */
+    input[type="checkbox"],
+    input[type="radio"] {
+        margin: 0 3px 0 0 !important;
+        vertical-align: middle !important;
+    }
+
+    input[type="text"],
+    textarea {
+        border: 1px solid #000 !important;
+        padding: 2pt !important;
+        width: 100% !important;
+    }
+
+    /* Analysis Sections */
+    .analysis-subsection {
+        margin-bottom: var(--section-spacing) !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    .notes-field {
+        margin-top: var(--field-spacing) !important;
+    }
+
+    .notes-field textarea {
+        width: 100% !important;
+        min-height: 36pt !important;
+        margin-top: 2pt !important;
+    }
+
+    /* Tables */
+    table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin: 6pt 0 !important;
+        padding: 0 !important;
+        table-layout: fixed !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    th, td {
+        padding: 6pt !important;
+ /* Increased from 4pt to 6pt for better readability */
+        border: 1px solid #000 !important;
+        font-size: 12pt !important;
+ /* Increased from 10pt to 12pt for better readability */
+        line-height: 1.2 !important;
+        vertical-align: top !important;
+        word-wrap: break-word !important;
+    }
+    
+    /* Prevent row breaks */
+    tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+    
+    /* Prevent list item breaks */
+    li {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+    
+    /* Prevent sentence breaks */
+    .sentence, .recommendation-item {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        display: block !important; /* Ensure each sentence is treated as a block */
+        margin-bottom: 4pt !important; /* Add spacing between sentences */
+    }
+    
+    /* Clinical impressions and recommendations sections */
+    .clinical-summary, .recommendations-summary, .clinical-impressions-container, .recommendations-container {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        display: block !important;
+        margin-bottom: 10pt !important;
+    }
+    
+    /* Ensure section headers don't break from their content */
+    section h2, .section-header {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+        page-break-before: auto !important;
+        break-before: auto !important;
+    }
+    
+    /* Ensure paragraphs don't break across pages */
+    p {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        margin: 4pt 0 !important;
+    }
+
+    /* Page Breaks */
+    .page-break-before {
+        page-break-before: always !important;
+        break-before: always !important;
+        margin-top: var(--section-spacing) !important;
+    }
+
+    .page-break-after {
+        page-break-after: always !important;
+        break-after: always !important;
+        margin-bottom: var(--section-spacing) !important;
+    }
+
+    .avoid-break {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    /* Page Settings */
+    @page {
+        margin: var(--page-margin) !important;
+        size: letter !important;
+ /* Changed from A4 to letter for US standard */
+    }
+
+    /* Hide UI Elements */
+    .no-print,
+    button,
+    .btn,
+    nav,
+    .navigation,
+    .form-controls,
+    .empty-note {
+        display: none !important;
+    }
+    
+    /* Ensure proper spacing between sections */
+    section, .section {
+        margin-bottom: 0.4em !important;
+ /* Reduced from 0.8em to 0.4em to save space */
+        padding: 2pt 0 !important;
+ /* Reduced from 4pt to 2pt to save space */
+        clear: both !important; /* Prevent floating elements from affecting layout */
+    }
+    
+    /* Optimize for readability */
+    .form-content {
+        line-height: 1.4 !important;
+    }
+    
+    /* Additional rules for charts and tables */
+    .chart, .graph, .chart-container, .graph-container {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        display: block !important;
+        margin-bottom: 10px !important;
+ /* Reduced from 15px to 10px to save space */
+    }
+    
+    /* Ensure tables don't break across pages */
+    .table-container, .table-responsive {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        display: block !important;
+        margin-bottom: 10px !important;
+ /* Reduced from 15px to 10px to save space */
+    }
+    
+    /* Ensure images don't break across pages */
+    img {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        max-width: 100% !important;
+        height: auto !important;
+    }
+    
+    /* Ensure lists don't break across pages */
+    ul, ol {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        margin: 3pt 0 !important;
+ /* Reduced from 4pt to 3pt to save space */
+        padding-left: 20pt !important;
+    }
+    
+    /* Ensure clinical impressions and recommendations sections start on a new page if needed */
+    #clinicalImpressionsSection:not(:first-child),
+    #recommendationsSection:not(:first-child) {
+        page-break-before: always !important;
+        break-before: always !important;
+    }
+    
+    /* Ensure no orphaned headers at the bottom of a page */
+    /* 
+     * The orphans and widows properties control pagination behavior in print media:
+     * - orphans: minimum number of lines of a paragraph to leave at the bottom of a page
+     * - widows: minimum number of lines of a paragraph to leave at the top of a page
+     * 
+     * These properties are valid in the CSS Paged Media spec and work in print/PDF contexts
+     * Browser developer tools may show warnings as they primarily apply to print context
+     */
+    h1, h2, h3, h4, h5, h6 {
+        orphans: 3 !important;
+        widows: 3 !important;
+    }
+    
+    /* Ensure no orphaned paragraph lines at page breaks */
+    p {
+        orphans: 3 !important;
+        widows: 3 !important;
+    }
+    
+    /* Optimize field rows for better spacing */
+    .field-row {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        margin-bottom: 4pt !important;
+    }
+    
+    /* Ensure content uses maximum available width */
+    .form-content,
+    .content-container { width: 100% !important; max-width: 100% !important; }
+}

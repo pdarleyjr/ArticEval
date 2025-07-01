@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPLC ArticEval - Register</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/styles.css">
+    <style>
+        .register-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 2rem 0;
+        }
+        .register-card {
+            max-width: 450px;
+            width: 100%;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+        }
+        .register-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .register-header h1 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        .register-header p {
+            color: #666;
+            margin: 0;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .btn-register {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 12px;
+            border-radius: 5px;
+            color: white;
+            font-weight: 500;
+            transition: transform 0.2s;
+        }
+        .btn-register:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+        }
+        .login-link {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+        .login-link a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+        .alert {
+            margin-bottom: 1.5rem;
+        }
+        .password-requirements {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 0.5rem;
+        }
+        .password-requirements ul {
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="register-card">
+            <div class="register-header">
+                <h1>IPLC ArticEval</h1>
+                <p>Create Your Account</p>
+            </div>
+
+            <div id="alertContainer"></div>
+
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" class="form-control" id="username" name="username" required minlength="3" maxlength="50">
+                    <small class="text-muted">3-50 characters, letters, numbers, and underscores only</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input type="email" class="form-control" id="email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="password" name="password" required minlength="8">
+                    <div class="password-requirements">
+                        <strong>Password must contain:</strong>
+                        <ul>
+                            <li>At least 8 characters</li>
+                            <li>At least one uppercase letter</li>
+                            <li>At least one lowercase letter</li>
+                            <li>At least one number</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword" class="form-label">Confirm Password</label>
+                    <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                </div>
+
+                <button type="submit" class="btn btn-register" id="registerBtn">
+                    <span id="registerBtnText">Create Account</span>
+                    <span id="registerSpinner" class="spinner-border spinner-border-sm ms-2" style="display: none;"></span>
+                </button>
+            </form>
+
+            <div class="login-link">
+                <p>Already have an account? <a href="/login.html">Sign In</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Password validation
+        function validatePassword(password) {
+            const minLength = password.length >= 8;
+            const hasUpper = /[A-Z]/.test(password);
+            const hasLower = /[a-z]/.test(password);
+            const hasNumber = /\d/.test(password);
+            
+            return minLength && hasUpper && hasLower && hasNumber;
+        }
+
+        // Username validation
+        function validateUsername(username) {
+            const pattern = /^[a-zA-Z0-9_]{3,50}$/;
+            return pattern.test(username);
+        }
+
+        // Registration form handler
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const registerBtn = document.getElementById('registerBtn');
+            const registerBtnText = document.getElementById('registerBtnText');
+            const registerSpinner = document.getElementById('registerSpinner');
+
+            // Client-side validation
+            if (!validateUsername(username)) {
+                showAlert('Username must be 3-50 characters and contain only letters, numbers, and underscores.', 'danger');
+                return;
+            }
+
+            if (!validatePassword(password)) {
+                showAlert('Password must be at least 8 characters and contain uppercase, lowercase, and number.', 'danger');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showAlert('Passwords do not match.', 'danger');
+                return;
+            }
+
+            // Show loading state
+            registerBtn.disabled = true;
+            registerBtnText.textContent = 'Creating Account...';
+            registerSpinner.style.display = 'inline-block';
+
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert('Account created successfully! Redirecting to builder...', 'success');
+                    
+                    // Redirect to builder
+                    setTimeout(() => {
+                        window.location.href = '/builder.html';
+                    }, 2000);
+                } else {
+                    showAlert(result.message || 'Registration failed', 'danger');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                showAlert('Network error. Please try again.', 'danger');
+            } finally {
+                // Reset button state
+                registerBtn.disabled = false;
+                registerBtnText.textContent = 'Create Account';
+                registerSpinner.style.display = 'none';
+            }
+        });
+
+        // Show alert message
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('alertContainer');
+            alertContainer.innerHTML = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+        }
+
+        // Real-time password validation feedback
+        document.getElementById('password').addEventListener('input', function() {
+            const password = this.value;
+            const isValid = validatePassword(password);
+            
+            if (password && !isValid) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+            }
+        });
+
+        // Real-time username validation feedback
+        document.getElementById('username').addEventListener('input', function() {
+            const username = this.value;
+            const isValid = validateUsername(username);
+            
+            if (username && !isValid) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+            }
+        });
+
+        // Confirm password validation
+        document.getElementById('confirmPassword').addEventListener('input', function() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = this.value;
+            
+            if (confirmPassword && password !== confirmPassword) {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+            }
+        });
+
+        // Check if already logged in
+        async function checkExistingAuth() {
+            try {
+                const response = await fetch('/api/auth/session');
+                const result = await response.json();
+                
+                if (result.success && result.authenticated) {
+                    // Already logged in, redirect
+                    window.location.href = '/builder.html';
+                }
+            } catch (error) {
+                // Ignore error - user is not logged in
+                console.log('No existing session');
+            }
+        }
+
+        // Check auth on page load
+        checkExistingAuth();
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
