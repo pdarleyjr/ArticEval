@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigation Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 50px;
+            background: #f0f0f0;
+        }
+        .test-container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        .test-link {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .test-link:hover {
+            background: #5a6fd8;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Navigation Test</h1>
+        <p>Testing basic navigation without Bootstrap or external dependencies:</p>
+        
+        <a href="/register.html" class="test-link">Go to Register (Styled Link)</a><br>
+        <a href="/register.html">Go to Register (Plain Link)</a><br>
+        <a href="/login.html">Back to Login</a>
+        
+        <h3>JavaScript Test</h3>
+        <button onclick="window.location.href='/register.html'">Navigate via JavaScript</button>
+        
+        <script>
+            console.log('Navigation test page loaded');
+            
+            // Test if any global event listeners are interfering
+            document.addEventListener('click', function(e) {
+                console.log('Click detected on:', e.target);
+                console.log('Target href:', e.target.href);
+            });
+        </script>
+    </div>
+</body>
+</html>
