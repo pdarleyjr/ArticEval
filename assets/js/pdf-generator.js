@@ -217,20 +217,27 @@ class PDFGenerator {
      */
     formatProtocolContent(formData) {
         // Get client's name
-        const clientName = formData.firstName && formData.lastName 
+        const clientName = formData.firstName && formData.lastName
             ? `${formData.firstName} ${formData.lastName}`
             : "the client";
 
         let content = `
         <div class="protocol-content">
             <p class="protocol-description">
-                An articulation evaluation was conducted to assess ${clientName}'s ability to produce speech 
-                sounds clearly and appropriately for their age. The purpose of the evaluation is to identify any 
-                speech sound errors that may affect ability to communicate effectively. Errors in articulation 
-                can significantly affect ability to be understood, academic performance, and social 
-                interactions. By understanding specific speech patterns, we can create a tailored intervention 
+                An articulation evaluation was conducted to assess ${clientName}'s ability to produce speech
+                sounds clearly and appropriately for their age. The purpose of the evaluation is to identify any
+                speech sound errors that may affect ability to communicate effectively. Errors in articulation
+                can significantly affect ability to be understood, academic performance, and social
+                interactions. By understanding specific speech patterns, we can create a tailored intervention
                 plan to improve overall communication skills.
-            </p>
+            </p>`;
+
+        // Add assessment language if specified
+        if (formData.assessmentLanguage) {
+            content += `<p><strong>Assessment Language:</strong> ${formData.assessmentLanguage}</p>`;
+        }
+
+        content += `
             <div class="components-list">
                 <p>The evaluation included the following components:</p>
                 <ul>`;
