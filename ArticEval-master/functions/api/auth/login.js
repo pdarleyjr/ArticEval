@@ -65,7 +65,7 @@ export async function onRequest(context) {
     
     // Store session in KV
     const sessionKey = `session:${user.id}`;
-    await env.sessions.put(sessionKey, JSON.stringify(sessionData), {
+    await env.SESSION_STORE.put(sessionKey, JSON.stringify(sessionData), {
       expirationTtl: Math.floor((sessionExpires - Date.now()) / 1000)
     });
     

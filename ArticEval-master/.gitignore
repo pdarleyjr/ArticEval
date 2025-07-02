@@ -1,0 +1,12 @@
+# Wrangler build artifacts (local and parent directory)
+.wrangler/
+../.wrangler/
+
+# VSCode workspace files (user-specific)
+*.code-workspace
+
+# Node modules and build artifacts
+node_modules/
+dist/
+.env.local
+.env
