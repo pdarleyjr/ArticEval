@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en" class="hyphenate">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview - Articulation Evaluation</title>
+    <style>
+        @page {
+            margin: 0.5in;
+            size: letter;
+        }
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            line-height: 1.6;
+            color: #000;
+            margin: 0;
+            padding: 0;
+            font-size: 12pt;
+            -webkit-hyphens: auto;
+            -ms-hyphens: auto;
+            -moz-hyphens: auto;
+            hyphens: auto;
+            
+            word-wrap: break-word;
+            background-color: white;
+        }
+        #evaluation-container {
+            width: 8.5in;
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+            position: relative;
+            box-sizing: border-box;
+            flex-direction: column;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.2in;
+            padding: 0.3in 0.5in 0.1in 0.5in;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .header img {
+            height: 1.5in;
+            float: right;
+        }
+        .client-info {
+            width: 98%;
+            margin: 0;
+            background-color: #f5f5f5;
+            padding: 12px;
+            border-radius: 5px;
+        }
+        .client-info p {
+            margin: 0.1in 0;
+            font-size: 11.5pt;
+        }
+        h2 {
+            color: #003366;
+            font-size: 14pt;
+            page-break-before: auto;
+            font-weight: 600;
+            margin-top: 0.3in;
+            margin-bottom: 0.2in;
+            border-bottom: 1px solid #003366;
+            padding-bottom: 0.1in;
+        }
+        ul, ol {
+            margin: 0.2in 0;
+            padding-left: 0.25in;
+        }
+        .section-content {
+            page-break-inside: avoid;
+            margin-top: 0.1in;
+            break-inside: avoid;
+        }
+        li {
+            margin-bottom: 0.12in;
+            page-break-inside: avoid;
+            break-inside: avoid;
+            text-align: justify;
+            line-height: 1.4;
+            font-size: 11.5pt;
+            -webkit-hyphens: auto;
+            -ms-hyphens: auto;
+            -moz-hyphens: auto;
+            hyphens: auto;
+        }
+        p {
+            text-align: justify;
+            margin: 0.2in 0;
+            line-height: 1.6;
+            font-size: 12pt;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0.2in 0;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 0.1in;
+            text-align: left;
+            font-size: 11pt;
+        }
+        th {
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        [contenteditable="true"] {
+  
+            border: none;
+            padding: 2px;
+            min-height: 20px;
+            outline: 1px dashed rgba(204, 204, 204, 0.5);
+        }
+        [contenteditable="true"]:focus {
+            outline: none;
+            outline: 1px dashed #003366;
+            background-color: #f9f9f9;
+        }
+        @media print {
+            .download-btn {
+                display: none !important;
+                visibility: hidden !important;
+            }
+            [contenteditable="true"] {
+                border: none !important;
+                padding: 0;
+                outline: none !important;
+            }
+        }
+        .footer {
+            margin-top: 0.8in;
+            text-align: center;
+            font-size: 11pt;
+            line-height: 1.8;
+            border-top: 1px solid #003366;
+            padding: 0.2in 0.5in 0.5in 0.5in;
+            background-color: #f5f5f5;
+        }
+        .footer a {
+            color: #003366;
+            text-decoration: none;
+        }
+        .download-btn {
+            text-align: center;
+            margin-top: 20px;
+            padding-bottom: 20px;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        .download-btn button {
+            padding: 10px 20px;
+            background-color: #003366;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .download-btn button:hover {
+            background-color: #004488;
+        }
+        .page-break {
+            page-break-before: always;
+        }
+        .avoid-break {
+            page-break-inside: avoid;
+        }
+        .html2pdf__page-break {
+            height: 0;
+            display: none;
+            visibility: hidden;
+            page-break-before: always;
+            margin: 0;
+        }
+        /* Fix for clinical impression section */
+        #clinicalImpressionsSection .section-content {
+            white-space: normal;
+        }
+        #clinicalImpressionsSection p {
+            margin-bottom: 0.15in;
+            padding-bottom: 0;
+            white-space: normal;
+        }
+        /* Remove table borders in PDF */
+        @media print {
+            table, th, td {
+                border: 0.5pt solid #000 !important;
+            }
+            th {
+                background-color: #f0f0f0 !important;
+                color: black !important;
+            }
+        }
+        /* Table container to prevent page breaks */
+        table {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+        .table-wrapper {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+            display: block;
+            margin: 0.25in 0;
+        }
+        .html2pdf__page-break {
+            page-break-before: always;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="evaluation-container">
+        <!-- Header with logo -->
+        <div class="header">
+            <div></div>
+            <img src="assets/images/400dpiLogo.PNG" alt="IPLC Logo" style="margin-left: auto;">
+        </div>
+
+        <!-- Client Information -->
+        <div class="client-info">
+            <p><strong>Name:</strong> <span id="clientNameDisplay" contenteditable="true">Client Name</span></p>
+            <p><strong>Date of Birth:</strong> <span id="dobDisplay" contenteditable="true">MM/DD/YYYY</span></p>
+            <p><strong>Age:</strong> <span id="ageDisplay" contenteditable="true">X years, Y months</span></p>
+            <p><strong>Evaluation Date:</strong> <span id="evalDateDisplay" contenteditable="true">MM/DD/YYYY</span></p>
+        </div>
+        
+        <!-- Sections will be dynamically inserted here -->
+        <div id="sectionsContainer"></div>
+        
+        <div class="footer">
+            <strong>Innovative Pediatric Learning Center of Miami</strong><br>
+            7780 SW 87th Avenue, Suite 203, Miami, FL 33173<br>
+            <a href="tel:786-622-2353">786-622-2353</a> | 
+            <a href="mailto:info@IPLCmiami.com">info@IPLCmiami.com</a> | 
+            <a href="https://www.IPLCmiami.com">www.IPLCmiami.com</a>
+        </div>
+        
+        <div class="download-btn no-print">
+            <button id="downloadPdfBtn">Download PDF</button>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="assets/js/pdf-fixes.js"></script>
+    <script>
+        // Function to handle PDF generation
+        document.getElementById('downloadPdfBtn').addEventListener('click', async function() {
+            const element = document.getElementById('evaluation-container');
+            const clientName = document.getElementById('clientNameDisplay').textContent;
+            const evalDate = document.getElementById('evalDateDisplay').textContent;
+            
+            // Format filename
+            const safeClientName = clientName.replace(/[^a-z0-9]/gi, '_');
+            const safeDate = evalDate.replace(/\//g, '-');
+            
+            // Dynamically load the PDF print stylesheet
+            const printStylesheet = document.createElement('link');
+            printStylesheet.rel = 'stylesheet';
+            printStylesheet.href = 'assets/css/pdf-print.css';
+            printStylesheet.type = 'text/css';
+            document.head.appendChild(printStylesheet);
+            
+            // Give the stylesheet time to load and apply
+            await new Promise(resolve => {
+                printStylesheet.onload = resolve;
+                // Fallback timeout in case onload doesn't fire
+                setTimeout(resolve, 200);
+            });
+            
+            // Pre-processing: Ensure tables don't break across pages
+            // Use the prepareForPdfRendering function to clean up document
+            prepareForPdfRendering(element);
+            const options = {
+                filename: `${safeClientName}_Articulation_Evaluation_${safeDate}.pdf`,
+                margin: [0.6, 0.5, 0.6, 0.5],
+ // Slightly larger top/bottom margins
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
+                    scale: 2.5,
+                    ignoreElements: (element) => element.classList.contains('no-print'),
+                    useCORS: true,
+                    letterRendering: true,
+                    scrollY: 0
+                },
+                jsPDF: {
+                    unit: 'in',
+                    format: 'letter',
+                    orientation: 'portrait',
+                    compress: true,
+                    enableLinks: true
+,
+                    precision: 16
+                },
+                pagebreak: { 
+                    mode: ['css', 'avoid-all', 'legacy'],
+                    before: '.page-break',
+                    avoid: 'h2, table, .avoid-break, tr, .table-wrapper',
+                    allowOrphans: true
+                }
+            };
+            
+            // Generate PDF
+            html2pdf().set(options).from(element).save();
+        });
+        
+        // Function to receive and process data from the parent window
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'previewData') {
+                const data = event.data.content;
+                
+                // Update client information
+                document.getElementById('clientNameDisplay').textContent = `${data.firstName} ${data.lastName}`;
+                document.getElementById('dobDisplay').textContent = new Date(data.dob).toLocaleDateString();
+                document.getElementById('ageDisplay').textContent = `${data.ageYears} years, ${data.ageMonths} months`;
+                document.getElementById('evalDateDisplay').textContent = new Date(data.evaluationDate).toLocaleDateString();
+                
+                // Populate sections
+                const sectionsContainer = document.getElementById('sectionsContainer');
+                sectionsContainer.innerHTML = '';
+                
+                // Add each section
+                data.sections.forEach(section => {
+                    const sectionElement = document.createElement('section');
+                    sectionElement.id = section.id;
+                    sectionElement.className = 'section';
+                    
+                    const heading = document.createElement('h2');
+                    heading.textContent = section.title;
+                    sectionElement.appendChild(heading);
+                    
+                    const content = document.createElement('div');
+                    content.className = 'section-content';
+                    content.setAttribute('contenteditable', 'true');
+                    
+                    // Wrap tables in a div to prevent page breaks
+                    let processedContent = section.content;
+                    if (processedContent.includes('<table')) {
+                        processedContent = processedContent.replace(/<table/g, '<div class="table-wrapper"><table').replace(/<\/table>/g, '</table></div>');
+                    }
+                    content.innerHTML = processedContent;
+                    sectionElement.appendChild(content);
+                    
+                    sectionsContainer.appendChild(sectionElement);
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,143 @@
+/* PDF Print-specific styles - Applied only during PDF generation */
+
+/* Remove all borders, outlines, and dotted lines */
+[contenteditable], 
+[contenteditable="true"],
+.section-content,
+div,
+p,
+section {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    text-decoration: none !important;
+}
+
+/* Target everything to ensure no borders appear */
+* {
+    outline: none !important;
+    border-style: none !important;
+}
+
+a, a:visited, a:hover {
+    text-decoration: none !important;
+}
+
+/* Table styling to prevent page breaks */
+table {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    border-collapse: collapse !important;
+    width: 100% !important;
+    margin: 0.2in 0 !important;
+}
+
+th, td {
+    border: 0.5pt solid rgba(0, 0, 0, 0.2) !important;
+    padding: 0.08in !important;
+    text-align: left !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    vertical-align: top !important;
+    page-break-inside: avoid !important;
+    max-width: 7in !important; /* Prevent content from overflowing */
+    break-inside: avoid !important;
+}
+
+.table-wrapper {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    display: block !important;
+    margin: 0.2in 0 !important;
+    border: none !important;
+    outline: none !important;
+}
+
+/* Fix for empty sections with too much white space */
+section, .section {
+    margin-bottom: 0.1in !important;
+    padding-bottom: 0 !important;
+}
+
+/* When a section has minimal content, reduce its spacing */
+section p:only-child, 
+.section p:only-child {
+    margin: 0.05in 0 !important;
+}
+
+/* Better headings */
+h2, h3, h4, h5, h6 {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+}
+
+/* Fix white space in clinical impressions */
+#clinicalImpressionsSection p,
+#recommendationsSection p {
+    margin-bottom: 0.15in !important;
+    margin-top: 0.15in !important;
+    white-space: normal !important;
+}
+
+/* Compact empty or near-empty sections */
+section:empty,
+.section:empty,
+section:only-child,
+.section:only-child {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* Remove excessive space after headings */
+h2 + div, h3 + div {
+    margin-top: 0.05in !important;
+}
+
+/* Improve clinical impression section formatting */
+#clinicalImpressionsSection .section-content {
+    white-space: normal !important;
+}
+
+#clinicalImpressionsSection p {
+    margin-bottom: 0.15in !important;
+    padding-bottom: 0 !important;
+    white-space: normal !important;
+}
+
+/* Section and heading spacing */
+section, .section {
+    margin-bottom: 0.3in !important;
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+    clear: both !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 0.1in !important;
+    border: none !important;
+    outline: none !important;
+}
+
+h2 {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+    margin-top: 0.3in !important;
+    margin-bottom: 0.2in !important;
+}
+
+/* Make sure lists look clean */
+ul, ol {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin: 0.15in 0 0.15in 0.2in !important;
+    padding-left: 0.2in !important;
+}
+
+li {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin-bottom: 0.05in !important;
+}

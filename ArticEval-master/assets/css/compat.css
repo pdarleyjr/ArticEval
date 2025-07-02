@@ -1,0 +1,251 @@
+/* Compatibility overrides for modern browsers and PDF generation */
+
+/* Fix text size adjustment and rendering */
+html {
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    font-feature-settings: "kern" 1;
+}
+
+/* Fix column gap and flexbox behavior */
+.row {
+    gap: 1.5rem;
+    column-gap: 1.5rem;
+    page-break-inside: avoid;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+
+/* Enhanced focus states */
+:focus:not(:focus-visible) {
+    outline: 0;
+}
+
+:focus-visible {
+    outline: 2px solid #2C5282;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(44, 82, 130, 0.2);
+}
+
+/* Improved placeholder styling */
+::placeholder {
+    opacity: 1;
+    color: #6c757d;
+    transition: opacity 0.2s ease;
+}
+
+:focus::placeholder {
+    opacity: 0.7;
+}
+
+/* Enhanced form control states */
+.form-control:focus,
+.form-check-input:focus {
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(44, 82, 130, 0.25);
+    border-color: #2C5282;
+}
+
+/* Smooth transitions */
+.form-control,
+.form-check-input,
+button,
+a {
+    transition: all 0.2s ease-in-out;
+}
+
+/* Print and PDF compatibility fixes */
+@media print {
+    /* Root level print adjustments */
+    :root {
+        --page-margin: 15mm;
+        --content-width: calc(100% - (var(--page-margin) * 2));
+    }
+
+    /* Override flexbox for print */
+    .row {
+        display: block !important;
+        gap: 0 !important;
+        column-gap: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* Enhanced page break control */
+    div {
+        page-break-inside: auto;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+        page-break-after: avoid;
+        page-break-inside: avoid;
+        break-after: avoid;
+        break-inside: avoid;
+    }
+    
+    img {
+        page-break-inside: avoid;
+        page-break-before: auto;
+        page-break-after: auto;
+        break-inside: avoid;
+        break-before: auto;
+        break-after: auto;
+        max-width: 100% !important;
+        height: auto !important;
+    }
+    
+    table, figure {
+        page-break-inside: avoid;
+        break-inside: avoid;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 15pt 0 !important;
+        table-layout: fixed !important;
+    }
+
+    tr, td, th {
+        page-break-inside: avoid;
+        break-inside: avoid;
+        word-wrap: break-word !important;
+        max-width: 100% !important;
+    }
+    
+    /* Improved color and background handling */
+    * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+    }
+    
+    /* Enhanced font rendering */
+    body {
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+        -webkit-text-size-adjust: none;
+        font-size: 11pt !important;
+        line-height: 1.4 !important;
+    }
+    
+    /* Improved table handling */
+    table {
+        border-collapse: collapse !important;
+        table-layout: fixed !important;
+        width: 100% !important;
+        margin: 15pt 0 !important;
+        border: 0.5pt solid #000 !important;
+    }
+    
+    th, td {
+        border: 0.5pt solid #000 !important;
+        padding: 6pt !important;
+        text-align: left !important;
+        vertical-align: top !important;
+        font-size: 10pt !important;
+    }
+    
+    /* Enhanced form field rendering */
+    input[type="text"],
+    input[type="date"],
+    input[type="number"],
+    textarea,
+    select {
+        border: none !important;
+        background: transparent !important;
+        font-family: inherit !important;
+        font-size: inherit !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    /* Simplified checkbox and radio styling */
+    input[type="checkbox"],
+    input[type="radio"] {
+        border: 1pt solid #000 !important;
+        width: 9pt !important;
+        height: 9pt !important;
+        margin: 0 3pt !important;
+        padding: 0 !important;
+        background: white !important;
+        position: relative !important;
+        display: inline-block !important;
+        vertical-align: middle !important;
+    }
+
+    input[type="checkbox"]:checked,
+    input[type="radio"]:checked {
+        background: #000 !important;
+    }
+    
+    /* Enhanced form layout */
+    .form-group,
+    .field-group {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+        margin: 8pt 0 !important;
+    }
+
+    /* Fix list rendering */
+    ul, ol {
+        padding-left: 15pt !important;
+        margin: 8pt 0 !important;
+        break-inside: avoid !important;
+    }
+
+    li {
+        break-inside: avoid !important;
+        margin: 4pt 0 !important;
+    }
+
+    /* Enhanced section breaks */
+    section, .section {
+        break-inside: avoid !important;
+        margin: 15pt 0 !important;
+        padding: 0 !important;
+        background: none !important;
+    }
+
+    /* Remove visual effects */
+    .gradient-bg,
+    .shadow,
+    .card {
+        background: none !important;
+        box-shadow: none !important;
+        border: none !important;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: more) {
+    :root {
+        --text-color: #000000;
+        --border-color: #000000;
+        --background-color: #ffffff;
+        --link-color: #000000;
+        --heading-color: #000000;
+    }
+    
+    * {
+        border-color: var(--border-color) !important;
+        color: var(--text-color) !important;
+        background-color: var(--background-color) !important;
+    }
+
+    a {
+        text-decoration: underline !important;
+        color: var(--link-color) !important;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        color: var(--heading-color) !important;
+        border-color: var(--border-color) !important;
+    }
+
+    input, select, textarea {
+        border: 1px solid var(--border-color) !important;
+        background: var(--background-color) !important;
+        color: var(--text-color) !important;
+    }
+}

@@ -23,16 +23,5 @@ Thumbs.db
 
 # AI Analysis Documentation (Local Only)
 ai-project-documentation.json
-ai-project-comprehensive-analysis.json
 *-ai-documentation.json
 ai-analysis-*.json
-
-# Cloudflare specific
-.wrangler/
-dist/
-.dev.vars
-
-# Environment files
-.env
-.env.local
-.env.production
