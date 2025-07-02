@@ -2,8 +2,22 @@
 import { dbManager } from './db-utils.js';
 import { templateEngine } from './template-engine.js';
 
-export async function generateSummary(formData) {
+export async function generateSummary(formData, useAI = true) {
     try {
+        // Try AI-powered summary generation first
+        if (useAI) {
+            console.log('Attempting AI-powered summary generation...');
+            const aiSummary = await generateAISummary(formData);
+            if (aiSummary && aiSummary.success) {
+                console.log('AI summary generated successfully');
+                return aiSummary.summary;
+            } else {
+                console.warn('AI summary generation failed, falling back to template-based generation:', aiSummary);
+            }
+        }
+
+        console.log('Using template-based summary generation...');
+        
         // Load sample evaluations for comparison
         let sampleEvaluations = [];
         try {
@@ -60,8 +74,233 @@ export async function generateSummary(formData) {
         return summary.trim();
     } catch (error) {
         console.error('Error generating summary:', error);
-        console.error('Error stack:', error.stack);
+        console.error('Error stack:', error);
         return `Error generating summary: ${error.message}. Please try again.`;
+    }
+}
+
+// AI-powered summary generation function
+async function generateAISummary(formData) {
+    try {
+        // Get authentication token
+        const token = getAuthToken();
+        if (!token) {
+            console.warn('No authentication token found for AI summary generation');
+            return { success: false, error: 'Authentication required' };
+        }
+
+        // Prepare clinical data for AI processing
+        const clinicalData = prepareClinicalData(formData);
+        
+        // Call AI endpoint
+        const response = await fetch('/api/ai/summary', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                formData: clinicalData,
+                requestType: 'clinical_summary',
+                options: {
+                    includeRecommendations: false,
+                    focusAreas: ['clinical_impressions', 'assessment_results'],
+                    clinicalContext: 'speech_language_pathology'
+                }
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`AI API responded with status ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        
+        if (result.success && result.summary) {
+            return {
+                success: true,
+                summary: result.summary,
+                metadata: result.metadata || {}
+            };
+        } else {
+            return {
+                success: false,
+                error: result.error || 'Unknown error from AI service'
+            };
+        }
+    } catch (error) {
+        console.error('Error in AI summary generation:', error);
+        return {
+            success: false,
+            error: error.message
+        };
+    }
+}
+
+// Multi-source authentication token retrieval
+function getAuthToken() {
+    // Try multiple sources for the token
+    let token = localStorage.getItem('authToken') ||
+                localStorage.getItem('token') ||
+                sessionStorage.getItem('authToken') ||
+                sessionStorage.getItem('token');
+    
+    // Try to get from cookies as fallback
+    if (!token) {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'authToken' || name === 'token') {
+                token = value;
+                break;
+            }
+        }
+    }
+    
+    return token;
+}
+
+// Prepare clinical data for AI processing
+function prepareClinicalData(formData) {
+    return {
+        // Patient Demographics
+        patientInfo: {
+            name: `${formData.firstName || ''} ${formData.lastName || ''}`.trim(),
+            age: formData.age,
+            dateOfBirth: formData.dateOfBirth,
+            evaluationDate: formData.evaluationDate
+        },
+        
+        // Assessment Data
+        assessmentData: {
+            standardizedAssessment: formData.standardizedAssessment,
+            speechSound: formData.speechSound,
+            oralMechanism: formData.oralMechanism,
+            speechSample: formData.speechSample,
+            languageSample: formData.languageSample,
+            backgroundInfo: formData.backgroundInfo
+        },
+        
+        // Clinical Context
+        clinicalContext: {
+            referralSource: formData.referralSource,
+            reasonForReferral: formData.reasonForReferral,
+            evaluator: formData.evaluator
+        },
+        
+        // Extract key findings for AI processing
+        keyFindings: extractKeyFindings(formData)
+    };
+}
+
+// Extract key clinical findings from form data
+function extractKeyFindings(formData) {
+    const findings = {};
+    
+    // Standardized assessment findings
+    if (formData.standardizedAssessment) {
+        const { tl, ac, ec } = formData.standardizedAssessment;
+        if (tl && tl.standardScore) {
+            findings.totalLanguageScore = {
+                score: tl.standardScore,
+                percentile: tl.percentile,
+                severity: tl.severity
+            };
+        }
+        if (ac && ac.standardScore) {
+            findings.auditoryComprehension = {
+                score: ac.standardScore,
+                severity: ac.severity
+            };
+        }
+        if (ec && ec.standardScore) {
+            findings.expressiveCommunication = {
+                score: ec.standardScore,
+                severity: ec.severity
+            };
+        }
+    }
+    
+    // Speech sound findings
+    if (formData.speechSound) {
+        findings.speechSound = {
+            articulation: formData.speechSound.articulation,
+            intelligibility: formData.speechSound.intelligibility,
+            phonologicalProcesses: extractPhonologicalProcesses(formData.speechSound)
+        };
+    }
+    
+    // Oral mechanism findings
+    if (formData.oralMechanism) {
+        findings.oralMechanism = {
+            structure: formData.oralMechanism.structure,
+            function: formData.oralMechanism.function,
+            overallFindings: formData.oralMechanism.overallNotes
+        };
+    }
+    
+    // Clinical observations
+    if (formData.speechSample && formData.speechSample.observations) {
+        findings.speechObservations = formData.speechSample.observations;
+    }
+    
+    if (formData.languageSample && formData.languageSample.observations) {
+        findings.languageObservations = formData.languageSample.observations;
+    }
+    
+    return findings;
+}
+
+// Extract phonological processes from speech sound data
+function extractPhonologicalProcesses(speechSoundData) {
+    const processes = [];
+    
+    if (speechSoundData.articulation && speechSoundData.articulation.errorPatterns) {
+        speechSoundData.articulation.errorPatterns.forEach(pattern => {
+            if (pattern.sound && pattern.substitution) {
+                processes.push({
+                    target: pattern.sound,
+                    substitution: pattern.substitution,
+                    positions: pattern.positions || []
+                });
+            }
+        });
+    }
+    
+    return processes;
+}
+
+// Function to refine AI summary based on clinician feedback
+export async function refineAISummary(summaryId, feedback, refinementRequest) {
+    try {
+        const token = getAuthToken();
+        if (!token) {
+            throw new Error('Authentication required for summary refinement');
+        }
+
+        const response = await fetch('/api/ai/summary', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                summaryId,
+                feedback,
+                refinementRequest,
+                requestType: 'refinement'
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`AI refinement API responded with status ${response.status}`);
+        }
+
+        const result = await response.json();
+        return result;
+    } catch (error) {
+        console.error('Error refining AI summary:', error);
+        throw error;
     }
 }
 

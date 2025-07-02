@@ -3,194 +3,268 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Articulation Evaluation Protocol</title>
-    <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/bootstrap-overrides.css">
-    <link rel="stylesheet" href="assets/css/compat.css">
-    <link rel="stylesheet" href="assets/css/pdf-styles-enhanced.css">
-    <link rel="stylesheet" href="assets/css/styles.css">
-    <link rel="stylesheet" href="assets/css/table-fixes.css">
-    <link rel="stylesheet" href="assets/css/page-break-fixes.css">
-    <link rel="stylesheet" href="assets/css/pdf-styles.css">
-    <base href="./">
-    <!-- Include Dexie.js from jsDelivr for better IndexedDB management -->
-    <script src="https://cdn.jsdelivr.net/npm/dexie@4.0.11/dist/dexie.min.js"></script>
+    <title>IPLC ArticEval - Articulation Evaluation Platform</title>
+    <link rel="stylesheet" href="/assets/css/styles.css">
+    <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon">
+    <style>
+        .hero-section {
+            text-align: center;
+            padding: 3rem 0;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: var(--white);
+            margin: -2rem -2rem 2rem -2rem;
+        }
+        
+        .hero-section h1 {
+            color: var(--white);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .hero-section p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+        
+        .btn-primary {
+            background-color: var(--accent-color);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+        
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--white);
+            border: 2px solid var(--white);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+        
+        .feature-card {
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        }
+        
+        .feature-icon {
+            font-size: 2rem;
+            color: var(--secondary-color);
+            margin-bottom: 1rem;
+        }
+        
+        .auth-status {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: var(--white);
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: none;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-color);
+        }
+    </style>
 </head>
-<body class="bg-light">
-    <div class="container-fluid p-4">
-        <!-- Main Form Container -->
-        <main id="pdfRoot" class="bg-white p-4 rounded shadow">
-            <form id="evaluationForm" style="display: none;">
-                <!-- Error Boundary -->
-                <div id="errorBoundary" class="alert alert-danger d-none">
-                    <p id="errorMessage"></p>
-                    <button type="button" class="btn btn-outline-danger">Reload Page</button>
-                </div>
-
-                <!-- Include all form sections -->
-                <div id="formSections" class="pdf-content">
-                </div>
-
-                <!-- Form Controls -->
-                <div class="d-flex justify-content-end gap-2 mt-4">
-                    <button type="button" id="generateReport" class="btn btn-info">Generate Report</button>
-                    <button type="button" id="previewButton" class="btn btn-success">Preview & Download PDF</button>
-                </div>
-            </form>
-
-            <!-- Loading indicator -->
-            <div id="loadingIndicator" class="text-center p-5">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <p class="mt-3">Loading form sections...</p>
-            </div>
-        </main>
+<body>
+    <!-- Authentication Status -->
+    <div id="authStatus" class="auth-status">
+        <span id="userInfo"></span>
+        <button id="logoutBtn" class="btn btn-secondary" style="margin-left: 1rem; padding: 0.25rem 1rem;">Logout</button>
     </div>
 
-    <!-- Use the latest version of html2pdf for better rendering -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script type="text/javascript">
-        window.addEventListener('DOMContentLoaded', function() {
-            const sections = [
-                'patient-info',
-                'protocol',
-                'background-info',
-                'oral-mechanism',
-                'speech-sound',
-                'speech-sample',
-                'clinical-impressions',
-                'recommendations'
-            ];
+    <header class="logo-header">
+        <img src="/assets/images/400dpiLogo.PNG" alt="IPLC Logo" />
+    </header>
 
-            const formSectionsContainer = document.getElementById('formSections');
-            const form = document.getElementById('evaluationForm');
-            const loadingIndicator = document.getElementById('loadingIndicator');
+    <main>
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <h1>IPLC ArticEval Platform</h1>
+            <p>Professional articulation evaluation forms with advanced analytics and reporting</p>
+            <div class="cta-buttons">
+                <a href="/builder.html" class="btn btn-primary" id="builderBtn">Start Evaluation</a>
+                <a href="/login.html" class="btn btn-secondary" id="loginBtn">Login</a>
+                <a href="/register.html" class="btn btn-secondary" id="registerBtn">Register</a>
+                <a href="/dashboard" class="btn btn-primary" id="dashboardBtn" style="display: none;">Dashboard</a>
+            </div>
+        </section>
 
-            // Load sections sequentially to maintain order
-            sections.reduce((promise, section) => {
-                return promise.then(() => {
-                    return fetch(`backup/sections/${section}.html`)
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error(`Failed to load section ${section}`);
-                            }
-                            return response.text();
-                        })
-                        .then(html => {
-                            // Create a temporary container to parse the HTML
-                            const tempContainer = document.createElement('div');
-                            tempContainer.innerHTML = html;
-                            
-                            // Fix any relative paths in the loaded content
-                            tempContainer.querySelectorAll('img[src]').forEach(img => {
-                                if (img.src.startsWith('../../')) {
-                                    img.src = img.src.replace('../../', '');
-                                }
-                            });
-                            
-                            formSectionsContainer.insertAdjacentHTML('beforeend', tempContainer.innerHTML);
-                        });
-                });
-            }, Promise.resolve())
-            .then(() => {
-                // Hide loading indicator and show form
-                loadingIndicator.style.display = 'none';
-                form.style.display = 'block';
+        <!-- Features Grid -->
+        <section class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📋</div>
+                <h3>Comprehensive Evaluation Forms</h3>
+                <p>Structured articulation assessment forms covering speech sounds, oral mechanism, language samples, and clinical impressions with standardized protocols.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Advanced Analytics</h3>
+                <p>Real-time analytics and reporting with submission tracking, performance metrics, and comprehensive data visualization for clinical insights.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">📄</div>
+                <h3>PDF Generation</h3>
+                <p>Professional PDF reports with IPLC branding, optimized formatting, and clinical-grade documentation suitable for professional use.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">👥</div>
+                <h3>Multi-User Platform</h3>
+                <p>Secure authentication system with role-based access for clinicians, administrators, and users with comprehensive session management.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3>Secure & Compliant</h3>
+                <p>HIPAA-ready security features with encrypted data storage, secure sessions, and privacy-first design for clinical environments.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Cloud-Powered</h3>
+                <p>Built on Cloudflare Pages with serverless functions, global CDN distribution, and enterprise-grade reliability and performance.</p>
+            </div>
+        </section>
 
-                // Initialize modules
-                return Promise.all([
-                    import('./assets/js/db-utils.js'),
-                    import('./assets/js/summarizer.js'),
-                    import('./assets/js/template-engine.js'),
-                    import('./assets/js/summary-generator.js'),
-                    import('./assets/js/pdf-generator.js'),
-                    import('./assets/js/form-handler.js'),
-                    import('./assets/js/main.js'),
-                    import('./assets/js/table-handler.js'),
-                    import('./assets/js/section-handler.js')
-                ]);
-            })
-            .then(function([dbUtils, summarizer, templateEngineModule, summaryGenerator, pdfGenerator, formHandler, main, tableHandler, sectionHandler]) {
-                // Initialize form handler
-                window.formHandler = new formHandler.default();
+        <!-- System Status -->
+        <section id="systemStatus" class="loading">
+            <p>Loading system status...</p>
+        </section>
+    </main>
 
-                // Initialize PDF generator
-                window.pdfGenerator = pdfGenerator.createPDFGenerator();
-                // Expose template engine
-                window.templateEngine = templateEngineModule.templateEngine;
-
-                // Set up report generation button
-                document.getElementById('generateReport').addEventListener('click', async function() {
-                    const firstName = document.getElementById('firstName').value;
-                    const lastName = document.getElementById('lastName').value;
-
-                    if (!firstName || !lastName) {
-                        alert('Please fill in at least the patient\'s first and last name before generating a report.');
-                        return;
-                    }
-
-                    try {
-                        const formData = window.formHandler.collectFormData();
-                        // Set generateForPDF to false to only include clinical impressions
-                        const formDataForSummary = { ...formData, generateForPDF: false };
-                        const summary = await summaryGenerator.generateSummary(formDataForSummary);
-                        const impressionsField = document.getElementById('clinicalImpressionsSummary');
-                        if (impressionsField) {
-                            impressionsField.innerHTML = summary.replace(/\n/g, '<br>');
-                            impressionsField.style.whiteSpace = 'pre-line';
-                        }
-                    } catch (error) {
-                        console.error('Error generating report:', error);
-                        alert('Error generating report. Please try again.');
-                    }
+    <script>
+        // Authentication state management
+        let currentUser = null;
+        
+        // DOM elements
+        const authStatus = document.getElementById('authStatus');
+        const userInfo = document.getElementById('userInfo');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const loginBtn = document.getElementById('loginBtn');
+        const registerBtn = document.getElementById('registerBtn');
+        const builderBtn = document.getElementById('builderBtn');
+        const dashboardBtn = document.getElementById('dashboardBtn');
+        const systemStatus = document.getElementById('systemStatus');
+        
+        // Check authentication status on page load
+        async function checkAuthStatus() {
+            try {
+                const response = await fetch('/api/auth/me', {
+                    credentials: 'include'
                 });
                 
-                // Set up Preview button
-                const previewButton = document.getElementById('previewButton');
-                previewButton.addEventListener('click', async function() {
-                    try {
-                        const firstName = document.getElementById('firstName').value;
-                        const lastName = document.getElementById('lastName').value;
-
-                        if (!firstName || !lastName) {
-                            alert('Please fill in at least the patient\'s first and last name before previewing.');
-                            return;
-                        }
-
-                        // Show loading state
-                        previewButton.disabled = true;
-                        previewButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Preparing Preview...';
-
-                        // Collect form data
-                        const formData = window.formHandler.collectFormData();
-                        
-                        // Generate preview using the PDF generator
-                        await window.pdfGenerator.generatePreview(formData);
-                    } 
-                    catch (error) {
-                        console.error('Error generating preview:', error);
-                        alert('Error generating preview: ' + error.message);
-                    } finally {
-                        // Reset button state
-                        previewButton.disabled = false;
-                        previewButton.textContent = 'Preview & Download PDF';
-                    }
-                });
-            })
-            .catch(function(error) {
-                console.error('Error initializing application:', error);
-                loadingIndicator.style.display = 'none';
-                const errorBoundary = document.getElementById('errorBoundary');
-                const errorMessage = document.getElementById('errorMessage');
-                if (errorBoundary && errorMessage) {
-                    errorMessage.textContent = `Error initializing application: ${error.message}`;
-                    errorBoundary.classList.remove('d-none');
+                if (response.ok) {
+                    currentUser = await response.json();
+                    updateUIForAuthenticatedUser();
                 } else {
-                    alert(`Error initializing application: ${error.message}`);
+                    updateUIForUnauthenticatedUser();
                 }
-            });
+                
+                updateSystemStatus('System operational');
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                updateUIForUnauthenticatedUser();
+                updateSystemStatus('System check failed');
+            }
+        }
+        
+        // Update UI for authenticated users
+        function updateUIForAuthenticatedUser() {
+            authStatus.style.display = 'block';
+            userInfo.textContent = `Welcome, ${currentUser.name} (${currentUser.role})`;
+            
+            loginBtn.style.display = 'none';
+            registerBtn.style.display = 'none';
+            
+            if (currentUser.role === 'admin') {
+                dashboardBtn.style.display = 'inline-block';
+            }
+            
+            builderBtn.textContent = 'Create Evaluation';
+        }
+        
+        // Update UI for unauthenticated users
+        function updateUIForUnauthenticatedUser() {
+            authStatus.style.display = 'none';
+            loginBtn.style.display = 'inline-block';
+            registerBtn.style.display = 'inline-block';
+            dashboardBtn.style.display = 'none';
+            builderBtn.textContent = 'Start Evaluation';
+        }
+        
+        // Update system status
+        function updateSystemStatus(message) {
+            systemStatus.innerHTML = `<p>Status: ${message}</p>`;
+        }
+        
+        // Logout functionality
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    currentUser = null;
+                    updateUIForUnauthenticatedUser();
+                    updateSystemStatus('Logged out successfully');
+                } else {
+                    throw new Error('Logout failed');
+                }
+            } catch (error) {
+                console.error('Logout error:', error);
+                updateSystemStatus('Logout failed');
+            }
+        });
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuthStatus();
         });
     </script>
 </body>

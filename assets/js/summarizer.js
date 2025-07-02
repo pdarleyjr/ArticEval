@@ -185,16 +185,32 @@ function getPrognosis() {
     return 'Based on these results and with appropriate intervention and family support, prognosis for improved communication skills is favorable.';
 }
 
-// Generate complete evaluation summary
-async function generateEvaluationSummary(formData) {
+// Generate complete evaluation summary with AI integration
+async function generateEvaluationSummary(formData, useAI = true) {
     try {
+        // Try AI-powered summary generation first
+        if (useAI) {
+            const aiSummary = await generateAISummary(formData);
+            if (aiSummary && aiSummary.success) {
+                console.log('AI summary generated successfully');
+                // Store AI summary in IndexedDB for future reference
+                const data = formatFormData(formData);
+                await storeSummary(data, { ai: true }, aiSummary.summary);
+                return aiSummary.summary;
+            } else {
+                console.warn('AI summary generation failed, falling back to templates:', aiSummary?.error);
+            }
+        }
+
+        // Fallback to local template generation
+        console.log('Using local template generation');
         const data = formatFormData(formData);
         const sections = {
             introduction: templateSections.introduction.base(data) +
                          templateSections.introduction.screening(data),
 
-            assessment: templateSections.assessment.intro + '\n\n' + 
-                      templateSections.assessment.scoreInterpretation + '\n\n' + 
+            assessment: templateSections.assessment.intro + '\n\n' +
+                      templateSections.assessment.scoreInterpretation + '\n\n' +
                       templateSections.assessment.results(data),
 
             strengths: templateSections.strengths.receptive(data.receptiveStrengths, data) + '\n\n' +
@@ -220,11 +236,12 @@ async function generateEvaluationSummary(formData) {
         };
 
         // Use templateEngine for enhanced summaries
-        sections.oralMechanism = window.app.templateEngine.render('oralMechanismSummary', data);
-        sections.speechSound = window.app.templateEngine.render('speechSoundSummary', data);
+        if (window.app?.templateEngine) {
+            sections.oralMechanism = window.app.templateEngine.render('oralMechanismSummary', data);
+            sections.speechSound = window.app.templateEngine.render('speechSoundSummary', data);
+        }
 
         const summary = Object.values(sections).join('\n\n');
-
 
         // Store in IndexedDB for future reference
         await storeSummary(data, sections, summary);
@@ -233,6 +250,123 @@ async function generateEvaluationSummary(formData) {
     } catch (error) {
         console.error('Error generating evaluation summary:', error);
         return 'Error generating evaluation summary. Please try again.';
+    }
+}
+
+// Generate AI-powered clinical summary using Cloudflare Workers AI
+async function generateAISummary(formData) {
+    try {
+        // Get authentication token
+        const token = getAuthToken();
+        if (!token) {
+            console.warn('No authentication token available for AI summary');
+            return { success: false, error: 'No authentication token' };
+        }
+
+        // Prepare the request
+        const response = await fetch('/api/ai/summary', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                formData: formData,
+                summaryType: 'comprehensive',
+                includeRecommendations: true
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('AI summary request failed:', response.status, errorData);
+            return {
+                success: false,
+                error: `HTTP ${response.status}: ${errorData.message || 'Unknown error'}`
+            };
+        }
+
+        const result = await response.json();
+        
+        if (result.success && result.data?.summary) {
+            return {
+                success: true,
+                summary: result.data.summary,
+                metadata: result.data.metadata
+            };
+        } else {
+            console.error('AI summary response invalid:', result);
+            return {
+                success: false,
+                error: result.message || 'Invalid AI response format'
+            };
+        }
+
+    } catch (error) {
+        console.error('Error calling AI summary API:', error);
+        return {
+            success: false,
+            error: `Network error: ${error.message}`
+        };
+    }
+}
+
+// Get authentication token from localStorage or session storage
+function getAuthToken() {
+    // Try localStorage first
+    let token = localStorage.getItem('authToken') || localStorage.getItem('token');
+    
+    // Try sessionStorage as backup
+    if (!token) {
+        token = sessionStorage.getItem('authToken') || sessionStorage.getItem('token');
+    }
+    
+    // Try cookies as last resort
+    if (!token) {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'authToken' || name === 'token') {
+                token = value;
+                break;
+            }
+        }
+    }
+    
+    return token;
+}
+
+// Refine AI summary based on clinician feedback
+async function refineAISummary(summaryId, feedback, refinementRequest) {
+    try {
+        const token = getAuthToken();
+        if (!token) {
+            throw new Error('No authentication token available');
+        }
+
+        const response = await fetch('/api/ai/summary', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                summaryId: summaryId,
+                feedback: feedback,
+                refinementRequest: refinementRequest
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        return result;
+
+    } catch (error) {
+        console.error('Error refining AI summary:', error);
+        throw error;
     }
 }
 
