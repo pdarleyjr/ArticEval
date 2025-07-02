@@ -1,5 +1,3 @@
-import bcrypt from 'bcryptjs';
-
 // Generate a secure random session ID
 export async function generateSessionId() {
   const array = new Uint8Array(32);
@@ -7,15 +5,96 @@ export async function generateSessionId() {
   return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
-// Hash password using bcrypt
+// Hash password using Web Crypto API (PBKDF2)
 export async function hashPassword(password) {
-  const saltRounds = 12;
-  return await bcrypt.hash(password, saltRounds);
+  // Generate a random salt
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  
+  // Convert password to buffer
+  const passwordBuffer = new TextEncoder().encode(password);
+  
+  // Import the password as a key
+  const key = await crypto.subtle.importKey(
+    'raw',
+    passwordBuffer,
+    { name: 'PBKDF2' },
+    false,
+    ['deriveBits']
+  );
+  
+  // Derive key using PBKDF2
+  const derivedKey = await crypto.subtle.deriveBits(
+    {
+      name: 'PBKDF2',
+      salt: salt,
+      iterations: 100000,
+      hash: 'SHA-256'
+    },
+    key,
+    256 // 32 bytes
+  );
+  
+  // Combine salt and derived key
+  const hashArray = new Uint8Array(salt.length + derivedKey.byteLength);
+  hashArray.set(salt);
+  hashArray.set(new Uint8Array(derivedKey), salt.length);
+  
+  // Convert to base64 for storage
+  return btoa(String.fromCharCode(...hashArray));
 }
 
 // Verify password against hash
 export async function verifyPassword(password, hash) {
-  return await bcrypt.compare(password, hash);
+  try {
+    // Decode the hash from base64
+    const hashBuffer = Uint8Array.from(atob(hash), c => c.charCodeAt(0));
+    
+    // Extract salt (first 16 bytes) and stored hash (remaining bytes)
+    const salt = hashBuffer.slice(0, 16);
+    const storedHash = hashBuffer.slice(16);
+    
+    // Convert password to buffer
+    const passwordBuffer = new TextEncoder().encode(password);
+    
+    // Import the password as a key
+    const key = await crypto.subtle.importKey(
+      'raw',
+      passwordBuffer,
+      { name: 'PBKDF2' },
+      false,
+      ['deriveBits']
+    );
+    
+    // Derive key using same parameters
+    const derivedKey = await crypto.subtle.deriveBits(
+      {
+        name: 'PBKDF2',
+        salt: salt,
+        iterations: 100000,
+        hash: 'SHA-256'
+      },
+      key,
+      256 // 32 bytes
+    );
+    
+    // Compare the derived key with stored hash
+    const derivedArray = new Uint8Array(derivedKey);
+    
+    if (derivedArray.length !== storedHash.length) {
+      return false;
+    }
+    
+    // Constant-time comparison
+    let result = 0;
+    for (let i = 0; i < derivedArray.length; i++) {
+      result |= derivedArray[i] ^ storedHash[i];
+    }
+    
+    return result === 0;
+  } catch (error) {
+    console.error('Password verification error:', error);
+    return false;
+  }
 }
 
 // Generate a secure user ID
@@ -57,6 +136,13 @@ export function isValidPassword(password) {
   return passwordRegex.test(password);
 }
 
+// Validate username format
+export function isValidUsername(username) {
+  // 3-50 characters, letters, numbers, and underscores only
+  const usernameRegex = /^[a-zA-Z0-9_]{3,50}$/;
+  return usernameRegex.test(username);
+}
+
 // Create authenticated user response (without sensitive data)
 export function createUserResponse(user) {
   return {
@@ -74,6 +160,10 @@ export async function createUser(env, userData) {
   // Validate input
   if (!username || !email || !password) {
     throw new Error('Username, email, and password are required');
+  }
+  
+  if (!isValidUsername(username)) {
+    throw new Error('Username must be 3-50 characters, letters, numbers, and underscores only');
   }
   
   if (!isValidEmail(email)) {

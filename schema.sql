@@ -8,11 +8,12 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- Sessions table for Lucia auth
+-- Sessions table for authentication sessions
 CREATE TABLE IF NOT EXISTS sessions (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,
-    expires_at INTEGER NOT NULL,
+    expires_at DATETIME NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
@@ -22,10 +23,10 @@ CREATE TABLE IF NOT EXISTS form_templates (
     name TEXT NOT NULL,
     description TEXT,
     form_schema TEXT NOT NULL, -- JSON schema for Formeo
-    created_by TEXT NOT NULL,
+    user_id TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- Form submissions table
@@ -45,7 +46,7 @@ CREATE TABLE IF NOT EXISTS form_submissions (
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
 CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
-CREATE INDEX IF NOT EXISTS idx_form_templates_created_by ON form_templates(created_by);
+CREATE INDEX IF NOT EXISTS idx_form_templates_user_id ON form_templates(user_id);
 CREATE INDEX IF NOT EXISTS idx_form_submissions_template_id ON form_submissions(template_id);
 CREATE INDEX IF NOT EXISTS idx_form_submissions_submitted_by ON form_submissions(submitted_by);
 CREATE INDEX IF NOT EXISTS idx_form_submissions_created_at ON form_submissions(created_at);
