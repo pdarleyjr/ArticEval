@@ -1,0 +1,37 @@
+# Node modules
+node_modules/
+
+# Backup files
+*.bak
+*.bak*
+full-backup-*/
+
+# Test files
+test-*.html
+test-*.js
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Credentials
+.git-credentials
+
+# AI Analysis Documentation (Local Only)
+ai-project-documentation.json
+*-ai-documentation.json
+ai-analysis-*.json
+
+# Cloudflare specific
+.wrangler/
+dist/
+.dev.vars
+
+# Environment files
+.env
+.env.local
+.env.production
