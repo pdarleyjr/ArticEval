@@ -106,7 +106,7 @@ export function generateUserId() {
 
 // Create session cookie
 export function createSessionCookie(sessionId, maxAge = 30 * 24 * 60 * 60) { // 30 days default
-  return `session=${sessionId}; HttpOnly; Secure; SameSite=Strict; Max-Age=${maxAge}; Path=/`;
+  return `session_id=${sessionId}; HttpOnly; Secure; SameSite=Strict; Max-Age=${maxAge}; Path=/`;
 }
 
 // Parse cookies from request headers

@@ -12,7 +12,7 @@ export async function authenticateRequest(request, env) {
 
     if (cookieHeader) {
       const cookies = cookieHeader.split(';').map(cookie => cookie.trim());
-      const sessionCookie = cookies.find(cookie => cookie.startsWith('session_id='));
+      const sessionCookie = cookies.find(cookie => cookie.startsWith('session='));
       if (sessionCookie) {
         sessionId = sessionCookie.split('=')[1];
       }
