@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Evaluation - IPLC ArticEval</title>
+    <link rel="stylesheet" href="/assets/css/styles.css">
+    <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .evaluation-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Header with IPLC Logo */
+        .evaluation-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid #e1e8ed;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+        }
+
+        .iplc-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            margin-right: 1rem;
+            object-fit: contain;
+            background: rgba(52, 152, 219, 0.1);
+            padding: 6px;
+        }
+
+        .brand-info h1 {
+            color: #2c3e50;
+            font-size: 1.4rem;
+            margin-bottom: 0.1rem;
+        }
+
+        .brand-info .subtitle {
+            color: #7f8c8d;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .progress-indicator {
+            display: flex;
+            align-items: center;
+            background: #f8f9fa;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+
+        .progress-bar {
+            width: 100px;
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            margin: 0 0.5rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            transition: width 0.3s ease;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding-top: 100px;
+            max-width: 900px;
+            margin: 0 auto;
+            padding-left: 2rem;
+            padding-right: 2rem;
+        }
+
+        .evaluation-form {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .form-section {
+            padding: 2rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .form-section:last-child {
+            border-bottom: none;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+            margin-right: 1rem;
+        }
+
+        .section-header h2 {
+            color: #2c3e50;
+            font-size: 1.3rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #495057;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        /* Question Types */
+        .question-container {
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+
+        .question-title {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .question-description {
+            color: #6c757d;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .radio-group,
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .radio-option,
+        .checkbox-option {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .radio-option:hover,
+        .checkbox-option:hover {
+            background: #f8f9fa;
+            border-color: #3498db;
+        }
+
+        .radio-option.selected,
+        .checkbox-option.selected {
+            background: #e3f2fd;
+            border-color: #3498db;
+            color: #1976d2;
+        }
+
+        .radio-option input,
+        .checkbox-option input {
+            margin-right: 0.75rem;
+            width: auto;
+        }
+
+        .scale-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: white;
+            border-radius: 6px;
+            margin-top: 0.5rem;
+        }
+
+        .scale-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .scale-option:hover {
+            background: #f8f9fa;
+        }
+
+        .scale-option.selected {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .scale-number {
+            width: 30px;
+            height: 30px;
+            border: 2px solid #dee2e6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            transition: all 0.3s;
+        }
+
+        .scale-option.selected .scale-number {
+            border-color: #3498db;
+            background: #3498db;
+            color: white;
+        }
+
+        .scale-label {
+            font-size: 0.75rem;
+            text-align: center;
+            color: #6c757d;
+        }
+
+        /* Navigation */
+        .form-navigation {
+            position: sticky;
+            bottom: 0;
+            background: white;
+            padding: 1.5rem 2rem;
+            border-top: 1px solid #e1e8ed;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+        }
+
+        .btn {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #2980b9, #1f5f99);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #495057;
+            border: 1px solid #dee2e6;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Patient Info Summary */
+        .patient-summary {
+            background: #e8f4fd;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            border: 1px solid #bee5eb;
+        }
+
+        .patient-summary h3 {
+            color: #0c5460;
+            margin-bottom: 0.5rem;
+        }
+
+        .patient-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: #495057;
+        }
+
+        /* Auto-save indicator */
+        .autosave-status {
+            display: flex;
+            align-items: center;
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+
+        .autosave-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+            background: #28a745;
+        }
+
+        .autosave-indicator.saving {
+            background: #ffc107;
+            animation: pulse 1.5s infinite;
+        }
+
+        .autosave-indicator.error {
+            background: #dc3545;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Loading States */
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .main-content {
+                padding-left: 1rem;
+                padding-right: 1rem;
+                padding-top: 140px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .scale-container {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+
+            .form-navigation {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+
+        /* Required field indicator */
+        .required {
+            color: #dc3545;
+        }
+
+        .field-error {
+            border-color: #dc3545 !important;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1) !important;
+        }
+
+        .error-message {
+            color: #dc3545;
+            font-size: 0.85rem;
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="evaluation-header">
+        <div class="header-content">
+            <div class="logo-section">
+                <img src="/assets/images/iplc-logo.png" alt="IPLC Logo" class="iplc-logo">
+                <div class="brand-info">
+                    <h1>IPLC ArticEval</h1>
+                    <div class="subtitle">Patient Evaluation</div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="progress-indicator">
+                    <span id="progressText">0% Complete</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                </div>
+                <div class="autosave-status">
+                    <div class="autosave-indicator" id="autosaveIndicator"></div>
+                    <span id="autosaveText">Auto-saved</span>
+                </div>
+                <a href="/clinician-dashboard.html" class="btn btn-secondary">
+                    Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="evaluation-container">
+        <main class="main-content">
+            <!-- Patient Information Form -->
+            <div class="evaluation-form" id="evaluationForm">
+                <!-- Patient Info Section -->
+                <div class="form-section" id="patientInfoSection">
+                    <div class="section-header">
+                        <div class="section-icon">👤</div>
+                        <h2>Patient Information</h2>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="patientFirstName">First Name <span class="required">*</span></label>
+                            <input type="text" id="patientFirstName" name="patientFirstName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="patientLastName">Last Name <span class="required">*</span></label>
+                            <input type="text" id="patientLastName" name="patientLastName" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="patientDOB">Date of Birth <span class="required">*</span></label>
+                            <input type="date" id="patientDOB" name="patientDOB" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="patientAge">Age</label>
+                            <input type="number" id="patientAge" name="patientAge" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="patientGender">Gender</label>
+                            <select id="patientGender" name="patientGender">
+                                <option value="">Select Gender</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                                <option value="prefer-not-to-say">Prefer not to say</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="evaluationDate">Evaluation Date <span class="required">*</span></label>
+                            <input type="date" id="evaluationDate" name="evaluationDate" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="clinicalNotes">Clinical Notes</label>
+                        <textarea id="clinicalNotes" name="clinicalNotes" placeholder="Enter any relevant clinical observations or notes..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Template Questions Container -->
+                <div id="templateQuestions">
+                    <!-- Questions will be dynamically loaded here -->
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="form-navigation">
+                <div>
+                    <button class="btn btn-secondary" id="saveAsDraftBtn">
+                        Save as Draft
+                    </button>
+                </div>
+                <div>
+                    <button class="btn btn-primary" id="completeEvaluationBtn">
+                        Complete Evaluation
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Global variables
+        let currentTemplate = null;
+        let currentEvaluation = null;
+        let evaluationData = {};
+        let autosaveTimer = null;
+        let isLoading = false;
+
+        // Initialize evaluation
+        document.addEventListener('DOMContentLoaded', async function() {
+            await initializeEvaluation();
+            setupEventListeners();
+            setupAutosave();
+        });
+
+        async function initializeEvaluation() {
+            try {
+                setLoading(true);
+                const urlParams = new URLSearchParams(window.location.search);
+                const templateId = urlParams.get('template');
+                const evaluationId = urlParams.get('continue');
+
+                if (evaluationId) {
+                    // Continue existing evaluation
+                    await loadExistingEvaluation(evaluationId);
+                } else if (templateId) {
+                    // Start new evaluation
+                    await loadTemplate(templateId);
+                    initializeNewEvaluation();
+                } else {
+                    throw new Error('No template or evaluation specified');
+                }
+
+                updateProgress();
+                setLoading(false);
+            } catch (error) {
+                console.error('Error initializing evaluation:', error);
+                alert('Error loading evaluation. Redirecting to dashboard...');
+                window.location.href = '/clinician-dashboard.html';
+            }
+        }
+
+        async function loadTemplate(templateId) {
+            try {
+                const response = await fetch(`/api/forms/templates/${templateId}`);
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error(result.message || 'Failed to load template');
+                }
+
+                currentTemplate = result.data;
+                renderTemplateQuestions();
+            } catch (error) {
+                console.error('Error loading template:', error);
+                throw error;
+            }
+        }
+
+        async function loadExistingEvaluation(evaluationId) {
+            try {
+                const response = await fetch(`/api/forms/submissions/${evaluationId}`);
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error(result.message || 'Failed to load evaluation');
+                }
+
+                currentEvaluation = result.data;
+                evaluationData = currentEvaluation.data || {};
+                
+                // Load the template
+                await loadTemplate(currentEvaluation.templateId);
+                
+                // Populate form with existing data
+                populateFormData();
+                
+                // Show patient summary
+                showPatientSummary();
+            } catch (error) {
+                console.error('Error loading existing evaluation:', error);
+                throw error;
+            }
+        }
+
+        function initializeNewEvaluation() {
+            // Set default values
+            document.getElementById('evaluationDate').value = new Date().toISOString().split('T')[0];
+            evaluationData = {
+                patientInfo: {},
+                responses: {}
+            };
+        }
+
+        function renderTemplateQuestions() {
+            const container = document.getElementById('templateQuestions');
+            
+            if (!currentTemplate || !currentTemplate.form || !currentTemplate.form.sections) {
+                container.innerHTML = '<div class="form-section"><p>No questions available for this template.</p></div>';
+                return;
+            }
+
+            let html = '';
+            
+            currentTemplate.form.sections.forEach((section, sectionIndex) => {
+                html += `
+                    <div class="form-section">
+                        <div class="section-header">
+                            <div class="section-icon">${getSectionIcon(section.title)}</div>
+                            <h2>${section.title}</h2>
+                        </div>
+                `;
+                
+                if (section.description) {
+                    html += `<p style="color: #6c757d; margin-bottom: 1.5rem;">${section.description}</p>`;
+                }
+                
+                section.questions.forEach((question, questionIndex) => {
+                    const questionId = `section_${sectionIndex}_question_${questionIndex}`;
+                    html += renderQuestion(question, questionId);
+                });
+                
+                html += '</div>';
+            });
+            
+            container.innerHTML = html;
+            attachQuestionEventListeners();
+        }
+
+        function renderQuestion(question, questionId) {
+            let html = `
+                <div class="question-container" data-question-id="${questionId}">
+                    <div class="question-title">${question.text}</div>
+            `;
+            
+            if (question.description) {
+                html += `<div class="question-description">${question.description}</div>`;
+            }
+            
+            switch (question.type) {
+                case 'text':
+                    html += `<input type="text" id="${questionId}" name="${questionId}" class="form-control">`;
+                    break;
+                    
+                case 'textarea':
+                    html += `<textarea id="${questionId}" name="${questionId}" class="form-control" rows="4"></textarea>`;
+                    break;
+                    
+                case 'number':
+                    html += `<input type="number" id="${questionId}" name="${questionId}" class="form-control" 
+                            ${question.min !== undefined ? `min="${question.min}"` : ''} 
+                            ${question.max !== undefined ? `max="${question.max}"` : ''}>`;
+                    break;
+                    
+                case 'radio':
+                    html += '<div class="radio-group">';
+                    question.options.forEach((option, index) => {
+                        const optionId = `${questionId}_option_${index}`;
+                        html += `
+                            <div class="radio-option" onclick="selectRadio('${questionId}', '${option.value}')">
+                                <input type="radio" id="${optionId}" name="${questionId}" value="${option.value}">
+                                <label for="${optionId}">${option.label}</label>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    break;
+                    
+                case 'checkbox':
+                    html += '<div class="checkbox-group">';
+                    question.options.forEach((option, index) => {
+                        const optionId = `${questionId}_option_${index}`;
+                        html += `
+                            <div class="checkbox-option" onclick="toggleCheckbox('${questionId}', '${option.value}')">
+                                <input type="checkbox" id="${optionId}" name="${questionId}" value="${option.value}">
+                                <label for="${optionId}">${option.label}</label>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    break;
+                    
+                case 'scale':
+                    const min = question.min || 1;
+                    const max = question.max || 5;
+                    html += '<div class="scale-container">';
+                    for (let i = min; i <= max; i++) {
+                        html += `
+                            <div class="scale-option" onclick="selectScale('${questionId}', ${i})">
+                                <div class="scale-number">${i}</div>
+                                <div class="scale-label">${getScaleLabel(i, min, max)}</div>
+                            </div>
+                        `;
+                    }
+                    html += '</div>';
+                    break;
+            }
+            
+            html += '</div>';
+            return html;
+        }
+
+        function getSectionIcon(title) {
+            const icons = {
+                'articulation': '🗣️',
+                'language': '💬',
+                'fluency': '⚡',
+                'voice': '🎵',
+                'cognitive': '🧠',
+                'swallowing': '🥤',
+                'hearing': '👂',
+                'background': '📋',
+                'assessment': '🔍',
+                'clinical': '👩‍⚕️'
+            };
+            
+            const key = title.toLowerCase();
+            for (const [keyword, icon] of Object.entries(icons)) {
+                if (key.includes(keyword)) {
+                    return icon;
+                }
+            }
+            return '📝';
+        }
+
+        function getScaleLabel(value, min, max) {
+            if (max <= 5) {
+                const labels = ['Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+                return labels[value - 1] || '';
+            } else if (max <= 10) {
+                if (value <= 3) return 'Low';
+                if (value <= 6) return 'Moderate';
+                if (value <= 8) return 'High';
+                return 'Very High';
+            }
+            return '';
+        }
+
+        function attachQuestionEventListeners() {
+            // Add event listeners to form inputs
+            const inputs = document.querySelectorAll('input, textarea, select');
+            inputs.forEach(input => {
+                input.addEventListener('change', handleInputChange);
+                input.addEventListener('input', handleInputChange);
+            });
+        }
+
+        function handleInputChange(event) {
+            const element = event.target;
+            const value = element.type === 'checkbox' ? element.checked : element.value;
+            
+            // Store the response
+            if (element.name.startsWith('section_')) {
+                if (!evaluationData.responses) evaluationData.responses = {};
+                evaluationData.responses[element.name] = value;
+            } else {
+                if (!evaluationData.patientInfo) evaluationData.patientInfo = {};
+                evaluationData.patientInfo[element.name] = value;
+            }
+            
+            // Auto-calculate age from DOB
+            if (element.id === 'patientDOB') {
+                calculateAge();
+            }
+            
+            updateProgress();
+            scheduleAutosave();
+        }
+
+        function selectRadio(questionId, value) {
+            // Update radio selection visually
+            const radioGroup = document.querySelector(`[data-question-id="${questionId}"] .radio-group`);
+            radioGroup.querySelectorAll('.radio-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            const selectedOption = radioGroup.querySelector(`input[value="${value}"]`).closest('.radio-option');
+            selectedOption.classList.add('selected');
+            
+            // Update the actual radio input
+            const radioInput = selectedOption.querySelector('input');
+            radioInput.checked = true;
+            
+            // Trigger change event
+            radioInput.dispatchEvent(new Event('change'));
+        }
+
+        function toggleCheckbox(questionId, value) {
+            const checkboxGroup = document.querySelector(`[data-question-id="${questionId}"] .checkbox-group`);
+            const checkboxOption = checkboxGroup.querySelector(`input[value="${value}"]`).closest('.checkbox-option');
+            const checkboxInput = checkboxOption.querySelector('input');
+            
+            // Toggle checkbox
+            checkboxInput.checked = !checkboxInput.checked;
+            
+            // Update visual state
+            if (checkboxInput.checked) {
+                checkboxOption.classList.add('selected');
+            } else {
+                checkboxOption.classList.remove('selected');
+            }
+            
+            // Trigger change event
+            checkboxInput.dispatchEvent(new Event('change'));
+        }
+
+        function selectScale(questionId, value) {
+            // Update scale selection visually
+            const scaleContainer = document.querySelector(`[data-question-id="${questionId}"] .scale-container`);
+            scaleContainer.querySelectorAll('.scale-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            const selectedOption = scaleContainer.querySelector(`.scale-option:nth-child(${value})`);
+            selectedOption.classList.add('selected');
+            
+            // Store the value
+            if (!evaluationData.responses) evaluationData.responses = {};
+            evaluationData.responses[questionId] = value;
+            
+            updateProgress();
+            scheduleAutosave();
+        }
+
+        function calculateAge() {
+            const dobInput = document.getElementById('patientDOB');
+            const ageInput = document.getElementById('patientAge');
+            
+            if (dobInput.value) {
+                const dob = new Date(dobInput.value);
+                const today = new Date();
+                const age = Math.floor((today - dob) / (365.25 * 24 * 60 * 60 * 1000));
+                ageInput.value = age >= 0 ? age : '';
+            } else {
+                ageInput.value = '';
+            }
+        }
+
+        function populateFormData() {
+            if (!evaluationData) return;
+            
+            // Populate patient info
+            if (evaluationData.patientInfo) {
+                Object.keys(evaluationData.patientInfo).forEach(key => {
+                    const element = document.getElementById(key) || document.querySelector(`[name="${key}"]`);
+                    if (element) {
+                        element.value = evaluationData.patientInfo[key];
+                    }
+                });
+            }
+            
+            // Populate responses
+            if (evaluationData.responses) {
+                Object.keys(evaluationData.responses).forEach(questionId => {
+                    const value = evaluationData.responses[questionId];
+                    const element = document.getElementById(questionId);
+                    
+                    if (element) {
+                        if (element.type === 'radio') {
+                            selectRadio(questionId, value);
+                        } else if (element.type === 'checkbox') {
+                            toggleCheckbox(questionId, value);
+                        } else if (questionId.includes('scale')) {
+                            selectScale(questionId, value);
+                        } else {
+                            element.value = value;
+                        }
+                    }
+                });
+            }
+        }
+
+        function showPatientSummary() {
+            if (!currentEvaluation || !evaluationData.patientInfo) return;
+            
+            const patientInfo = evaluationData.patientInfo;
+            const summaryHtml = `
+                <div class="patient-summary">
+                    <h3>Continuing Evaluation</h3>
+                    <div class="patient-details">
+                        <div><strong>Patient:</strong> ${patientInfo.patientFirstName || ''} ${patientInfo.patientLastName || ''}</div>
+                        <div><strong>DOB:</strong> ${patientInfo.patientDOB || 'Not specified'}</div>
+                        <div><strong>Evaluation Date:</strong> ${patientInfo.evaluationDate || 'Not specified'}</div>
+                        <div><strong>Status:</strong> ${currentEvaluation.status || 'Draft'}</div>
+                    </div>
+                </div>
+            `;
+            
+            const patientSection = document.getElementById('patientInfoSection');
+            patientSection.insertAdjacentHTML('afterbegin', summaryHtml);
+        }
+
+        function updateProgress() {
+            const totalFields = document.querySelectorAll('input[required], textarea[required], select[required]').length;
+            const filledFields = document.querySelectorAll('input[required]:valid, textarea[required]:valid, select[required]:valid').length;
+            
+            const templateQuestions = document.querySelectorAll('.question-container').length;
+            const answeredQuestions = Object.keys(evaluationData.responses || {}).length;
+            
+            const totalItems = totalFields + templateQuestions;
+            const completedItems = filledFields + answeredQuestions;
+            
+            const progress = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+            
+            document.getElementById('progressText').textContent = `${progress}% Complete`;
+            document.getElementById('progressFill').style.width = `${progress}%`;
+        }
+
+        function setupEventListeners() {
+            // Patient info fields
+            const patientFields = ['patientFirstName', 'patientLastName', 'patientDOB', 'patientGender', 'evaluationDate', 'clinicalNotes'];
+            patientFields.forEach(fieldId => {
+                const element = document.getElementById(fieldId);
+                if (element) {
+                    element.addEventListener('change', handleInputChange);
+                    element.addEventListener('input', handleInputChange);
+                }
+            });
+
+            // Navigation buttons
+            document.getElementById('saveAsDraftBtn').addEventListener('click', saveAsDraft);
+            document.getElementById('completeEvaluationBtn').addEventListener('click', completeEvaluation);
+        }
+
+        function setupAutosave() {
+            // Auto-save every 30 seconds
+            setInterval(() => {
+                if (currentEvaluation || hasUnsavedChanges()) {
+                    saveAsDraft(true); // Silent save
+                }
+            }, 30000);
+        }
+
+        function scheduleAutosave() {
+            if (autosaveTimer) {
+                clearTimeout(autosaveTimer);
+            }
+            
+            // Auto-save after 3 seconds of inactivity
+            autosaveTimer = setTimeout(() => {
+                saveAsDraft(true); // Silent save
+            }, 3000);
+        }
+
+        function hasUnsavedChanges() {
+            return Object.keys(evaluationData.patientInfo || {}).length > 0 ||
+                   Object.keys(evaluationData.responses || {}).length > 0;
+        }
+
+        async function saveAsDraft(silent = false) {
+            try {
+                if (!silent) {
+                    setAutosaveStatus('saving', 'Saving...');
+                }
+
+                const payload = {
+                    templateId: currentTemplate.id,
+                    data: evaluationData,
+                    status: 'draft',
+                    patientName: `${evaluationData.patientInfo?.patientFirstName || ''} ${evaluationData.patientInfo?.patientLastName || ''}`.trim() || 'Unnamed Patient'
+                };
+
+                let response;
+                if (currentEvaluation) {
+                    // Update existing evaluation
+                    response = await fetch(`/api/forms/submissions/${currentEvaluation.id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                } else {
+                    // Create new evaluation
+                    response = await fetch('/api/forms/submissions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    currentEvaluation = result.data;
+                    setAutosaveStatus('saved', 'Auto-saved');
+                    
+                    if (!silent) {
+                        alert('Evaluation saved as draft successfully!');
+                    }
+                    
+                    // Update URL if this was a new evaluation
+                    if (!window.location.search.includes('continue=')) {
+                        const newUrl = `${window.location.pathname}?continue=${currentEvaluation.id}`;
+                        window.history.replaceState({}, '', newUrl);
+                    }
+                } else {
+                    throw new Error(result.message || 'Failed to save evaluation');
+                }
+            } catch (error) {
+                console.error('Error saving evaluation:', error);
+                setAutosaveStatus('error', 'Save failed');
+                
+                if (!silent) {
+                    alert('Failed to save evaluation. Please try again.');
+                }
+            }
+        }
+
+        async function completeEvaluation() {
+            try {
+                if (!validateForm()) {
+                    alert('Please fill in all required fields before completing the evaluation.');
+                    return;
+                }
+
+                const button = document.getElementById('completeEvaluationBtn');
+                const originalText = button.textContent;
+                button.textContent = 'Completing...';
+                button.disabled = true;
+
+                const payload = {
+                    templateId: currentTemplate.id,
+                    data: evaluationData,
+                    status: 'completed',
+                    patientName: `${evaluationData.patientInfo?.patientFirstName || ''} ${evaluationData.patientInfo?.patientLastName || ''}`.trim() || 'Unnamed Patient'
+                };
+
+                let response;
+                if (currentEvaluation) {
+                    response = await fetch(`/api/forms/submissions/${currentEvaluation.id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                } else {
+                    response = await fetch('/api/forms/submissions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Evaluation completed successfully!');
+                    window.location.href = `/evaluation-report.html?id=${result.data.id}`;
+                } else {
+                    throw new Error(result.message || 'Failed to complete evaluation');
+                }
+            } catch (error) {
+                console.error('Error completing evaluation:', error);
+                alert('Failed to complete evaluation. Please try again.');
+                
+                const button = document.getElementById('completeEvaluationBtn');
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        }
+
+        function validateForm() {
+            let isValid = true;
+            
+            // Validate required fields
+            const requiredFields = document.querySelectorAll('input[required], textarea[required], select[required]');
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.classList.add('field-error');
+                    isValid = false;
+                } else {
+                    field.classList.remove('field-error');
+                }
+            });
+            
+            return isValid;
+        }
+
+        function setAutosaveStatus(status, text) {
+            const indicator = document.getElementById('autosaveIndicator');
+            const statusText = document.getElementById('autosaveText');
+            
+            indicator.className = `autosave-indicator ${status}`;
+            statusText.textContent = text;
+        }
+
+        function setLoading(loading) {
+            isLoading = loading;
+            const button = document.getElementById('completeEvaluationBtn');
+            
+            if (loading) {
+                button.innerHTML = '<div class="loading-spinner"></div>Loading...';
+                button.disabled = true;
+            } else {
+                button.innerHTML = 'Complete Evaluation';
+                button.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

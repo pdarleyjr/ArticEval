@@ -1,0 +1,33 @@
+{
+  "id": "default-clinical-impressions",
+  "name": "Clinical Impressions",
+  "description": "Clinical summary and prognosis",
+  "category": "summary",
+  "version": "1.0.0",
+  "created_by": "system",
+  "is_default": true,
+  "order": 9,
+  "fields": [
+    {
+      "id": "therapistNotes",
+      "type": "textarea",
+      "name": "therapistNotes",
+      "required": false,
+      "validation": []
+    }
+  ],
+  "html_template": "<!-- Clinical Impressions Section -->\r\n<section class=\"avoid-break page-break-before\">\r\n    <h2>Clinical Impressions</h2>\r\n    <div class=\"clinical-impressions-container\">\r\n        <div class=\"notes-field\">\r\n            <label for=\"therapistNotes\">Therapist Notes:</label>\r\n            <textarea id=\"therapistNotes\"></textarea>\r\n        </div>\r\n\r\n        <div class=\"clinical-summary-section\">\r\n            <div class=\"clinical-impressions-header\">\r\n                <h3>Clinical Impressions</h3>\r\n            </div>\r\n            <div id=\"clinicalImpressionsSummary\" class=\"clinical-summary\"></div>\r\n        </div>\r\n\r\n        <div class=\"prognosis-section\">\r\n            <p>Based on the results from this evaluation, family support, and adherence to recommendations that follow, prognosis for improvement is favorable.</p>\r\n        </div>\r\n    </div>\r\n</section>",
+  "styling": {
+    "theme": "clinical",
+    "print_optimized": true,
+    "responsive": true
+  },
+  "scoring": {
+    "enabled": false,
+    "method": "manual"
+  },
+  "validation": {
+    "required_fields": [],
+    "custom_rules": []
+  }
+}

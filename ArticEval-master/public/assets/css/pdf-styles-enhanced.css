@@ -1,0 +1,236 @@
+/*
+ * Enhanced PDF Styles
+ * 
+ * These styles specifically target PDF generation to fix issues with:
+ * - Text overflow and compression
+ * - Page breaks for tables and charts
+ * - White space management
+ * - Section formatting and consistency
+ */
+
+/* PDF-specific body styles */
+.pdf-ready body, body.pdf-ready {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 11pt;
+    line-height: 1.5;
+    color: #000;
+    background-color: white;
+    margin: 0;
+    padding: 0;
+    -webkit-hyphens: auto;
+    -ms-hyphens: auto;
+    -moz-hyphens: auto;
+    hyphens: auto;
+    hyphenate-limit-chars: 6 3 3;
+    hyphenate-limit-lines: 2;
+    hyphenate-limit-last: always;
+    hyphenate-limit-zone: 8%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Page setup for proper margins */
+@page {
+    size: letter;
+    margin: 0.5in;
+}
+
+/* Ensure container doesn't overflow */
+.pdf-ready #pdfRoot, #pdfRoot.pdf-ready {
+    width: 100%;
+    max-width: 8.5in;
+    margin: 0 auto;
+    padding: 0;
+    box-sizing: border-box;
+    position: relative;
+}
+
+/* Main sections spacing and page break control */
+.pdf-ready .main-section, .main-section.pdf-ready {
+    margin-bottom: 0.3in;
+    page-break-before: auto;
+    break-before: auto;
+    clear: both;
+}
+
+/* Force page breaks before main sections (except first) */
+.pdf-ready .page-break-before, .page-break-before.pdf-ready {
+    page-break-before: always;
+    break-before: page;
+}
+
+/* Prevent page breaks within these elements */
+.pdf-ready .avoid-break, .avoid-break.pdf-ready,
+.pdf-ready table, table.pdf-ready,
+.pdf-ready .table-container, .table-container.pdf-ready,
+.pdf-ready tr, tr.pdf-ready,
+.pdf-ready li, li.pdf-ready,
+.pdf-ready h1, h1.pdf-ready,
+.pdf-ready h2, h2.pdf-ready,
+.pdf-ready h3, h3.pdf-ready,
+.pdf-ready h4, h4.pdf-ready {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+}
+
+/* Headings to avoid orphans */
+.pdf-ready h1, h1.pdf-ready,
+.pdf-ready h2, h2.pdf-ready,
+.pdf-ready h3, h3.pdf-ready,
+.pdf-ready h4, h4.pdf-ready {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+    margin-top: 0.3in;
+    margin-bottom: 0.2in;
+}
+
+/* Table styling for PDF */
+.pdf-ready table, table.pdf-ready {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 0.2in;
+    table-layout: fixed;
+}
+
+.pdf-ready th, th.pdf-ready,
+.pdf-ready td, td.pdf-ready {
+    border: 1px solid #000;
+    padding: 0.1in;
+    text-align: left;
+    vertical-align: top;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    font-size: 10pt;
+}
+
+/* Table container to prevent breaks */
+.pdf-ready .table-container, .table-container.pdf-ready {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin: 0.15in 0;
+    width: 100%;
+}
+
+/* Text styling for better readability */
+.pdf-ready p, p.pdf-ready,
+.pdf-ready li, li.pdf-ready {
+    text-align: justify;
+    margin: 0.1in 0;
+    line-height: 1.5;
+    orphans: 3;
+    widows: 3;
+}
+
+/* Fix for lists */
+.pdf-ready ul, ul.pdf-ready,
+.pdf-ready ol, ol.pdf-ready {
+    margin: 0.1in 0;
+    padding-left: 0.3in;
+}
+
+/* Clinical impressions and recommendations specific styling */
+.pdf-ready #clinicalImpressionsSummary, #clinicalImpressionsSummary.pdf-ready,
+.pdf-ready #recommendationsSummary, #recommendationsSummary.pdf-ready,
+.pdf-ready .clinical-summary, .clinical-summary.pdf-ready,
+.pdf-ready .recommendations-summary, .recommendations-summary.pdf-ready {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0.15in 0 !important;
+}
+
+/* Recommendations list styling */
+.pdf-ready .recommendations-list, .recommendations-list.pdf-ready {
+    list-style-type: square;
+    margin: 0.15in 0;
+}
+
+.pdf-ready .recommendations-list li, .recommendations-list li.pdf-ready {
+    margin-bottom: 0.12in;
+    page-break-inside: avoid;
+    break-inside: avoid;
+}
+
+/* Footer styling */
+.pdf-ready .page-footer, .page-footer.pdf-ready {
+    position: fixed;
+    bottom: 0.3in;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    font-size: 9pt;
+    color: #666;
+    border-top: 1px solid #ccc;
+    padding-top: 0.1in;
+}
+
+/* Speech sound table specific fixes */
+.pdf-ready .articulation-table, .articulation-table.pdf-ready {
+    table-layout: fixed;
+    width: 100%;
+    font-size: 9pt;
+}
+
+.pdf-ready .articulation-table th, .articulation-table th.pdf-ready,
+.pdf-ready .articulation-table td, .articulation-table td.pdf-ready {
+    padding: 0.05in;
+    text-align: center;
+}
+
+/* Form input styling */
+.pdf-ready input[type="text"], input[type="text"].pdf-ready,
+.pdf-ready input[type="date"], input[type="date"].pdf-ready,
+.pdf-ready select, select.pdf-ready,
+.pdf-ready textarea, textarea.pdf-ready {
+    border: 1px solid #ccc;
+    min-height: 18pt;
+    padding: 2pt;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 11pt;
+}
+
+/* Hide elements that shouldn't appear in PDF */
+.pdf-ready .no-print, .no-print.pdf-ready,
+.pdf-ready .form-controls, .form-controls.pdf-ready,
+.pdf-ready #errorBoundary, #errorBoundary.pdf-ready,
+.pdf-ready #loadingIndicator, #loadingIndicator.pdf-ready,
+.pdf-ready .section-controls, .section-controls.pdf-ready,
+.pdf-ready .btn, .btn.pdf-ready,
+.pdf-ready .control-panel, .control-panel.pdf-ready,
+.pdf-ready .edit-controls, .edit-controls.pdf-ready {
+    display: none !important;
+}
+
+/* First page spacing fix to prevent compression */
+.pdf-ready #clientInfoSection, #clientInfoSection.pdf-ready,
+.pdf-ready section:first-of-type, section:first-of-type.pdf-ready {
+    margin-top: 0;
+    padding-top: 0;
+}
+
+/* White space management */
+.pdf-ready .section-content, .section-content.pdf-ready {
+    margin: 0.1in 0;
+}
+
+/* Custom section spacing */
+.pdf-ready #speechSoundSection, #speechSoundSection.pdf-ready,
+.pdf-ready #speechSampleSection, #speechSampleSection.pdf-ready {
+    page-break-before: always;
+    break-before: page;
+}
+
+/* Handle empty sections */
+.pdf-ready section:empty, section:empty.pdf-ready,
+.pdf-ready div:empty, div:empty.pdf-ready {
+    display: none;
+}
+
+/* Fix for clinical impressions text overflow */
+.pdf-ready #clinicalImpressionsSummary p, #clinicalImpressionsSummary p.pdf-ready {
+    max-width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    text-align: justify;
+}

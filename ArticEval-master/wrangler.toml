@@ -1,0 +1,22 @@
+name = "iplc-artic-eval"
+compatibility_date = "2024-12-01"
+pages_build_output_dir = "public"
+
+[env.production]
+account_id = "265122b6d6f29457b0ca950c55f3ac6e"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "iplc-eval-db"
+database_id = "your-database-id-here"
+
+[env.production.vars]
+JWT_SECRET = "your-jwt-secret-here"
+ENVIRONMENT = "production"
+
+[[env.production.kv_namespaces]]
+binding = "SESSION_STORE"
+id = "your-kv-namespace-id"
+
+[env.production.ai]
+binding = "AI"

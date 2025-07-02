@@ -1,0 +1,299 @@
+{
+  "id": "default-speech-sample",
+  "name": "Speech Sample Analysis",
+  "description": "Connected speech analysis with intelligibility ratings and error patterns",
+  "category": "assessment",
+  "version": "1.0.0",
+  "created_by": "system",
+  "is_default": true,
+  "order": 7,
+  "fields": [
+    {
+      "id": "accurateProduction",
+      "type": "checkbox",
+      "name": "accurateProduction",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "substitutionErrors",
+      "type": "checkbox",
+      "name": "substitutionErrors",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "omissionErrors",
+      "type": "checkbox",
+      "name": "omissionErrors",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "distortionErrors",
+      "type": "checkbox",
+      "name": "distortionErrors",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "additionErrors",
+      "type": "checkbox",
+      "name": "additionErrors",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "otherSoundProduction",
+      "type": "checkbox",
+      "name": "otherSoundProduction",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "otherSoundProductionText",
+      "type": "text",
+      "name": "otherSoundProductionText",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "clusterReduction",
+      "type": "checkbox",
+      "name": "clusterReduction",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "finalConsonantDeletion",
+      "type": "checkbox",
+      "name": "finalConsonantDeletion",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "weakSyllableDeletion",
+      "type": "checkbox",
+      "name": "weakSyllableDeletion",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "frontingSounds",
+      "type": "checkbox",
+      "name": "frontingSounds",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "glidingLiquids",
+      "type": "checkbox",
+      "name": "glidingLiquids",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "stopping",
+      "type": "checkbox",
+      "name": "stopping",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "otherPattern",
+      "type": "checkbox",
+      "name": "otherPattern",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "otherPatternText",
+      "type": "text",
+      "name": "otherPatternText",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "familiarHigh",
+      "type": "radio",
+      "name": "familiarIntelligibility",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "familiarModerate",
+      "type": "radio",
+      "name": "familiarIntelligibility",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "familiarPoor",
+      "type": "radio",
+      "name": "familiarIntelligibility",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "familiarVeryPoor",
+      "type": "radio",
+      "name": "familiarIntelligibility",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "unfamiliarHigh",
+      "type": "radio",
+      "name": "unfamiliarIntelligibility",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "unfamiliarModerate",
+      "type": "radio",
+      "name": "unfamiliarIntelligibility",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "unfamiliarPoor",
+      "type": "radio",
+      "name": "unfamiliarIntelligibility",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "unfamiliarVeryPoor",
+      "type": "radio",
+      "name": "unfamiliarIntelligibility",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "speechOrganized",
+      "type": "checkbox",
+      "name": "speechOrganized",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "speechDisorganized",
+      "type": "checkbox",
+      "name": "speechDisorganized",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "speechRateNormal",
+      "type": "checkbox",
+      "name": "speechRateNormal",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "speechRateSlow",
+      "type": "checkbox",
+      "name": "speechRateSlow",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "speechRateFast",
+      "type": "checkbox",
+      "name": "speechRateFast",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "selfCorrections",
+      "type": "checkbox",
+      "name": "selfCorrections",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "otherCharacteristic",
+      "type": "checkbox",
+      "name": "otherCharacteristic",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "otherCharacteristicText",
+      "type": "text",
+      "name": "otherCharacteristicText",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "varietySentences",
+      "type": "checkbox",
+      "name": "varietySentences",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "ageVocabulary",
+      "type": "checkbox",
+      "name": "ageVocabulary",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "selfCorrectEfforts",
+      "type": "checkbox",
+      "name": "selfCorrectEfforts",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "otherStrength",
+      "type": "checkbox",
+      "name": "otherStrength",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "otherStrengthText",
+      "type": "text",
+      "name": "otherStrengthText",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "phonologicalNotes",
+      "type": "textarea",
+      "name": "phonologicalNotes",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "intelligibilityNotes",
+      "type": "textarea",
+      "name": "intelligibilityNotes",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "characteristicsNotes",
+      "type": "textarea",
+      "name": "characteristicsNotes",
+      "required": false,
+      "validation": []
+    }
+  ],
+  "html_template": "<!-- Speech Sample Analysis Section -->\r\n<section class=\"avoid-break page-break-before\">\r\n    <h2>Speech Sample Analysis</h2>\r\n    <p>\r\n        A speech sample was collected during spontaneous conversation, play-based activities, and \r\n        picture description tasks to assess articulation and intelligibility in connected speech. The \r\n        following observations were made:\r\n    </p>\r\n    \r\n    <!-- Sound Production -->\r\n    <div class=\"analysis-subsection avoid-break\">\r\n        <h3>Sound Production</h3>\r\n        <div class=\"checkbox-group\">\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"accurateProduction\">\r\n                <label for=\"accurateProduction\">Accurate production of sounds observed.</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"substitutionErrors\">\r\n                <label for=\"substitutionErrors\">Substitution errors noted in conversation.</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"omissionErrors\">\r\n                <label for=\"omissionErrors\">Omission of sounds observed in conversation.</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"distortionErrors\">\r\n                <label for=\"distortionErrors\">Distortion of sounds noted in conversation.</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"additionErrors\">\r\n                <label for=\"additionErrors\">Addition of sounds observed in conversation.</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"otherSoundProduction\">\r\n                <label for=\"otherSoundProduction\">Other:</label>\r\n                <input type=\"text\" id=\"otherSoundProductionText\">\r\n            </div>\r\n        </div>\r\n    </div>\r\n\r\n    <!-- Phonological Patterns -->\r\n    <div class=\"analysis-subsection avoid-break\">\r\n        <h3>Phonological Patterns</h3>\r\n        <div class=\"checkbox-group\">\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"clusterReduction\">\r\n                <label for=\"clusterReduction\">Cluster reduction</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"finalConsonantDeletion\">\r\n                <label for=\"finalConsonantDeletion\">Final consonant deletion</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"weakSyllableDeletion\">\r\n                <label for=\"weakSyllableDeletion\">Weak syllable deletion</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"frontingSounds\">\r\n                <label for=\"frontingSounds\">Fronting of sounds</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"glidingLiquids\">\r\n                <label for=\"glidingLiquids\">Gliding of liquids</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"stopping\">\r\n                <label for=\"stopping\">Stopping</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"otherPattern\">\r\n                <label for=\"otherPattern\">Other:</label>\r\n                <input type=\"text\" id=\"otherPatternText\">\r\n            </div>\r\n        </div>\r\n        <div class=\"notes-field\">\r\n            <label for=\"phonologicalNotes\">Notes:</label>\r\n            <textarea id=\"phonologicalNotes\"></textarea>\r\n        </div>\r\n    </div>\r\n\r\n    <!-- Speech Intelligibility -->\r\n    <div class=\"analysis-subsection avoid-break\">\r\n        <h3>Speech Intelligibility</h3>\r\n        <div class=\"intelligibility-group\">\r\n            <div class=\"familiar-listeners\">\r\n                <h4>Familiar Listeners:</h4>\r\n                <div class=\"radio-group\">\r\n                    <div class=\"field-group\">\r\n                        <input type=\"radio\" name=\"familiarIntelligibility\" id=\"familiarHigh\">\r\n                        <label for=\"familiarHigh\">Highly intelligible (90–100%)</label>\r\n                    </div>\r\n                    <div class=\"field-group\">\r\n                        <input type=\"radio\" name=\"familiarIntelligibility\" id=\"familiarModerate\">\r\n                        <label for=\"familiarModerate\">Moderately intelligible (70–89%)</label>\r\n                    </div>\r\n                    <div class=\"field-group\">\r\n                        <input type=\"radio\" name=\"familiarIntelligibility\" id=\"familiarPoor\">\r\n                        <label for=\"familiarPoor\">Poor intelligibility (50–69%)</label>\r\n                    </div>\r\n                    <div class=\"field-group\">\r\n                        <input type=\"radio\" name=\"familiarIntelligibility\" id=\"familiarVeryPoor\">\r\n                        <label for=\"familiarVeryPoor\">Very poor intelligibility (<50%)</label>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n            <div class=\"unfamiliar-listeners\">\r\n                <h4>Unfamiliar Listeners:</h4>\r\n                <div class=\"radio-group\">\r\n                    <div class=\"field-group\">\r\n                        <input type=\"radio\" name=\"unfamiliarIntelligibility\" id=\"unfamiliarHigh\">\r\n                        <label for=\"unfamiliarHigh\">Highly intelligible (90–100%)</label>\r\n                    </div>\r\n                    <div class=\"field-group\">\r\n                        <input type=\"radio\" name=\"unfamiliarIntelligibility\" id=\"unfamiliarModerate\">\r\n                        <label for=\"unfamiliarModerate\">Moderately intelligible (70–89%)</label>\r\n                    </div>\r\n                    <div class=\"field-group\">\r\n                        <input type=\"radio\" name=\"unfamiliarIntelligibility\" id=\"unfamiliarPoor\">\r\n                        <label for=\"unfamiliarPoor\">Poor intelligibility (50–69%)</label>\r\n                    </div>\r\n                    <div class=\"field-group\">\r\n                        <input type=\"radio\" name=\"unfamiliarIntelligibility\" id=\"unfamiliarVeryPoor\">\r\n                        <label for=\"unfamiliarVeryPoor\">Very poor intelligibility (<50%)</label>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n        </div>\r\n        <div class=\"notes-field\">\r\n            <label for=\"intelligibilityNotes\">Notes:</label>\r\n            <textarea id=\"intelligibilityNotes\"></textarea>\r\n        </div>\r\n    </div>\r\n\r\n    <!-- Connected Speech Characteristics -->\r\n    <div class=\"analysis-subsection avoid-break\">\r\n        <h3>Connected Speech Characteristics</h3>\r\n        <div class=\"checkbox-group\">\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"speechOrganized\">\r\n                <label for=\"speechOrganized\">Speech is organized and fluent.</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"speechDisorganized\">\r\n                <label for=\"speechDisorganized\">Disorganized speech noted (e.g., frequent pauses, hesitations).</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"speechRateNormal\">\r\n                <label for=\"speechRateNormal\">Speech rate is within normal limits.</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"speechRateSlow\">\r\n                <label for=\"speechRateSlow\">Speech rate is slow, impacting clarity.</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"speechRateFast\">\r\n                <label for=\"speechRateFast\">Speech rate is fast, impacting clarity.</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"selfCorrections\">\r\n                <label for=\"selfCorrections\">Self-corrections observed.</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"otherCharacteristic\">\r\n                <label for=\"otherCharacteristic\">Other:</label>\r\n                <input type=\"text\" id=\"otherCharacteristicText\">\r\n            </div>\r\n        </div>\r\n        <div class=\"notes-field\">\r\n            <label for=\"characteristicsNotes\">Notes:</label>\r\n            <textarea id=\"characteristicsNotes\"></textarea>\r\n        </div>\r\n    </div>\r\n\r\n    <!-- Strengths Observed -->\r\n    <div class=\"analysis-subsection avoid-break\">\r\n        <h3>Strengths Observed</h3>\r\n        <div class=\"checkbox-group\">\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"varietySentences\">\r\n                <label for=\"varietySentences\">Variety of sentence structures used.</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"ageVocabulary\">\r\n                <label for=\"ageVocabulary\">Age-appropriate vocabulary observed.</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"selfCorrectEfforts\">\r\n                <label for=\"selfCorrectEfforts\">Efforts to self-correct noted.</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"otherStrength\">\r\n                <label for=\"otherStrength\">Other:</label>\r\n                <input type=\"text\" id=\"otherStrengthText\">\r\n            </div>\r\n        </div>\r\n    </div>\r\n</section>",
+  "styling": {
+    "theme": "clinical",
+    "print_optimized": true,
+    "responsive": true
+  },
+  "scoring": {
+    "enabled": false,
+    "method": "manual"
+  },
+  "validation": {
+    "required_fields": [],
+    "custom_rules": []
+  }
+}

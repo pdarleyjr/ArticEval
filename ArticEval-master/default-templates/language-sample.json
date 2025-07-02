@@ -1,0 +1,152 @@
+{
+  "id": "default-language-sample",
+  "name": "Language Sample Analysis",
+  "description": "Analysis of spontaneous language including structure, content, and social use",
+  "category": "assessment",
+  "version": "1.0.0",
+  "created_by": "system",
+  "is_default": true,
+  "order": 6,
+  "fields": [
+    {
+      "id": "two_word",
+      "type": "checkbox",
+      "name": "language_structure",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "three_word",
+      "type": "checkbox",
+      "name": "language_structure",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "complex_sentence",
+      "type": "checkbox",
+      "name": "language_structure",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "expanded_sentence",
+      "type": "checkbox",
+      "name": "language_structure",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "naming_objects",
+      "type": "checkbox",
+      "name": "language_content",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "action_words",
+      "type": "checkbox",
+      "name": "language_content",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "possession",
+      "type": "checkbox",
+      "name": "language_content",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "descriptions",
+      "type": "checkbox",
+      "name": "language_content",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "recurrence",
+      "type": "checkbox",
+      "name": "language_content",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "give_reason",
+      "type": "checkbox",
+      "name": "language_content",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "direct_attention",
+      "type": "checkbox",
+      "name": "social_language_use",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "talk_actions",
+      "type": "checkbox",
+      "name": "social_language_use",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "answer_questions",
+      "type": "checkbox",
+      "name": "social_language_use",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "interact_person",
+      "type": "checkbox",
+      "name": "social_language_use",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "word_finding",
+      "type": "checkbox",
+      "name": "additional_observations",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "jargon",
+      "type": "checkbox",
+      "name": "additional_observations",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "decreased_articulation",
+      "type": "checkbox",
+      "name": "additional_observations",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "language_sample_notes",
+      "type": "textarea",
+      "name": "language_sample_notes",
+      "required": false,
+      "validation": []
+    }
+  ],
+  "html_template": "<!-- Language Sample Analysis Section -->\r\n<section class=\"mb-4\">\r\n    <h2 class=\"h4 mb-3\">Language Sample Analysis</h2>\r\n    <p class=\"mb-3\">\r\n        A language sample was obtained to evaluate spontaneous speech and obtain more information about language \r\n        skills in a less structured environment. The language sample was collected informally through play and \r\n        observed for semantic, syntactic, morphological and pragmatic language abilities.\r\n    </p>\r\n\r\n    <!-- Language Structure -->\r\n    <div class=\"mb-3\">\r\n        <h3 class=\"h5\">Language Structure</h3>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"two_word\" name=\"language_structure\">\r\n            <label class=\"form-check-label\" for=\"two_word\">Uses 2-word combinations</label>\r\n        </div>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"three_word\" name=\"language_structure\">\r\n            <label class=\"form-check-label\" for=\"three_word\">Uses 3-4 word sentences</label>\r\n        </div>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"complex_sentence\" name=\"language_structure\">\r\n            <label class=\"form-check-label\" for=\"complex_sentence\">Uses complex sentences</label>\r\n        </div>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"expanded_sentence\" name=\"language_structure\">\r\n            <label class=\"form-check-label\" for=\"expanded_sentence\">Uses expanded sentences</label>\r\n        </div>\r\n    </div>\r\n\r\n    <!-- Language Content -->\r\n    <div class=\"mb-3\">\r\n        <h3 class=\"h5\">Language Content</h3>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"naming_objects\" name=\"language_content\">\r\n            <label class=\"form-check-label\" for=\"naming_objects\">Names objects</label>\r\n        </div>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"action_words\" name=\"language_content\">\r\n            <label class=\"form-check-label\" for=\"action_words\">Uses action words</label>\r\n        </div>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"possession\" name=\"language_content\">\r\n            <label class=\"form-check-label\" for=\"possession\">Uses words for possession</label>\r\n        </div>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"descriptions\" name=\"language_content\">\r\n            <label class=\"form-check-label\" for=\"descriptions\">Describes objects and people</label>\r\n        </div>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"recurrence\" name=\"language_content\">\r\n            <label class=\"form-check-label\" for=\"recurrence\">Denotes recurrence</label>\r\n        </div>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"give_reason\" name=\"language_content\">\r\n            <label class=\"form-check-label\" for=\"give_reason\">Gives reason</label>\r\n        </div>\r\n    </div>\r\n\r\n    <!-- Social Language Use -->\r\n    <div class=\"mb-3\">\r\n        <h3 class=\"h5\">Social Language Use</h3>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"direct_attention\" name=\"social_language_use\">\r\n            <label class=\"form-check-label\" for=\"direct_attention\">Directs attention</label>\r\n        </div>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"talk_actions\" name=\"social_language_use\">\r\n            <label class=\"form-check-label\" for=\"talk_actions\">Talks about current actions</label>\r\n        </div>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"answer_questions\" name=\"social_language_use\">\r\n            <label class=\"form-check-label\" for=\"answer_questions\">Answers when talked to</label>\r\n        </div>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"interact_person\" name=\"social_language_use\">\r\n            <label class=\"form-check-label\" for=\"interact_person\">Interacts with another person</label>\r\n        </div>\r\n    </div>\r\n\r\n    <!-- Additional Observations -->\r\n    <div class=\"mb-3\">\r\n        <h3 class=\"h5\">Additional Observations</h3>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"word_finding\" name=\"additional_observations\">\r\n            <label class=\"form-check-label\" for=\"word_finding\">Age-appropriate word finding difficulties</label>\r\n        </div>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"jargon\" name=\"additional_observations\">\r\n            <label class=\"form-check-label\" for=\"jargon\">Uses jargon in open-ended conversation</label>\r\n        </div>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"decreased_articulation\" name=\"additional_observations\">\r\n            <label class=\"form-check-label\" for=\"decreased_articulation\">Decreased articulation as length and complexity increases</label>\r\n        </div>\r\n    </div>\r\n\r\n    <div class=\"mb-3\">\r\n        <label for=\"language_sample_notes\" class=\"form-label\">Additional Notes:</label>\r\n        <textarea class=\"form-control\" id=\"language_sample_notes\" rows=\"4\" placeholder=\"Enter any additional observations about language sample...\"></textarea>\r\n    </div>\r\n</section>",
+  "styling": {
+    "theme": "clinical",
+    "print_optimized": true,
+    "responsive": true
+  },
+  "scoring": {
+    "enabled": false,
+    "method": "manual"
+  },
+  "validation": {
+    "required_fields": [],
+    "custom_rules": []
+  }
+}

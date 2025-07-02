@@ -1,0 +1,215 @@
+{
+  "id": "default-standardized-assessment",
+  "name": "Standardized Assessment",
+  "description": "Formal standardized test results with scoring interpretation",
+  "category": "assessment",
+  "version": "1.0.0",
+  "created_by": "system",
+  "is_default": true,
+  "order": 8,
+  "fields": [
+    {
+      "id": "ac_standard_score",
+      "type": "number",
+      "name": "ac_standard_score",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "ac_confidence_interval",
+      "type": "text",
+      "name": "ac_confidence_interval",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "ac_percentile",
+      "type": "text",
+      "name": "ac_percentile",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "ac_age_equivalent",
+      "type": "text",
+      "name": "ac_age_equivalent",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "ac_severity",
+      "type": "text",
+      "name": "ac_severity",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "ec_standard_score",
+      "type": "number",
+      "name": "ec_standard_score",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "ec_confidence_interval",
+      "type": "text",
+      "name": "ec_confidence_interval",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "ec_percentile",
+      "type": "text",
+      "name": "ec_percentile",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "ec_age_equivalent",
+      "type": "text",
+      "name": "ec_age_equivalent",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "ec_severity",
+      "type": "text",
+      "name": "ec_severity",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "tl_standard_score",
+      "type": "number",
+      "name": "tl_standard_score",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "tl_confidence_interval",
+      "type": "text",
+      "name": "tl_confidence_interval",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "tl_percentile",
+      "type": "text",
+      "name": "tl_percentile",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "tl_age_equivalent",
+      "type": "text",
+      "name": "tl_age_equivalent",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "tl_severity",
+      "type": "text",
+      "name": "tl_severity",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "strength_pronouns",
+      "type": "checkbox",
+      "name": "strength_pronouns",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "strength_commands",
+      "type": "checkbox",
+      "name": "strength_commands",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "strength_symbolic",
+      "type": "checkbox",
+      "name": "strength_symbolic",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "strength_objects",
+      "type": "checkbox",
+      "name": "strength_objects",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "strength_spatial",
+      "type": "checkbox",
+      "name": "strength_spatial",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "strength_quantitative",
+      "type": "checkbox",
+      "name": "strength_quantitative",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "strength_inferences",
+      "type": "checkbox",
+      "name": "strength_inferences",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "strength_analogies",
+      "type": "checkbox",
+      "name": "strength_analogies",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "strength_negatives",
+      "type": "checkbox",
+      "name": "strength_negatives",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "strength_colors",
+      "type": "checkbox",
+      "name": "strength_colors",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "difficulty_actions",
+      "type": "checkbox",
+      "name": "difficulty_actions",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "additional_difficulties",
+      "type": "textarea",
+      "name": "additional_difficulties",
+      "required": false,
+      "validation": []
+    }
+  ],
+  "html_template": "<!-- Standardized Assessment Section -->\r\n<section class=\"mb-4\">\r\n    <h2 class=\"h4 mb-3\">Standardized Assessment</h2>\r\n    <p class=\"mb-3\">\r\n        Formal standardized assessments were administered to evaluate speech and language skills. \r\n        Results are interpreted based on standard scores with a mean of 100 and a standard deviation of ±15.\r\n    </p>\r\n\r\n    <!-- Score Interpretation Reference -->\r\n    <div class=\"table-responsive mb-4\">\r\n        <table class=\"table table-bordered assessment-table\">\r\n            <thead class=\"table-light\">\r\n                <tr>\r\n                    <th style=\"width: 30%\">Standard Score Range</th>\r\n                    <th style=\"width: 70%\">Interpretation</th>\r\n                </tr>\r\n            </thead>\r\n            <tbody>\r\n                <tr>\r\n                    <td>Above 115</td>\r\n                    <td>Above Average</td>\r\n                </tr>\r\n                <tr>\r\n                    <td>85-115</td>\r\n                    <td>Average/Within Normal Limits</td>\r\n                </tr>\r\n                <tr>\r\n                    <td>78-84</td>\r\n                    <td>Marginal/Below Average/Mild</td>\r\n                </tr>\r\n                <tr>\r\n                    <td>71-77</td>\r\n                    <td>Low Range/Moderate</td>\r\n                </tr>\r\n                <tr>\r\n                    <td>70-50</td>\r\n                    <td>Very Low Range/Severe</td>\r\n                </tr>\r\n                <tr>\r\n                    <td>Below 50</td>\r\n                    <td>Profound</td>\r\n                </tr>\r\n            </tbody>\r\n        </table>\r\n    </div>\r\n\r\n    <!-- PLS-5 Assessment -->\r\n    <div class=\"card mb-4 standardized-assessment\">\r\n        <div class=\"card-header\">\r\n            <h3 class=\"h5 mb-0\">Preschool Language Scale – Fifth Edition (PLS-5)</h3>\r\n        </div>\r\n        <div class=\"card-body\">\r\n            <p class=\"card-text mb-3\">\r\n                The PLS-5 is designed to assess receptive and expressive language skills in children \r\n                from birth through 7 years, 11 months of age.\r\n            </p>\r\n            <div class=\"table-responsive\">\r\n                <table class=\"table table-bordered assessment-table\">\r\n                    <thead class=\"table-light\">\r\n                        <tr>\r\n                            <th style=\"width: 20%\">Subtest</th>\r\n                            <th style=\"width: 15%\">Standard Score</th>\r\n                            <th style=\"width: 20%\">Confidence Interval</th>\r\n                            <th style=\"width: 15%\">Percentile Rank</th>\r\n                            <th style=\"width: 15%\">Age Equivalent</th>\r\n                            <th style=\"width: 15%\">Severity</th>\r\n                        </tr>\r\n                    </thead>\r\n                    <tbody>\r\n                        <tr>\r\n                            <td>Auditory Comprehension</td>\r\n                            <td><input type=\"number\" class=\"form-control\" id=\"ac_standard_score\"></td>\r\n                            <td><input type=\"text\" class=\"form-control\" id=\"ac_confidence_interval\" placeholder=\"e.g., 84-100\"></td>\r\n                            <td><input type=\"text\" class=\"form-control\" id=\"ac_percentile\" placeholder=\"e.g., 27%\"></td>\r\n                            <td><input type=\"text\" class=\"form-control\" id=\"ac_age_equivalent\" placeholder=\"e.g., 2-11\"></td>\r\n                            <td><input type=\"text\" class=\"form-control\" id=\"ac_severity\" readonly></td>\r\n                        </tr>\r\n                        <tr>\r\n                            <td>Expressive Communication</td>\r\n                            <td><input type=\"number\" class=\"form-control\" id=\"ec_standard_score\"></td>\r\n                            <td><input type=\"text\" class=\"form-control\" id=\"ec_confidence_interval\" placeholder=\"e.g., 86-99\"></td>\r\n                            <td><input type=\"text\" class=\"form-control\" id=\"ec_percentile\" placeholder=\"e.g., 30%\"></td>\r\n                            <td><input type=\"text\" class=\"form-control\" id=\"ec_age_equivalent\" placeholder=\"e.g., 2-10\"></td>\r\n                            <td><input type=\"text\" class=\"form-control\" id=\"ec_severity\" readonly></td>\r\n                        </tr>\r\n                        <tr>\r\n                            <td>Total Language Score</td>\r\n                            <td><input type=\"number\" class=\"form-control\" id=\"tl_standard_score\"></td>\r\n                            <td><input type=\"text\" class=\"form-control\" id=\"tl_confidence_interval\" placeholder=\"e.g., 85-98\"></td>\r\n                            <td><input type=\"text\" class=\"form-control\" id=\"tl_percentile\" placeholder=\"e.g., 27%\"></td>\r\n                            <td><input type=\"text\" class=\"form-control\" id=\"tl_age_equivalent\" placeholder=\"e.g., 2-11\"></td>\r\n                            <td><input type=\"text\" class=\"form-control\" id=\"tl_severity\" readonly></td>\r\n                        </tr>\r\n                    </tbody>\r\n                </table>\r\n            </div>\r\n        </div>\r\n    </div>\r\n\r\n    <!-- Relative Strengths -->\r\n    <div class=\"mb-4\">\r\n        <h4 class=\"h6 mb-3\">Relative Strengths</h4>\r\n        <div class=\"form-check mb-2\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"strength_pronouns\">\r\n            <label class=\"form-check-label\" for=\"strength_pronouns\">Understanding pronouns (me, my, your)</label>\r\n        </div>\r\n        <div class=\"form-check mb-2\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"strength_commands\">\r\n            <label class=\"form-check-label\" for=\"strength_commands\">Following commands without gestural cues</label>\r\n        </div>\r\n        <div class=\"form-check mb-2\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"strength_symbolic\">\r\n            <label class=\"form-check-label\" for=\"strength_symbolic\">Engaging in symbolic play</label>\r\n        </div>\r\n        <div class=\"form-check mb-2\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"strength_objects\">\r\n            <label class=\"form-check-label\" for=\"strength_objects\">Understanding use of objects</label>\r\n        </div>\r\n        <div class=\"form-check mb-2\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"strength_spatial\">\r\n            <label class=\"form-check-label\" for=\"strength_spatial\">Understanding spatial concepts without gestural cues</label>\r\n        </div>\r\n        <div class=\"form-check mb-2\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"strength_quantitative\">\r\n            <label class=\"form-check-label\" for=\"strength_quantitative\">Understanding quantitative concepts</label>\r\n        </div>\r\n        <div class=\"form-check mb-2\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"strength_inferences\">\r\n            <label class=\"form-check-label\" for=\"strength_inferences\">Making inferences</label>\r\n        </div>\r\n        <div class=\"form-check mb-2\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"strength_analogies\">\r\n            <label class=\"form-check-label\" for=\"strength_analogies\">Understanding analogies</label>\r\n        </div>\r\n        <div class=\"form-check mb-2\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"strength_negatives\">\r\n            <label class=\"form-check-label\" for=\"strength_negatives\">Understanding negatives in sentences</label>\r\n        </div>\r\n        <div class=\"form-check mb-2\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"strength_colors\">\r\n            <label class=\"form-check-label\" for=\"strength_colors\">Identifying colors</label>\r\n        </div>\r\n    </div>\r\n\r\n    <!-- Areas of Difficulty -->\r\n    <div class=\"mb-4\">\r\n        <h4 class=\"h6 mb-3\">Areas of Difficulty</h4>\r\n        <div class=\"form-check mb-2\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"difficulty_actions\">\r\n            <label class=\"form-check-label\" for=\"difficulty_actions\">Recognizing actions in pictures</label>\r\n        </div>\r\n        <textarea class=\"form-control mt-3\" id=\"additional_difficulties\" rows=\"3\" placeholder=\"Additional areas of difficulty...\"></textarea>\r\n    </div>\r\n</section>",
+  "styling": {
+    "theme": "clinical",
+    "print_optimized": true,
+    "responsive": true
+  },
+  "scoring": {
+    "enabled": false,
+    "method": "manual"
+  },
+  "validation": {
+    "required_fields": [],
+    "custom_rules": []
+  }
+}

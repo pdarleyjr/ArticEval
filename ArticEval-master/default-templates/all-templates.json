@@ -1,0 +1,1781 @@
+[
+  {
+    "id": "default-patient-info",
+    "name": "Patient Information",
+    "description": "Patient demographic and evaluation header information",
+    "category": "header",
+    "version": "1.0.0",
+    "created_by": "system",
+    "is_default": true,
+    "order": 1,
+    "fields": [
+      {
+        "id": "firstName",
+        "type": "text",
+        "name": "firstName",
+        "required": true,
+        "validation": []
+      },
+      {
+        "id": "lastName",
+        "type": "text",
+        "name": "lastName",
+        "required": true,
+        "validation": []
+      },
+      {
+        "id": "evaluationDate",
+        "type": "date",
+        "name": "evaluationDate",
+        "required": true,
+        "validation": []
+      },
+      {
+        "id": "placeOfEvaluation",
+        "type": "text",
+        "name": "placeOfEvaluation",
+        "required": true,
+        "validation": []
+      },
+      {
+        "id": "dob",
+        "type": "date",
+        "name": "dob",
+        "required": true,
+        "validation": []
+      },
+      {
+        "id": "age",
+        "type": "text",
+        "name": "age",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "examiner",
+        "type": "text",
+        "name": "examiner",
+        "required": true,
+        "validation": []
+      }
+    ],
+    "html_template": "<!-- Patient Information Section -->\r\n<section class=\"patient-info mb-4 avoid-break\">\r\n    <!-- Logo Header -->\r\n    <div class=\"logo-header avoid-break\">\r\n        <img src=\"assets/images/400dpiLogo.PNG\" alt=\"IPLC Logo\">\r\n        <div class=\"contact-info\">\r\n            <p>Phone: 786-622-2353 | Email: info@iplcmiami.com</p>\r\n        </div>\r\n    </div>\r\n\r\n    <!-- Title -->\r\n    <h1 class=\"report-title avoid-break\">Articulation Evaluation Report</h1>\r\n\r\n    <!-- Patient Information -->\r\n    <div class=\"info-header avoid-break\">\r\n        <div class=\"name-group\">\r\n            <span class=\"field-group\">\r\n                <label for=\"firstName\" class=\"inline-label\">Name:</label>\r\n                <input type=\"text\" class=\"inline-input name-input\" id=\"firstName\" placeholder=\"First\" required>\r\n                <input type=\"text\" class=\"inline-input name-input\" id=\"lastName\" placeholder=\"Last\" required>\r\n            </span>\r\n        </div>\r\n        \r\n        <div class=\"date-group\">\r\n            <span class=\"field-group\">\r\n                <label for=\"evaluationDate\" class=\"inline-label\">Date of Evaluation:</label>\r\n                <input type=\"date\" class=\"inline-input date-input\" id=\"evaluationDate\" required>\r\n            </span>\r\n            <span class=\"field-group location-group\">\r\n                <label for=\"placeOfEvaluation\" class=\"inline-label\">at</label>\r\n                <input type=\"text\" class=\"inline-input location-input\" id=\"placeOfEvaluation\" required>\r\n            </span>\r\n        </div>\r\n    </div>\r\n\r\n    <div class=\"info-details avoid-break\">\r\n        <div class=\"personal-group\">\r\n            <span class=\"field-group\">\r\n                <label for=\"dob\" class=\"inline-label\">Date of Birth:</label>\r\n                <input type=\"date\" class=\"inline-input date-input\" id=\"dob\" required>\r\n            </span>\r\n            <span class=\"field-group age-group\">\r\n                <label for=\"age\" class=\"inline-label\">(Age:</label>\r\n                <input type=\"text\" class=\"inline-input age-input\" id=\"age\" readonly style=\"width: 60px;\">\r\n                <span class=\"inline-label\">)</span>\r\n            </span>\r\n        </div>\r\n\r\n        <div class=\"examiner-group\">\r\n            <span class=\"field-group\">\r\n                <label for=\"examiner\" class=\"inline-label\">Evaluated by:</label>\r\n                <input type=\"text\" class=\"inline-input examiner-input\" id=\"examiner\" required>\r\n            </span>\r\n        </div>\r\n    </div>\r\n</section>",
+    "styling": {
+      "theme": "clinical",
+      "print_optimized": true,
+      "responsive": true
+    },
+    "scoring": {
+      "enabled": false,
+      "method": "manual"
+    },
+    "validation": {
+      "required_fields": [],
+      "custom_rules": []
+    }
+  },
+  {
+    "id": "default-protocol",
+    "name": "Articulation Evaluation Protocol",
+    "description": "Evaluation protocol overview and component selection",
+    "category": "assessment",
+    "version": "1.0.0",
+    "created_by": "system",
+    "is_default": true,
+    "order": 2,
+    "fields": [
+      {
+        "id": "backgroundInfo",
+        "type": "checkbox",
+        "name": "backgroundInfo",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "oralMechanism",
+        "type": "checkbox",
+        "name": "oralMechanism",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "speechSound",
+        "type": "checkbox",
+        "name": "speechSound",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "speechSample",
+        "type": "checkbox",
+        "name": "speechSample",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "otherComponent",
+        "type": "checkbox",
+        "name": "otherComponent",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "otherComponentText",
+        "type": "text",
+        "name": "otherComponentText",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "assessmentLanguage",
+        "type": "select",
+        "name": "assessmentLanguage",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "assessmentSummaryLanguage",
+        "type": "select",
+        "name": "assessmentSummaryLanguage",
+        "required": false,
+        "validation": []
+      }
+    ],
+    "html_template": "<!-- Protocol Section -->\r\n<section class=\"mb-4 avoid-break\">\r\n    <h2 class=\"h4 mb-3\">Articulation Evaluation Protocol</h2>\r\n    <div class=\"protocol-content\">\r\n        <p class=\"protocol-description mb-4\">\r\n            An articulation evaluation was conducted to assess <span class=\"patient-name\"></span>'s ability to produce speech \r\n            sounds clearly and appropriately for their age. The purpose of the evaluation is to identify any \r\n            speech sound errors that may affect ability to communicate effectively. Errors in articulation \r\n            can significantly affect ability to be understood, academic performance, and social \r\n            interactions. By understanding specific speech patterns, we can create a tailored intervention \r\n            plan to improve overall communication skills.\r\n        </p>\r\n        <div class=\"language-selection mt-4\">\r\n            <label for=\"assessmentLanguage\" class=\"form-label\">Assessment Language:</label>\r\n            <select class=\"form-select\" id=\"assessmentLanguage\" name=\"assessmentLanguage\">\r\n                <option value=\"\">Select Language</option>\r\n                <option value=\"English\">English</option>\r\n                <option value=\"Spanish\">Spanish</option>\r\n                <option value=\"Bilingual (English/Spanish)\">Bilingual (English/Spanish)</option>\r\n                <option value=\"Other\">Other</option>\r\n            </select>\r\n        </div>\r\n        <div class=\"components-list mt-4\">\r\n            <p class=\"mb-3\">The evaluation included the following components:</p>\r\n            <div class=\"components-grid\" style=\"display: grid; gap: 1rem; margin-bottom: 1rem;\">\r\n                <div class=\"form-check\">\r\n                    <input class=\"form-check-input\" type=\"checkbox\" id=\"backgroundInfo\">\r\n                    <label class=\"form-check-label\" for=\"backgroundInfo\">Collection of Relevant Background Information</label>\r\n                </div>\r\n                <div class=\"form-check\">\r\n                    <input class=\"form-check-input\" type=\"checkbox\" id=\"oralMechanism\">\r\n                    <label class=\"form-check-label\" for=\"oralMechanism\">Oral Mechanism Examination</label>\r\n                </div>\r\n                <div class=\"form-check\">\r\n                    <input class=\"form-check-input\" type=\"checkbox\" id=\"speechSound\">\r\n                    <label class=\"form-check-label\" for=\"speechSound\">Speech Sound Assessment</label>\r\n                </div>\r\n                <div class=\"form-check\">\r\n                    <input class=\"form-check-input\" type=\"checkbox\" id=\"speechSample\">\r\n                    <label class=\"form-check-label\" for=\"speechSample\">Connected Speech Sample Analysis</label>\r\n                </div>\r\n                <div class=\"form-check\">\r\n                    <input class=\"form-check-input\" type=\"checkbox\" id=\"otherComponent\">\r\n                    <label class=\"form-check-label\" for=\"otherComponent\">Other:</label>\r\n                    <input type=\"text\" class=\"form-control mt-2\" id=\"otherComponentText\">\r\n                </div>\r\n            </div>\r\n            \r\n            <!-- Assessment Summary Paragraph -->\r\n            <div class=\"assessment-summary mt-4\">\r\n                <p class=\"mb-3\">\r\n                    This thorough process allows us to gain a clear picture of your child's speech strengths and challenges and to make informed recommendations for therapy. All measures were performed in:\r\n                    <select class=\"form-select d-inline-block\" id=\"assessmentSummaryLanguage\" name=\"assessmentSummaryLanguage\" style=\"width: auto; display: inline-block; margin: 0 5px;\">\r\n                        <option value=\"\">Select Language</option>\r\n                        <option value=\"English\">English</option>\r\n                        <option value=\"Spanish\">Spanish</option>\r\n                    </select>\r\n                    . Results of all formal and informal assessments appear to be reliable.\r\n                </p>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</section>",
+    "styling": {
+      "theme": "clinical",
+      "print_optimized": true,
+      "responsive": true
+    },
+    "scoring": {
+      "enabled": false,
+      "method": "manual"
+    },
+    "validation": {
+      "required_fields": [],
+      "custom_rules": []
+    }
+  },
+  {
+    "id": "default-background-info",
+    "name": "Relevant Background Information",
+    "description": "Comprehensive background history including birth, medical, and developmental information",
+    "category": "history",
+    "version": "1.0.0",
+    "created_by": "system",
+    "is_default": true,
+    "order": 3,
+    "fields": [
+      {
+        "id": "birthRemarkable",
+        "type": "radio",
+        "name": "birthHistory",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "birthUnremarkable",
+        "type": "radio",
+        "name": "birthHistory",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "pregnancyLength",
+        "type": "text",
+        "name": "pregnancyLength",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "deliveryType",
+        "type": "text",
+        "name": "deliveryType",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "medicalRemarkable",
+        "type": "radio",
+        "name": "medicalHistory",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "medicalUnremarkable",
+        "type": "radio",
+        "name": "medicalHistory",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "developmentalWNL",
+        "type": "radio",
+        "name": "developmentalMilestones",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "developmentalDelayed",
+        "type": "radio",
+        "name": "developmentalMilestones",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "languageWNL",
+        "type": "radio",
+        "name": "languageMilestones",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "languageDelayed",
+        "type": "radio",
+        "name": "languageMilestones",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "homeLanguage",
+        "type": "text",
+        "name": "homeLanguage",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "otherLanguages",
+        "type": "text",
+        "name": "otherLanguages",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "birthNotes",
+        "type": "textarea",
+        "name": "birthNotes",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "medicalNotes",
+        "type": "textarea",
+        "name": "medicalNotes",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "developmentalNotes",
+        "type": "textarea",
+        "name": "developmentalNotes",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "languageNotes",
+        "type": "textarea",
+        "name": "languageNotes",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "environmentalHistory",
+        "type": "textarea",
+        "name": "environmentalHistory",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "schoolHistory",
+        "type": "textarea",
+        "name": "schoolHistory",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "initialObservations",
+        "type": "textarea",
+        "name": "initialObservations",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "otherInfo",
+        "type": "textarea",
+        "name": "otherInfo",
+        "required": false,
+        "validation": []
+      }
+    ],
+    "html_template": "<!-- Background Information Section -->\r\n<section class=\"mb-4 avoid-break page-break-before\">\r\n    <h2 class=\"h4 mb-3\">Relevant Background Information</h2>\r\n    <p class=\"mb-4\">The following relevant information was collected via review of case history and through parent interview:</p>\r\n    \r\n    <!-- Birth History -->\r\n    <div class=\"subsection mb-4 avoid-break\">\r\n        <h3 class=\"h5 mb-3\">Birth History</h3>\r\n        <div class=\"mb-3\">\r\n            <div class=\"form-check form-check-inline\">\r\n                <input class=\"form-check-input\" type=\"radio\" name=\"birthHistory\" id=\"birthRemarkable\" value=\"remarkable\">\r\n                <label class=\"form-check-label\" for=\"birthRemarkable\">Remarkable</label>\r\n            </div>\r\n            <div class=\"form-check form-check-inline\">\r\n                <input class=\"form-check-input\" type=\"radio\" name=\"birthHistory\" id=\"birthUnremarkable\" value=\"unremarkable\">\r\n                <label class=\"form-check-label\" for=\"birthUnremarkable\">Unremarkable</label>\r\n            </div>\r\n        </div>\r\n        <div class=\"mb-3\">\r\n            <label for=\"pregnancyLength\" class=\"form-label\">Length of pregnancy:</label>\r\n            <input type=\"text\" class=\"form-control\" id=\"pregnancyLength\">\r\n        </div>\r\n        <div class=\"mb-3\">\r\n            <label for=\"deliveryType\" class=\"form-label\">Type of delivery:</label>\r\n            <input type=\"text\" class=\"form-control\" id=\"deliveryType\">\r\n        </div>\r\n        <div class=\"mb-3\">\r\n            <label for=\"birthNotes\" class=\"form-label\">Notes:</label>\r\n            <textarea class=\"form-control\" id=\"birthNotes\" rows=\"3\"></textarea>\r\n        </div>\r\n    </div>\r\n\r\n    <!-- Medical History -->\r\n    <div class=\"subsection mb-4 avoid-break\">\r\n        <h3 class=\"h5 mb-3\">Medical History</h3>\r\n        <div class=\"mb-3\">\r\n            <div class=\"form-check form-check-inline\">\r\n                <input class=\"form-check-input\" type=\"radio\" name=\"medicalHistory\" id=\"medicalRemarkable\" value=\"remarkable\">\r\n                <label class=\"form-check-label\" for=\"medicalRemarkable\">Remarkable</label>\r\n            </div>\r\n            <div class=\"form-check form-check-inline\">\r\n                <input class=\"form-check-input\" type=\"radio\" name=\"medicalHistory\" id=\"medicalUnremarkable\" value=\"unremarkable\">\r\n                <label class=\"form-check-label\" for=\"medicalUnremarkable\">Unremarkable</label>\r\n            </div>\r\n        </div>\r\n        <div class=\"mb-3\">\r\n            <label for=\"medicalNotes\" class=\"form-label\">Notes:</label>\r\n            <textarea class=\"form-control\" id=\"medicalNotes\" rows=\"3\"></textarea>\r\n        </div>\r\n    </div>\r\n\r\n    <!-- Development & Language -->\r\n    <div class=\"development-section avoid-break\">\r\n        <div class=\"subsection mb-4\">\r\n            <h3 class=\"h5 mb-3\">Developmental Milestones</h3>\r\n            <div class=\"mb-3\">\r\n                <div class=\"form-check form-check-inline\">\r\n                    <input class=\"form-check-input\" type=\"radio\" name=\"developmentalMilestones\" id=\"developmentalWNL\" value=\"WNL\">\r\n                    <label class=\"form-check-label\" for=\"developmentalWNL\">WNL</label>\r\n                </div>\r\n                <div class=\"form-check form-check-inline\">\r\n                    <input class=\"form-check-input\" type=\"radio\" name=\"developmentalMilestones\" id=\"developmentalDelayed\" value=\"Delayed\">\r\n                    <label class=\"form-check-label\" for=\"developmentalDelayed\">Delayed</label>\r\n                </div>\r\n            </div>\r\n            <div class=\"mb-3\">\r\n                <label for=\"developmentalNotes\" class=\"form-label\">Notes:</label>\r\n                <textarea class=\"form-control\" id=\"developmentalNotes\" rows=\"3\"></textarea>\r\n            </div>\r\n        </div>\r\n\r\n        <div class=\"subsection mb-4\">\r\n            <h3 class=\"h5 mb-3\">Language Milestones</h3>\r\n            <div class=\"mb-3\">\r\n                <div class=\"form-check form-check-inline\">\r\n                    <input class=\"form-check-input\" type=\"radio\" name=\"languageMilestones\" id=\"languageWNL\" value=\"WNL\">\r\n                    <label class=\"form-check-label\" for=\"languageWNL\">WNL</label>\r\n                </div>\r\n                <div class=\"form-check form-check-inline\">\r\n                    <input class=\"form-check-input\" type=\"radio\" name=\"languageMilestones\" id=\"languageDelayed\" value=\"Delayed\">\r\n                    <label class=\"form-check-label\" for=\"languageDelayed\">Delayed</label>\r\n                </div>\r\n            </div>\r\n            <div class=\"mb-3\">\r\n                <label for=\"languageNotes\" class=\"form-label\">Notes:</label>\r\n                <textarea class=\"form-control\" id=\"languageNotes\" rows=\"3\"></textarea>\r\n            </div>\r\n        </div>\r\n    </div>\r\n\r\n    <!-- Additional History -->\r\n    <div class=\"additional-history avoid-break\">\r\n        <div class=\"subsection mb-4\">\r\n            <h3 class=\"h5 mb-3\">Environmental History</h3>\r\n            <textarea class=\"form-control\" id=\"environmentalHistory\" rows=\"3\"></textarea>\r\n        </div>\r\n        <div class=\"subsection mb-4\">\r\n            <h3 class=\"h5 mb-3\">School History</h3>\r\n            <textarea class=\"form-control\" id=\"schoolHistory\" rows=\"3\"></textarea>\r\n        </div>\r\n    </div>\r\n\r\n    <!-- Language Information -->\r\n    <div class=\"language-info avoid-break\">\r\n        <div class=\"subsection mb-4\">\r\n            <div class=\"mb-3\">\r\n                <label for=\"homeLanguage\" class=\"form-label\">Language/s spoken at home:</label>\r\n                <input type=\"text\" class=\"form-control\" id=\"homeLanguage\">\r\n            </div>\r\n            <div class=\"mb-3\">\r\n                <label for=\"otherLanguages\" class=\"form-label\">Other language exposed to:</label>\r\n                <input type=\"text\" class=\"form-control\" id=\"otherLanguages\">\r\n            </div>\r\n        </div>\r\n\r\n        <div class=\"subsection mb-4\">\r\n            <div class=\"mb-3\">\r\n                <label for=\"initialObservations\" class=\"form-label\">Initial reported observations:</label>\r\n                <textarea class=\"form-control\" id=\"initialObservations\" rows=\"3\"></textarea>\r\n            </div>\r\n        </div>\r\n\r\n        <div class=\"subsection mb-4\">\r\n            <div class=\"mb-3\">\r\n                <label for=\"otherInfo\" class=\"form-label\">Other:</label>\r\n                <textarea class=\"form-control\" id=\"otherInfo\" rows=\"3\"></textarea>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</section>",
+    "styling": {
+      "theme": "clinical",
+      "print_optimized": true,
+      "responsive": true
+    },
+    "scoring": {
+      "enabled": false,
+      "method": "manual"
+    },
+    "validation": {
+      "required_fields": [],
+      "custom_rules": []
+    }
+  },
+  {
+    "id": "default-oral-mechanism",
+    "name": "Oral Mechanism Evaluation",
+    "description": "Assessment of oral speech mechanism structure and function",
+    "category": "assessment",
+    "version": "1.0.0",
+    "created_by": "system",
+    "is_default": true,
+    "order": 4,
+    "fields": [
+      {
+        "id": "faceWNL",
+        "type": "radio",
+        "name": "faceStructure",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "faceConcern",
+        "type": "radio",
+        "name": "faceStructure",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "mandibleWNL",
+        "type": "radio",
+        "name": "mandibleStructure",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "mandibleConcern",
+        "type": "radio",
+        "name": "mandibleStructure",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "teethWNL",
+        "type": "radio",
+        "name": "teethStructure",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "teethConcern",
+        "type": "radio",
+        "name": "teethStructure",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "palatalWNL",
+        "type": "radio",
+        "name": "palatalStructure",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "palatalConcern",
+        "type": "radio",
+        "name": "palatalStructure",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "lipsWNL",
+        "type": "radio",
+        "name": "lipsStructure",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "lipsConcern",
+        "type": "radio",
+        "name": "lipsStructure",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "jawWNL",
+        "type": "radio",
+        "name": "jawFunction",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "jawConcern",
+        "type": "radio",
+        "name": "jawFunction",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "velopharyngealWNL",
+        "type": "radio",
+        "name": "velopharyngealFunction",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "velopharyngealConcern",
+        "type": "radio",
+        "name": "velopharyngealFunction",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "phonationWNL",
+        "type": "radio",
+        "name": "phonationFunction",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "phonationConcern",
+        "type": "radio",
+        "name": "phonationFunction",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "reflexesWNL",
+        "type": "radio",
+        "name": "oralReflexes",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "reflexesConcern",
+        "type": "radio",
+        "name": "oralReflexes",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "motorWNL",
+        "type": "radio",
+        "name": "motorCoordination",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "motorConcern",
+        "type": "radio",
+        "name": "motorCoordination",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "structureNotes",
+        "type": "textarea",
+        "name": "structureNotes",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "functionNotes",
+        "type": "textarea",
+        "name": "functionNotes",
+        "required": false,
+        "validation": []
+      }
+    ],
+    "html_template": "<!-- Oral Mechanism Evaluation Section -->\r\n<section class=\"mb-4 avoid-break page-break-before\">\r\n    <h2 class=\"h4 mb-3\">Oral Mechanism Evaluation</h2>\r\n    <p class=\"mb-4\">\r\n        Informal assessment of the oral speech mechanism was performed through observation to \r\n        assess the adequacy of the structures and functions of the oral-motor mechanism. This \r\n        includes evaluating the symmetry, strength, coordination, and range of motion of the oral \r\n        structures, as well as breath support and motor control.\r\n    </p>\r\n    \r\n    <!-- Structure Assessment -->\r\n    <div class=\"structure-assessment avoid-break\">\r\n        <h3 class=\"h5 mb-3\">Structure Assessment</h3>\r\n        \r\n        <!-- Face -->\r\n        <div class=\"mb-4\">\r\n            <h4 class=\"h6 mb-2\">Face</h4>\r\n            <div class=\"form-check mb-2\">\r\n                <input class=\"form-check-input\" type=\"radio\" name=\"faceStructure\" id=\"faceWNL\">\r\n                <label class=\"form-check-label\" for=\"faceWNL\">\r\n                    Within Normal Limits: The face was observed to be symmetrical in shape, with no observed abnormalities in structure or alignment.\r\n                </label>\r\n            </div>\r\n            <div class=\"form-check\">\r\n                <input class=\"form-check-input\" type=\"radio\" name=\"faceStructure\" id=\"faceConcern\">\r\n                <label class=\"form-check-label\" for=\"faceConcern\">\r\n                    Areas of Concern Observed: Facial asymmetry noted, with irregularities in shape, alignment, or appearance.\r\n                </label>\r\n            </div>\r\n        </div>\r\n\r\n        <!-- Mandible and Maxilla -->\r\n        <div class=\"mb-4\">\r\n            <h4 class=\"h6 mb-2\">Mandible and Maxilla</h4>\r\n            <div class=\"form-check mb-2\">\r\n                <input class=\"form-check-input\" type=\"radio\" name=\"mandibleStructure\" id=\"mandibleWNL\">\r\n                <label class=\"form-check-label\" for=\"mandibleWNL\">\r\n                    Within Normal Limits: The mandible and maxilla were observed to be properly aligned, and their size, height, and shape are consistent with chronological age.\r\n                </label>\r\n            </div>\r\n            <div class=\"form-check\">\r\n                <input class=\"form-check-input\" type=\"radio\" name=\"mandibleStructure\" id=\"mandibleConcern\">\r\n                <label class=\"form-check-label\" for=\"mandibleConcern\">\r\n                    Areas of Concern Observed: Irregular alignment, disproportionate size, or shape observed in mandible and maxilla.\r\n                </label>\r\n            </div>\r\n        </div>\r\n\r\n        <!-- Teeth and Dental Occlusion -->\r\n        <div class=\"mb-4\">\r\n            <h4 class=\"h6 mb-2\">Teeth and Dental Occlusion</h4>\r\n            <div class=\"form-check mb-2\">\r\n                <input class=\"form-check-input\" type=\"radio\" name=\"teethStructure\" id=\"teethWNL\">\r\n                <label class=\"form-check-label\" for=\"teethWNL\">\r\n                    Within Normal Limits: Dental occlusion and alignment were observed to be appropriate for chronological age, with no noticeable abnormalities or malformations.\r\n                </label>\r\n            </div>\r\n            <div class=\"form-check\">\r\n                <input class=\"form-check-input\" type=\"radio\" name=\"teethStructure\" id=\"teethConcern\">\r\n                <label class=\"form-check-label\" for=\"teethConcern\">\r\n                    Areas of Concern Observed: Dental malocclusion observed, impacting potential articulation and oral function.\r\n                </label>\r\n            </div>\r\n        </div>\r\n\r\n        <!-- Palatal Arch -->\r\n        <div class=\"mb-4\">\r\n            <h4 class=\"h6 mb-2\">Palatal Arch</h4>\r\n            <div class=\"form-check mb-2\">\r\n                <input class=\"form-check-input\" type=\"radio\" name=\"palatalStructure\" id=\"palatalWNL\">\r\n                <label class=\"form-check-label\" for=\"palatalWNL\">\r\n                    Within Normal Limits: the palatal arch was observed to be symmetrical and of appropriate height and shape for chronological age.\r\n                </label>\r\n            </div>\r\n            <div class=\"form-check\">\r\n                <input class=\"form-check-input\" type=\"radio\" name=\"palatalStructure\" id=\"palatalConcern\">\r\n                <label class=\"form-check-label\" for=\"palatalConcern\">\r\n                    Areas of Concern Observed: High, narrow, or asymmetrical palatal arch observed, which may influence resonance or articulation.\r\n                </label>\r\n            </div>\r\n        </div>\r\n\r\n        <!-- Lips -->\r\n        <div class=\"mb-4\">\r\n            <h4 class=\"h6 mb-2\">Lips</h4>\r\n            <div class=\"form-check mb-2\">\r\n                <input class=\"form-check-input\" type=\"radio\" name=\"lipsStructure\" id=\"lipsWNL\">\r\n                <label class=\"form-check-label\" for=\"lipsWNL\">\r\n                    Within Normal Limits: Lips were observed to be of typical size and shape, with no abnormalities observed at rest or during movement.\r\n                </label>\r\n            </div>\r\n            <div class=\"form-check\">\r\n                <input class=\"form-check-input\" type=\"radio\" name=\"lipsStructure\" id=\"lipsConcern\">\r\n                <label class=\"form-check-label\" for=\"lipsConcern\">\r\n                    Areas of Concern Observed: Structural abnormalities were observed that could impact articulation.\r\n                </label>\r\n            </div>\r\n        </div>\r\n\r\n        <!-- Structure Notes -->\r\n        <div class=\"mb-5\">\r\n            <label for=\"structureNotes\" class=\"form-label\">Structure Notes:</label>\r\n            <textarea class=\"form-control\" id=\"structureNotes\" rows=\"3\"></textarea>\r\n        </div>\r\n    </div>\r\n\r\n    <!-- Function Assessment -->\r\n    <div class=\"function-assessment avoid-break\">\r\n        <h3 class=\"h5 mb-3\">Function Assessment</h3>\r\n\r\n        <!-- Jaw Function -->\r\n        <div class=\"mb-4\">\r\n            <h4 class=\"h6 mb-2\">Jaw Function</h4>\r\n            <div class=\"form-check mb-2\">\r\n                <input class=\"form-check-input\" type=\"radio\" name=\"jawFunction\" id=\"jawWNL\">\r\n                <label class=\"form-check-label\" for=\"jawWNL\">\r\n                    Within Normal Limits: Jaw was observed to demonstrate smooth and controlled movements with adequate stability for speech production.\r\n                </label>\r\n            </div>\r\n            <div class=\"form-check\">\r\n                <input class=\"form-check-input\" type=\"radio\" name=\"jawFunction\" id=\"jawConcern\">\r\n                <label class=\"form-check-label\" for=\"jawConcern\">\r\n                    Areas of Concern Observed: Irregular jaw movements or instability noted during speech production.\r\n                </label>\r\n            </div>\r\n        </div>\r\n\r\n        <!-- Velopharyngeal Closure -->\r\n        <div class=\"mb-4\">\r\n            <h4 class=\"h6 mb-2\">Velopharyngeal Closure</h4>\r\n            <div class=\"form-check mb-2\">\r\n                <input class=\"form-check-input\" type=\"radio\" name=\"velopharyngealFunction\" id=\"velopharyngealWNL\">\r\n                <label class=\"form-check-label\" for=\"velopharyngealWNL\">\r\n                    Within Normal Limits: Adequate velopharyngeal closure observed during speech, with no signs of hypernasality.\r\n                </label>\r\n            </div>\r\n            <div class=\"form-check\">\r\n                <input class=\"form-check-input\" type=\"radio\" name=\"velopharyngealFunction\" id=\"velopharyngealConcern\">\r\n                <label class=\"form-check-label\" for=\"velopharyngealConcern\">\r\n                    Areas of Concern Observed: Insufficient velopharyngeal closure noted, leading to hypernasality or other resonance issues.\r\n                </label>\r\n            </div>\r\n        </div>\r\n\r\n        <!-- Phonation and Breath Support -->\r\n        <div class=\"mb-4\">\r\n            <h4 class=\"h6 mb-2\">Phonation and Breath Support</h4>\r\n            <div class=\"form-check mb-2\">\r\n                <input class=\"form-check-input\" type=\"radio\" name=\"phonationFunction\" id=\"phonationWNL\">\r\n                <label class=\"form-check-label\" for=\"phonationWNL\">\r\n                    Within Normal Limits: Sufficient breath support observed for speech tasks, with 1–3 seconds of sustained phonation and appropriate voice quality.\r\n                </label>\r\n            </div>\r\n            <div class=\"form-check\">\r\n                <input class=\"form-check-input\" type=\"radio\" name=\"phonationFunction\" id=\"phonationConcern\">\r\n                <label class=\"form-check-label\" for=\"phonationConcern\">\r\n                    Areas of Concern Observed: Reduced breath control or strained/hoarse voice quality observed, impacting phonation and articulation.\r\n                </label>\r\n            </div>\r\n        </div>\r\n\r\n        <!-- Oral Reflexes -->\r\n        <div class=\"mb-4\">\r\n            <h4 class=\"h6 mb-2\">Oral Reflexes</h4>\r\n            <div class=\"form-check mb-2\">\r\n                <input class=\"form-check-input\" type=\"radio\" name=\"oralReflexes\" id=\"reflexesWNL\">\r\n                <label class=\"form-check-label\" for=\"reflexesWNL\">\r\n                    Within Normal Limits: Reflexes observed to be appropriate for age (e.g., gag reflex present; rooting and biting reflexes absent).\r\n                </label>\r\n            </div>\r\n            <div class=\"form-check\">\r\n                <input class=\"form-check-input\" type=\"radio\" name=\"oralReflexes\" id=\"reflexesConcern\">\r\n                <label class=\"form-check-label\" for=\"reflexesConcern\">\r\n                    Areas of Concern Observed: Presence of primitive reflexes (e.g., rooting or biting) that should be inhibited for the child's age were observed.\r\n                </label>\r\n            </div>\r\n        </div>\r\n\r\n        <!-- Motor Speech Coordination -->\r\n        <div class=\"mb-4\">\r\n            <h4 class=\"h6 mb-2\">Motor Speech Coordination</h4>\r\n            <div class=\"form-check mb-2\">\r\n                <input class=\"form-check-input\" type=\"radio\" name=\"motorCoordination\" id=\"motorWNL\">\r\n                <label class=\"form-check-label\" for=\"motorWNL\">\r\n                    Within Normal Limits: Smooth and accurate coordination observed between jaw, lips, and tongue during speech tasks.\r\n                </label>\r\n            </div>\r\n            <div class=\"form-check\">\r\n                <input class=\"form-check-input\" type=\"radio\" name=\"motorCoordination\" id=\"motorConcern\">\r\n                <label class=\"form-check-label\" for=\"motorConcern\">\r\n                    Areas of Concern Observed: Inconsistent or disorganized movement patterns observed, impacting speech precision and intelligibility.\r\n                </label>\r\n            </div>\r\n        </div>\r\n\r\n        <!-- Function Notes -->\r\n        <div class=\"mb-4\">\r\n            <label for=\"functionNotes\" class=\"form-label\">Function Notes:</label>\r\n            <textarea class=\"form-control\" id=\"functionNotes\" rows=\"3\"></textarea>\r\n        </div>\r\n    </div>\r\n</section>",
+    "styling": {
+      "theme": "clinical",
+      "print_optimized": true,
+      "responsive": true
+    },
+    "scoring": {
+      "enabled": false,
+      "method": "manual"
+    },
+    "validation": {
+      "required_fields": [],
+      "custom_rules": []
+    }
+  },
+  {
+    "id": "default-speech-sound",
+    "name": "Speech Sound Assessment",
+    "description": "Comprehensive phoneme assessment with detailed error analysis",
+    "category": "assessment",
+    "version": "1.0.0",
+    "created_by": "system",
+    "is_default": true,
+    "order": 5,
+    "fields": [
+      {
+        "id": "sound_p",
+        "type": "checkbox",
+        "name": "sound_p",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_p_position",
+        "type": "text",
+        "name": "sound_p_position",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_p_type",
+        "type": "text",
+        "name": "sound_p_type",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_p_detail",
+        "type": "text",
+        "name": "sound_p_detail",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_b",
+        "type": "checkbox",
+        "name": "sound_b",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_b_position",
+        "type": "text",
+        "name": "sound_b_position",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_b_type",
+        "type": "text",
+        "name": "sound_b_type",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_b_detail",
+        "type": "text",
+        "name": "sound_b_detail",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_t",
+        "type": "checkbox",
+        "name": "sound_t",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_t_position",
+        "type": "text",
+        "name": "sound_t_position",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_t_type",
+        "type": "text",
+        "name": "sound_t_type",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_t_detail",
+        "type": "text",
+        "name": "sound_t_detail",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_d",
+        "type": "checkbox",
+        "name": "sound_d",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_d_position",
+        "type": "text",
+        "name": "sound_d_position",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_d_type",
+        "type": "text",
+        "name": "sound_d_type",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_d_detail",
+        "type": "text",
+        "name": "sound_d_detail",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_k",
+        "type": "checkbox",
+        "name": "sound_k",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_k_position",
+        "type": "text",
+        "name": "sound_k_position",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_k_type",
+        "type": "text",
+        "name": "sound_k_type",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_k_detail",
+        "type": "text",
+        "name": "sound_k_detail",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_g",
+        "type": "checkbox",
+        "name": "sound_g",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_g_position",
+        "type": "text",
+        "name": "sound_g_position",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_g_type",
+        "type": "text",
+        "name": "sound_g_type",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_g_detail",
+        "type": "text",
+        "name": "sound_g_detail",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_f",
+        "type": "checkbox",
+        "name": "sound_f",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_f_position",
+        "type": "text",
+        "name": "sound_f_position",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_f_type",
+        "type": "text",
+        "name": "sound_f_type",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_f_detail",
+        "type": "text",
+        "name": "sound_f_detail",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_v",
+        "type": "checkbox",
+        "name": "sound_v",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_v_position",
+        "type": "text",
+        "name": "sound_v_position",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_v_type",
+        "type": "text",
+        "name": "sound_v_type",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_v_detail",
+        "type": "text",
+        "name": "sound_v_detail",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_s",
+        "type": "checkbox",
+        "name": "sound_s",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_s_position",
+        "type": "text",
+        "name": "sound_s_position",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_s_type",
+        "type": "text",
+        "name": "sound_s_type",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_s_detail",
+        "type": "text",
+        "name": "sound_s_detail",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_z",
+        "type": "checkbox",
+        "name": "sound_z",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_z_position",
+        "type": "text",
+        "name": "sound_z_position",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_z_type",
+        "type": "text",
+        "name": "sound_z_type",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_z_detail",
+        "type": "text",
+        "name": "sound_z_detail",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_sh",
+        "type": "checkbox",
+        "name": "sound_sh",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_sh_position",
+        "type": "text",
+        "name": "sound_sh_position",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_sh_type",
+        "type": "text",
+        "name": "sound_sh_type",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_sh_detail",
+        "type": "text",
+        "name": "sound_sh_detail",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_ch",
+        "type": "checkbox",
+        "name": "sound_ch",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_ch_position",
+        "type": "text",
+        "name": "sound_ch_position",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_ch_type",
+        "type": "text",
+        "name": "sound_ch_type",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_ch_detail",
+        "type": "text",
+        "name": "sound_ch_detail",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_j",
+        "type": "checkbox",
+        "name": "sound_j",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_j_position",
+        "type": "text",
+        "name": "sound_j_position",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_j_type",
+        "type": "text",
+        "name": "sound_j_type",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_j_detail",
+        "type": "text",
+        "name": "sound_j_detail",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_th_voiced",
+        "type": "checkbox",
+        "name": "sound_th_voiced",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_th_voiced_position",
+        "type": "text",
+        "name": "sound_th_voiced_position",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_th_voiced_type",
+        "type": "text",
+        "name": "sound_th_voiced_type",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_th_voiced_detail",
+        "type": "text",
+        "name": "sound_th_voiced_detail",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_th_voiceless",
+        "type": "checkbox",
+        "name": "sound_th_voiceless",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_th_voiceless_position",
+        "type": "text",
+        "name": "sound_th_voiceless_position",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_th_voiceless_type",
+        "type": "text",
+        "name": "sound_th_voiceless_type",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_th_voiceless_detail",
+        "type": "text",
+        "name": "sound_th_voiceless_detail",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_r",
+        "type": "checkbox",
+        "name": "sound_r",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_r_position",
+        "type": "text",
+        "name": "sound_r_position",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_r_type",
+        "type": "text",
+        "name": "sound_r_type",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_r_detail",
+        "type": "text",
+        "name": "sound_r_detail",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_l",
+        "type": "checkbox",
+        "name": "sound_l",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_l_position",
+        "type": "text",
+        "name": "sound_l_position",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_l_type",
+        "type": "text",
+        "name": "sound_l_type",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "sound_l_detail",
+        "type": "text",
+        "name": "sound_l_detail",
+        "required": false,
+        "validation": []
+      }
+    ],
+    "html_template": "<!-- Speech Sound Assessment Section -->\r\n<section class=\"avoid-break\">\r\n    <h2>Speech Sound Assessment</h2>\r\n    <p>\r\n        Speech Sound Assessment: The ability to produce speech sounds was assessed throughout \r\n        the course of the evaluation in order to measure articulation of sounds and determine types of \r\n        misarticulation. The Clinical Assessment of Articulation and Phonology - 2nd Edition \r\n        (CAAP-2) was administered. Additionally, spontaneous speech was elicited both in words and \r\n        connected speech. Data was collected and analyzed using the Age of Customary Consonant \r\n        Production chart as recommended by The American Speech-Language-Hearing Association \r\n        (ASHA). The acquisition of speech sounds is a developmental process and children often \r\n        demonstrate \"typical\" errors and phonological patterns during this acquisition period. \r\n        Developmentally appropriate error patterns were taken into consideration during assessment \r\n        of speech sounds in order to differentiate typical errors from those that are not.\r\n    </p>\r\n\r\n    <div class=\"table-responsive avoid-break\">\r\n        <table>\r\n            <thead>\r\n                <tr>\r\n                    <th>Sound</th>\r\n                    <th>Misarticulated</th>\r\n                    <th>Position of word</th>\r\n                    <th>Type</th>\r\n                    <th>Detail</th>\r\n                </tr>\r\n            </thead>\r\n            <tbody>\r\n                <tr class=\"sound-row\" data-sound=\"/p/\">\r\n                    <td>/p/</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_p\"></td>\r\n                    <td><input type=\"text\" id=\"sound_p_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_p_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_p_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/b/\">\r\n                    <td>/b/</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_b\"></td>\r\n                    <td><input type=\"text\" id=\"sound_b_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_b_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_b_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/t/\">\r\n                    <td>/t/</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_t\"></td>\r\n                    <td><input type=\"text\" id=\"sound_t_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_t_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_t_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/d/\">\r\n                    <td>/d/</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_d\"></td>\r\n                    <td><input type=\"text\" id=\"sound_d_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_d_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_d_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/k/\">\r\n                    <td>/k/</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_k\"></td>\r\n                    <td><input type=\"text\" id=\"sound_k_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_k_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_k_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/g/\">\r\n                    <td>/g/</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_g\"></td>\r\n                    <td><input type=\"text\" id=\"sound_g_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_g_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_g_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/f/\">\r\n                    <td>/f/</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_f\"></td>\r\n                    <td><input type=\"text\" id=\"sound_f_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_f_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_f_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/v/\">\r\n                    <td>/v/</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_v\"></td>\r\n                    <td><input type=\"text\" id=\"sound_v_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_v_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_v_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/s/\">\r\n                    <td>/s/</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_s\"></td>\r\n                    <td><input type=\"text\" id=\"sound_s_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_s_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_s_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/z/\">\r\n                    <td>/z/</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_z\"></td>\r\n                    <td><input type=\"text\" id=\"sound_z_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_z_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_z_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/sh/\">\r\n                    <td>/sh/</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_sh\"></td>\r\n                    <td><input type=\"text\" id=\"sound_sh_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_sh_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_sh_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/ch/\">\r\n                    <td>/ch/</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_ch\"></td>\r\n                    <td><input type=\"text\" id=\"sound_ch_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_ch_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_ch_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/j/\">\r\n                    <td>/j/</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_j\"></td>\r\n                    <td><input type=\"text\" id=\"sound_j_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_j_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_j_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/th-voiced/\">\r\n                    <td>/th/ (voiced)</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_th_voiced\"></td>\r\n                    <td><input type=\"text\" id=\"sound_th_voiced_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_th_voiced_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_th_voiced_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/th-voiceless/\">\r\n                    <td>/th/ (voiceless)</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_th_voiceless\"></td>\r\n                    <td><input type=\"text\" id=\"sound_th_voiceless_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_th_voiceless_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_th_voiceless_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/r/\">\r\n                    <td>/r/</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_r\"></td>\r\n                    <td><input type=\"text\" id=\"sound_r_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_r_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_r_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/l/\">\r\n                    <td>/l/</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_l\"></td>\r\n                    <td><input type=\"text\" id=\"sound_l_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_l_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_l_detail\"></td>\r\n                </tr>\r\n            </tbody>\r\n        </table>\r\n    </div>\r\n</section>",
+    "styling": {
+      "theme": "clinical",
+      "print_optimized": true,
+      "responsive": true
+    },
+    "scoring": {
+      "enabled": false,
+      "method": "manual"
+    },
+    "validation": {
+      "required_fields": [],
+      "custom_rules": []
+    }
+  },
+  {
+    "id": "default-language-sample",
+    "name": "Language Sample Analysis",
+    "description": "Analysis of spontaneous language including structure, content, and social use",
+    "category": "assessment",
+    "version": "1.0.0",
+    "created_by": "system",
+    "is_default": true,
+    "order": 6,
+    "fields": [
+      {
+        "id": "two_word",
+        "type": "checkbox",
+        "name": "language_structure",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "three_word",
+        "type": "checkbox",
+        "name": "language_structure",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "complex_sentence",
+        "type": "checkbox",
+        "name": "language_structure",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "expanded_sentence",
+        "type": "checkbox",
+        "name": "language_structure",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "naming_objects",
+        "type": "checkbox",
+        "name": "language_content",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "action_words",
+        "type": "checkbox",
+        "name": "language_content",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "possession",
+        "type": "checkbox",
+        "name": "language_content",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "descriptions",
+        "type": "checkbox",
+        "name": "language_content",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "recurrence",
+        "type": "checkbox",
+        "name": "language_content",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "give_reason",
+        "type": "checkbox",
+        "name": "language_content",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "direct_attention",
+        "type": "checkbox",
+        "name": "social_language_use",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "talk_actions",
+        "type": "checkbox",
+        "name": "social_language_use",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "answer_questions",
+        "type": "checkbox",
+        "name": "social_language_use",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "interact_person",
+        "type": "checkbox",
+        "name": "social_language_use",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "word_finding",
+        "type": "checkbox",
+        "name": "additional_observations",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "jargon",
+        "type": "checkbox",
+        "name": "additional_observations",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "decreased_articulation",
+        "type": "checkbox",
+        "name": "additional_observations",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "language_sample_notes",
+        "type": "textarea",
+        "name": "language_sample_notes",
+        "required": false,
+        "validation": []
+      }
+    ],
+    "html_template": "<!-- Language Sample Analysis Section -->\r\n<section class=\"mb-4\">\r\n    <h2 class=\"h4 mb-3\">Language Sample Analysis</h2>\r\n    <p class=\"mb-3\">\r\n        A language sample was obtained to evaluate spontaneous speech and obtain more information about language \r\n        skills in a less structured environment. The language sample was collected informally through play and \r\n        observed for semantic, syntactic, morphological and pragmatic language abilities.\r\n    </p>\r\n\r\n    <!-- Language Structure -->\r\n    <div class=\"mb-3\">\r\n        <h3 class=\"h5\">Language Structure</h3>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"two_word\" name=\"language_structure\">\r\n            <label class=\"form-check-label\" for=\"two_word\">Uses 2-word combinations</label>\r\n        </div>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"three_word\" name=\"language_structure\">\r\n            <label class=\"form-check-label\" for=\"three_word\">Uses 3-4 word sentences</label>\r\n        </div>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"complex_sentence\" name=\"language_structure\">\r\n            <label class=\"form-check-label\" for=\"complex_sentence\">Uses complex sentences</label>\r\n        </div>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"expanded_sentence\" name=\"language_structure\">\r\n            <label class=\"form-check-label\" for=\"expanded_sentence\">Uses expanded sentences</label>\r\n        </div>\r\n    </div>\r\n\r\n    <!-- Language Content -->\r\n    <div class=\"mb-3\">\r\n        <h3 class=\"h5\">Language Content</h3>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"naming_objects\" name=\"language_content\">\r\n            <label class=\"form-check-label\" for=\"naming_objects\">Names objects</label>\r\n        </div>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"action_words\" name=\"language_content\">\r\n            <label class=\"form-check-label\" for=\"action_words\">Uses action words</label>\r\n        </div>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"possession\" name=\"language_content\">\r\n            <label class=\"form-check-label\" for=\"possession\">Uses words for possession</label>\r\n        </div>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"descriptions\" name=\"language_content\">\r\n            <label class=\"form-check-label\" for=\"descriptions\">Describes objects and people</label>\r\n        </div>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"recurrence\" name=\"language_content\">\r\n            <label class=\"form-check-label\" for=\"recurrence\">Denotes recurrence</label>\r\n        </div>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"give_reason\" name=\"language_content\">\r\n            <label class=\"form-check-label\" for=\"give_reason\">Gives reason</label>\r\n        </div>\r\n    </div>\r\n\r\n    <!-- Social Language Use -->\r\n    <div class=\"mb-3\">\r\n        <h3 class=\"h5\">Social Language Use</h3>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"direct_attention\" name=\"social_language_use\">\r\n            <label class=\"form-check-label\" for=\"direct_attention\">Directs attention</label>\r\n        </div>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"talk_actions\" name=\"social_language_use\">\r\n            <label class=\"form-check-label\" for=\"talk_actions\">Talks about current actions</label>\r\n        </div>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"answer_questions\" name=\"social_language_use\">\r\n            <label class=\"form-check-label\" for=\"answer_questions\">Answers when talked to</label>\r\n        </div>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"interact_person\" name=\"social_language_use\">\r\n            <label class=\"form-check-label\" for=\"interact_person\">Interacts with another person</label>\r\n        </div>\r\n    </div>\r\n\r\n    <!-- Additional Observations -->\r\n    <div class=\"mb-3\">\r\n        <h3 class=\"h5\">Additional Observations</h3>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"word_finding\" name=\"additional_observations\">\r\n            <label class=\"form-check-label\" for=\"word_finding\">Age-appropriate word finding difficulties</label>\r\n        </div>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"jargon\" name=\"additional_observations\">\r\n            <label class=\"form-check-label\" for=\"jargon\">Uses jargon in open-ended conversation</label>\r\n        </div>\r\n        <div class=\"form-check\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"decreased_articulation\" name=\"additional_observations\">\r\n            <label class=\"form-check-label\" for=\"decreased_articulation\">Decreased articulation as length and complexity increases</label>\r\n        </div>\r\n    </div>\r\n\r\n    <div class=\"mb-3\">\r\n        <label for=\"language_sample_notes\" class=\"form-label\">Additional Notes:</label>\r\n        <textarea class=\"form-control\" id=\"language_sample_notes\" rows=\"4\" placeholder=\"Enter any additional observations about language sample...\"></textarea>\r\n    </div>\r\n</section>",
+    "styling": {
+      "theme": "clinical",
+      "print_optimized": true,
+      "responsive": true
+    },
+    "scoring": {
+      "enabled": false,
+      "method": "manual"
+    },
+    "validation": {
+      "required_fields": [],
+      "custom_rules": []
+    }
+  },
+  {
+    "id": "default-speech-sample",
+    "name": "Speech Sample Analysis",
+    "description": "Connected speech analysis with intelligibility ratings and error patterns",
+    "category": "assessment",
+    "version": "1.0.0",
+    "created_by": "system",
+    "is_default": true,
+    "order": 7,
+    "fields": [
+      {
+        "id": "accurateProduction",
+        "type": "checkbox",
+        "name": "accurateProduction",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "substitutionErrors",
+        "type": "checkbox",
+        "name": "substitutionErrors",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "omissionErrors",
+        "type": "checkbox",
+        "name": "omissionErrors",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "distortionErrors",
+        "type": "checkbox",
+        "name": "distortionErrors",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "additionErrors",
+        "type": "checkbox",
+        "name": "additionErrors",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "otherSoundProduction",
+        "type": "checkbox",
+        "name": "otherSoundProduction",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "otherSoundProductionText",
+        "type": "text",
+        "name": "otherSoundProductionText",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "clusterReduction",
+        "type": "checkbox",
+        "name": "clusterReduction",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "finalConsonantDeletion",
+        "type": "checkbox",
+        "name": "finalConsonantDeletion",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "weakSyllableDeletion",
+        "type": "checkbox",
+        "name": "weakSyllableDeletion",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "frontingSounds",
+        "type": "checkbox",
+        "name": "frontingSounds",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "glidingLiquids",
+        "type": "checkbox",
+        "name": "glidingLiquids",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "stopping",
+        "type": "checkbox",
+        "name": "stopping",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "otherPattern",
+        "type": "checkbox",
+        "name": "otherPattern",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "otherPatternText",
+        "type": "text",
+        "name": "otherPatternText",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "familiarHigh",
+        "type": "radio",
+        "name": "familiarIntelligibility",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "familiarModerate",
+        "type": "radio",
+        "name": "familiarIntelligibility",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "familiarPoor",
+        "type": "radio",
+        "name": "familiarIntelligibility",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "familiarVeryPoor",
+        "type": "radio",
+        "name": "familiarIntelligibility",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "unfamiliarHigh",
+        "type": "radio",
+        "name": "unfamiliarIntelligibility",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "unfamiliarModerate",
+        "type": "radio",
+        "name": "unfamiliarIntelligibility",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "unfamiliarPoor",
+        "type": "radio",
+        "name": "unfamiliarIntelligibility",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "unfamiliarVeryPoor",
+        "type": "radio",
+        "name": "unfamiliarIntelligibility",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "speechOrganized",
+        "type": "checkbox",
+        "name": "speechOrganized",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "speechDisorganized",
+        "type": "checkbox",
+        "name": "speechDisorganized",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "speechRateNormal",
+        "type": "checkbox",
+        "name": "speechRateNormal",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "speechRateSlow",
+        "type": "checkbox",
+        "name": "speechRateSlow",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "speechRateFast",
+        "type": "checkbox",
+        "name": "speechRateFast",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "selfCorrections",
+        "type": "checkbox",
+        "name": "selfCorrections",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "otherCharacteristic",
+        "type": "checkbox",
+        "name": "otherCharacteristic",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "otherCharacteristicText",
+        "type": "text",
+        "name": "otherCharacteristicText",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "varietySentences",
+        "type": "checkbox",
+        "name": "varietySentences",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "ageVocabulary",
+        "type": "checkbox",
+        "name": "ageVocabulary",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "selfCorrectEfforts",
+        "type": "checkbox",
+        "name": "selfCorrectEfforts",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "otherStrength",
+        "type": "checkbox",
+        "name": "otherStrength",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "otherStrengthText",
+        "type": "text",
+        "name": "otherStrengthText",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "phonologicalNotes",
+        "type": "textarea",
+        "name": "phonologicalNotes",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "intelligibilityNotes",
+        "type": "textarea",
+        "name": "intelligibilityNotes",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "characteristicsNotes",
+        "type": "textarea",
+        "name": "characteristicsNotes",
+        "required": false,
+        "validation": []
+      }
+    ],
+    "html_template": "<!-- Speech Sample Analysis Section -->\r\n<section class=\"avoid-break page-break-before\">\r\n    <h2>Speech Sample Analysis</h2>\r\n    <p>\r\n        A speech sample was collected during spontaneous conversation, play-based activities, and \r\n        picture description tasks to assess articulation and intelligibility in connected speech. The \r\n        following observations were made:\r\n    </p>\r\n    \r\n    <!-- Sound Production -->\r\n    <div class=\"analysis-subsection avoid-break\">\r\n        <h3>Sound Production</h3>\r\n        <div class=\"checkbox-group\">\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"accurateProduction\">\r\n                <label for=\"accurateProduction\">Accurate production of sounds observed.</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"substitutionErrors\">\r\n                <label for=\"substitutionErrors\">Substitution errors noted in conversation.</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"omissionErrors\">\r\n                <label for=\"omissionErrors\">Omission of sounds observed in conversation.</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"distortionErrors\">\r\n                <label for=\"distortionErrors\">Distortion of sounds noted in conversation.</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"additionErrors\">\r\n                <label for=\"additionErrors\">Addition of sounds observed in conversation.</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"otherSoundProduction\">\r\n                <label for=\"otherSoundProduction\">Other:</label>\r\n                <input type=\"text\" id=\"otherSoundProductionText\">\r\n            </div>\r\n        </div>\r\n    </div>\r\n\r\n    <!-- Phonological Patterns -->\r\n    <div class=\"analysis-subsection avoid-break\">\r\n        <h3>Phonological Patterns</h3>\r\n        <div class=\"checkbox-group\">\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"clusterReduction\">\r\n                <label for=\"clusterReduction\">Cluster reduction</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"finalConsonantDeletion\">\r\n                <label for=\"finalConsonantDeletion\">Final consonant deletion</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"weakSyllableDeletion\">\r\n                <label for=\"weakSyllableDeletion\">Weak syllable deletion</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"frontingSounds\">\r\n                <label for=\"frontingSounds\">Fronting of sounds</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"glidingLiquids\">\r\n                <label for=\"glidingLiquids\">Gliding of liquids</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"stopping\">\r\n                <label for=\"stopping\">Stopping</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"otherPattern\">\r\n                <label for=\"otherPattern\">Other:</label>\r\n                <input type=\"text\" id=\"otherPatternText\">\r\n            </div>\r\n        </div>\r\n        <div class=\"notes-field\">\r\n            <label for=\"phonologicalNotes\">Notes:</label>\r\n            <textarea id=\"phonologicalNotes\"></textarea>\r\n        </div>\r\n    </div>\r\n\r\n    <!-- Speech Intelligibility -->\r\n    <div class=\"analysis-subsection avoid-break\">\r\n        <h3>Speech Intelligibility</h3>\r\n        <div class=\"intelligibility-group\">\r\n            <div class=\"familiar-listeners\">\r\n                <h4>Familiar Listeners:</h4>\r\n                <div class=\"radio-group\">\r\n                    <div class=\"field-group\">\r\n                        <input type=\"radio\" name=\"familiarIntelligibility\" id=\"familiarHigh\">\r\n                        <label for=\"familiarHigh\">Highly intelligible (90–100%)</label>\r\n                    </div>\r\n                    <div class=\"field-group\">\r\n                        <input type=\"radio\" name=\"familiarIntelligibility\" id=\"familiarModerate\">\r\n                        <label for=\"familiarModerate\">Moderately intelligible (70–89%)</label>\r\n                    </div>\r\n                    <div class=\"field-group\">\r\n                        <input type=\"radio\" name=\"familiarIntelligibility\" id=\"familiarPoor\">\r\n                        <label for=\"familiarPoor\">Poor intelligibility (50–69%)</label>\r\n                    </div>\r\n                    <div class=\"field-group\">\r\n                        <input type=\"radio\" name=\"familiarIntelligibility\" id=\"familiarVeryPoor\">\r\n                        <label for=\"familiarVeryPoor\">Very poor intelligibility (<50%)</label>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n            <div class=\"unfamiliar-listeners\">\r\n                <h4>Unfamiliar Listeners:</h4>\r\n                <div class=\"radio-group\">\r\n                    <div class=\"field-group\">\r\n                        <input type=\"radio\" name=\"unfamiliarIntelligibility\" id=\"unfamiliarHigh\">\r\n                        <label for=\"unfamiliarHigh\">Highly intelligible (90–100%)</label>\r\n                    </div>\r\n                    <div class=\"field-group\">\r\n                        <input type=\"radio\" name=\"unfamiliarIntelligibility\" id=\"unfamiliarModerate\">\r\n                        <label for=\"unfamiliarModerate\">Moderately intelligible (70–89%)</label>\r\n                    </div>\r\n                    <div class=\"field-group\">\r\n                        <input type=\"radio\" name=\"unfamiliarIntelligibility\" id=\"unfamiliarPoor\">\r\n                        <label for=\"unfamiliarPoor\">Poor intelligibility (50–69%)</label>\r\n                    </div>\r\n                    <div class=\"field-group\">\r\n                        <input type=\"radio\" name=\"unfamiliarIntelligibility\" id=\"unfamiliarVeryPoor\">\r\n                        <label for=\"unfamiliarVeryPoor\">Very poor intelligibility (<50%)</label>\r\n                    </div>\r\n                </div>\r\n            </div>\r\n        </div>\r\n        <div class=\"notes-field\">\r\n            <label for=\"intelligibilityNotes\">Notes:</label>\r\n            <textarea id=\"intelligibilityNotes\"></textarea>\r\n        </div>\r\n    </div>\r\n\r\n    <!-- Connected Speech Characteristics -->\r\n    <div class=\"analysis-subsection avoid-break\">\r\n        <h3>Connected Speech Characteristics</h3>\r\n        <div class=\"checkbox-group\">\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"speechOrganized\">\r\n                <label for=\"speechOrganized\">Speech is organized and fluent.</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"speechDisorganized\">\r\n                <label for=\"speechDisorganized\">Disorganized speech noted (e.g., frequent pauses, hesitations).</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"speechRateNormal\">\r\n                <label for=\"speechRateNormal\">Speech rate is within normal limits.</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"speechRateSlow\">\r\n                <label for=\"speechRateSlow\">Speech rate is slow, impacting clarity.</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"speechRateFast\">\r\n                <label for=\"speechRateFast\">Speech rate is fast, impacting clarity.</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"selfCorrections\">\r\n                <label for=\"selfCorrections\">Self-corrections observed.</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"otherCharacteristic\">\r\n                <label for=\"otherCharacteristic\">Other:</label>\r\n                <input type=\"text\" id=\"otherCharacteristicText\">\r\n            </div>\r\n        </div>\r\n        <div class=\"notes-field\">\r\n            <label for=\"characteristicsNotes\">Notes:</label>\r\n            <textarea id=\"characteristicsNotes\"></textarea>\r\n        </div>\r\n    </div>\r\n\r\n    <!-- Strengths Observed -->\r\n    <div class=\"analysis-subsection avoid-break\">\r\n        <h3>Strengths Observed</h3>\r\n        <div class=\"checkbox-group\">\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"varietySentences\">\r\n                <label for=\"varietySentences\">Variety of sentence structures used.</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"ageVocabulary\">\r\n                <label for=\"ageVocabulary\">Age-appropriate vocabulary observed.</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"selfCorrectEfforts\">\r\n                <label for=\"selfCorrectEfforts\">Efforts to self-correct noted.</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"otherStrength\">\r\n                <label for=\"otherStrength\">Other:</label>\r\n                <input type=\"text\" id=\"otherStrengthText\">\r\n            </div>\r\n        </div>\r\n    </div>\r\n</section>",
+    "styling": {
+      "theme": "clinical",
+      "print_optimized": true,
+      "responsive": true
+    },
+    "scoring": {
+      "enabled": false,
+      "method": "manual"
+    },
+    "validation": {
+      "required_fields": [],
+      "custom_rules": []
+    }
+  },
+  {
+    "id": "default-standardized-assessment",
+    "name": "Standardized Assessment",
+    "description": "Formal standardized test results with scoring interpretation",
+    "category": "assessment",
+    "version": "1.0.0",
+    "created_by": "system",
+    "is_default": true,
+    "order": 8,
+    "fields": [
+      {
+        "id": "ac_standard_score",
+        "type": "number",
+        "name": "ac_standard_score",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "ac_confidence_interval",
+        "type": "text",
+        "name": "ac_confidence_interval",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "ac_percentile",
+        "type": "text",
+        "name": "ac_percentile",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "ac_age_equivalent",
+        "type": "text",
+        "name": "ac_age_equivalent",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "ac_severity",
+        "type": "text",
+        "name": "ac_severity",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "ec_standard_score",
+        "type": "number",
+        "name": "ec_standard_score",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "ec_confidence_interval",
+        "type": "text",
+        "name": "ec_confidence_interval",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "ec_percentile",
+        "type": "text",
+        "name": "ec_percentile",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "ec_age_equivalent",
+        "type": "text",
+        "name": "ec_age_equivalent",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "ec_severity",
+        "type": "text",
+        "name": "ec_severity",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "tl_standard_score",
+        "type": "number",
+        "name": "tl_standard_score",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "tl_confidence_interval",
+        "type": "text",
+        "name": "tl_confidence_interval",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "tl_percentile",
+        "type": "text",
+        "name": "tl_percentile",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "tl_age_equivalent",
+        "type": "text",
+        "name": "tl_age_equivalent",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "tl_severity",
+        "type": "text",
+        "name": "tl_severity",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "strength_pronouns",
+        "type": "checkbox",
+        "name": "strength_pronouns",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "strength_commands",
+        "type": "checkbox",
+        "name": "strength_commands",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "strength_symbolic",
+        "type": "checkbox",
+        "name": "strength_symbolic",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "strength_objects",
+        "type": "checkbox",
+        "name": "strength_objects",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "strength_spatial",
+        "type": "checkbox",
+        "name": "strength_spatial",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "strength_quantitative",
+        "type": "checkbox",
+        "name": "strength_quantitative",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "strength_inferences",
+        "type": "checkbox",
+        "name": "strength_inferences",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "strength_analogies",
+        "type": "checkbox",
+        "name": "strength_analogies",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "strength_negatives",
+        "type": "checkbox",
+        "name": "strength_negatives",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "strength_colors",
+        "type": "checkbox",
+        "name": "strength_colors",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "difficulty_actions",
+        "type": "checkbox",
+        "name": "difficulty_actions",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "additional_difficulties",
+        "type": "textarea",
+        "name": "additional_difficulties",
+        "required": false,
+        "validation": []
+      }
+    ],
+    "html_template": "<!-- Standardized Assessment Section -->\r\n<section class=\"mb-4\">\r\n    <h2 class=\"h4 mb-3\">Standardized Assessment</h2>\r\n    <p class=\"mb-3\">\r\n        Formal standardized assessments were administered to evaluate speech and language skills. \r\n        Results are interpreted based on standard scores with a mean of 100 and a standard deviation of ±15.\r\n    </p>\r\n\r\n    <!-- Score Interpretation Reference -->\r\n    <div class=\"table-responsive mb-4\">\r\n        <table class=\"table table-bordered assessment-table\">\r\n            <thead class=\"table-light\">\r\n                <tr>\r\n                    <th style=\"width: 30%\">Standard Score Range</th>\r\n                    <th style=\"width: 70%\">Interpretation</th>\r\n                </tr>\r\n            </thead>\r\n            <tbody>\r\n                <tr>\r\n                    <td>Above 115</td>\r\n                    <td>Above Average</td>\r\n                </tr>\r\n                <tr>\r\n                    <td>85-115</td>\r\n                    <td>Average/Within Normal Limits</td>\r\n                </tr>\r\n                <tr>\r\n                    <td>78-84</td>\r\n                    <td>Marginal/Below Average/Mild</td>\r\n                </tr>\r\n                <tr>\r\n                    <td>71-77</td>\r\n                    <td>Low Range/Moderate</td>\r\n                </tr>\r\n                <tr>\r\n                    <td>70-50</td>\r\n                    <td>Very Low Range/Severe</td>\r\n                </tr>\r\n                <tr>\r\n                    <td>Below 50</td>\r\n                    <td>Profound</td>\r\n                </tr>\r\n            </tbody>\r\n        </table>\r\n    </div>\r\n\r\n    <!-- PLS-5 Assessment -->\r\n    <div class=\"card mb-4 standardized-assessment\">\r\n        <div class=\"card-header\">\r\n            <h3 class=\"h5 mb-0\">Preschool Language Scale – Fifth Edition (PLS-5)</h3>\r\n        </div>\r\n        <div class=\"card-body\">\r\n            <p class=\"card-text mb-3\">\r\n                The PLS-5 is designed to assess receptive and expressive language skills in children \r\n                from birth through 7 years, 11 months of age.\r\n            </p>\r\n            <div class=\"table-responsive\">\r\n                <table class=\"table table-bordered assessment-table\">\r\n                    <thead class=\"table-light\">\r\n                        <tr>\r\n                            <th style=\"width: 20%\">Subtest</th>\r\n                            <th style=\"width: 15%\">Standard Score</th>\r\n                            <th style=\"width: 20%\">Confidence Interval</th>\r\n                            <th style=\"width: 15%\">Percentile Rank</th>\r\n                            <th style=\"width: 15%\">Age Equivalent</th>\r\n                            <th style=\"width: 15%\">Severity</th>\r\n                        </tr>\r\n                    </thead>\r\n                    <tbody>\r\n                        <tr>\r\n                            <td>Auditory Comprehension</td>\r\n                            <td><input type=\"number\" class=\"form-control\" id=\"ac_standard_score\"></td>\r\n                            <td><input type=\"text\" class=\"form-control\" id=\"ac_confidence_interval\" placeholder=\"e.g., 84-100\"></td>\r\n                            <td><input type=\"text\" class=\"form-control\" id=\"ac_percentile\" placeholder=\"e.g., 27%\"></td>\r\n                            <td><input type=\"text\" class=\"form-control\" id=\"ac_age_equivalent\" placeholder=\"e.g., 2-11\"></td>\r\n                            <td><input type=\"text\" class=\"form-control\" id=\"ac_severity\" readonly></td>\r\n                        </tr>\r\n                        <tr>\r\n                            <td>Expressive Communication</td>\r\n                            <td><input type=\"number\" class=\"form-control\" id=\"ec_standard_score\"></td>\r\n                            <td><input type=\"text\" class=\"form-control\" id=\"ec_confidence_interval\" placeholder=\"e.g., 86-99\"></td>\r\n                            <td><input type=\"text\" class=\"form-control\" id=\"ec_percentile\" placeholder=\"e.g., 30%\"></td>\r\n                            <td><input type=\"text\" class=\"form-control\" id=\"ec_age_equivalent\" placeholder=\"e.g., 2-10\"></td>\r\n                            <td><input type=\"text\" class=\"form-control\" id=\"ec_severity\" readonly></td>\r\n                        </tr>\r\n                        <tr>\r\n                            <td>Total Language Score</td>\r\n                            <td><input type=\"number\" class=\"form-control\" id=\"tl_standard_score\"></td>\r\n                            <td><input type=\"text\" class=\"form-control\" id=\"tl_confidence_interval\" placeholder=\"e.g., 85-98\"></td>\r\n                            <td><input type=\"text\" class=\"form-control\" id=\"tl_percentile\" placeholder=\"e.g., 27%\"></td>\r\n                            <td><input type=\"text\" class=\"form-control\" id=\"tl_age_equivalent\" placeholder=\"e.g., 2-11\"></td>\r\n                            <td><input type=\"text\" class=\"form-control\" id=\"tl_severity\" readonly></td>\r\n                        </tr>\r\n                    </tbody>\r\n                </table>\r\n            </div>\r\n        </div>\r\n    </div>\r\n\r\n    <!-- Relative Strengths -->\r\n    <div class=\"mb-4\">\r\n        <h4 class=\"h6 mb-3\">Relative Strengths</h4>\r\n        <div class=\"form-check mb-2\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"strength_pronouns\">\r\n            <label class=\"form-check-label\" for=\"strength_pronouns\">Understanding pronouns (me, my, your)</label>\r\n        </div>\r\n        <div class=\"form-check mb-2\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"strength_commands\">\r\n            <label class=\"form-check-label\" for=\"strength_commands\">Following commands without gestural cues</label>\r\n        </div>\r\n        <div class=\"form-check mb-2\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"strength_symbolic\">\r\n            <label class=\"form-check-label\" for=\"strength_symbolic\">Engaging in symbolic play</label>\r\n        </div>\r\n        <div class=\"form-check mb-2\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"strength_objects\">\r\n            <label class=\"form-check-label\" for=\"strength_objects\">Understanding use of objects</label>\r\n        </div>\r\n        <div class=\"form-check mb-2\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"strength_spatial\">\r\n            <label class=\"form-check-label\" for=\"strength_spatial\">Understanding spatial concepts without gestural cues</label>\r\n        </div>\r\n        <div class=\"form-check mb-2\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"strength_quantitative\">\r\n            <label class=\"form-check-label\" for=\"strength_quantitative\">Understanding quantitative concepts</label>\r\n        </div>\r\n        <div class=\"form-check mb-2\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"strength_inferences\">\r\n            <label class=\"form-check-label\" for=\"strength_inferences\">Making inferences</label>\r\n        </div>\r\n        <div class=\"form-check mb-2\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"strength_analogies\">\r\n            <label class=\"form-check-label\" for=\"strength_analogies\">Understanding analogies</label>\r\n        </div>\r\n        <div class=\"form-check mb-2\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"strength_negatives\">\r\n            <label class=\"form-check-label\" for=\"strength_negatives\">Understanding negatives in sentences</label>\r\n        </div>\r\n        <div class=\"form-check mb-2\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"strength_colors\">\r\n            <label class=\"form-check-label\" for=\"strength_colors\">Identifying colors</label>\r\n        </div>\r\n    </div>\r\n\r\n    <!-- Areas of Difficulty -->\r\n    <div class=\"mb-4\">\r\n        <h4 class=\"h6 mb-3\">Areas of Difficulty</h4>\r\n        <div class=\"form-check mb-2\">\r\n            <input class=\"form-check-input\" type=\"checkbox\" id=\"difficulty_actions\">\r\n            <label class=\"form-check-label\" for=\"difficulty_actions\">Recognizing actions in pictures</label>\r\n        </div>\r\n        <textarea class=\"form-control mt-3\" id=\"additional_difficulties\" rows=\"3\" placeholder=\"Additional areas of difficulty...\"></textarea>\r\n    </div>\r\n</section>",
+    "styling": {
+      "theme": "clinical",
+      "print_optimized": true,
+      "responsive": true
+    },
+    "scoring": {
+      "enabled": false,
+      "method": "manual"
+    },
+    "validation": {
+      "required_fields": [],
+      "custom_rules": []
+    }
+  },
+  {
+    "id": "default-clinical-impressions",
+    "name": "Clinical Impressions",
+    "description": "Clinical summary and prognosis",
+    "category": "summary",
+    "version": "1.0.0",
+    "created_by": "system",
+    "is_default": true,
+    "order": 9,
+    "fields": [
+      {
+        "id": "therapistNotes",
+        "type": "textarea",
+        "name": "therapistNotes",
+        "required": false,
+        "validation": []
+      }
+    ],
+    "html_template": "<!-- Clinical Impressions Section -->\r\n<section class=\"avoid-break page-break-before\">\r\n    <h2>Clinical Impressions</h2>\r\n    <div class=\"clinical-impressions-container\">\r\n        <div class=\"notes-field\">\r\n            <label for=\"therapistNotes\">Therapist Notes:</label>\r\n            <textarea id=\"therapistNotes\"></textarea>\r\n        </div>\r\n\r\n        <div class=\"clinical-summary-section\">\r\n            <div class=\"clinical-impressions-header\">\r\n                <h3>Clinical Impressions</h3>\r\n            </div>\r\n            <div id=\"clinicalImpressionsSummary\" class=\"clinical-summary\"></div>\r\n        </div>\r\n\r\n        <div class=\"prognosis-section\">\r\n            <p>Based on the results from this evaluation, family support, and adherence to recommendations that follow, prognosis for improvement is favorable.</p>\r\n        </div>\r\n    </div>\r\n</section>",
+    "styling": {
+      "theme": "clinical",
+      "print_optimized": true,
+      "responsive": true
+    },
+    "scoring": {
+      "enabled": false,
+      "method": "manual"
+    },
+    "validation": {
+      "required_fields": [],
+      "custom_rules": []
+    }
+  },
+  {
+    "id": "default-recommendations",
+    "name": "Recommendations",
+    "description": "Treatment recommendations and referrals",
+    "category": "summary",
+    "version": "1.0.0",
+    "created_by": "system",
+    "is_default": true,
+    "order": 10,
+    "fields": [
+      {
+        "id": "individualTherapy",
+        "type": "checkbox",
+        "name": "individualTherapy",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "homeProgram",
+        "type": "checkbox",
+        "name": "homeProgram",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "reevaluation",
+        "type": "checkbox",
+        "name": "reevaluation",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "parentTraining",
+        "type": "checkbox",
+        "name": "parentTraining",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "referral",
+        "type": "checkbox",
+        "name": "referral",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "referralDetails",
+        "type": "text",
+        "name": "referralDetails",
+        "required": false,
+        "validation": []
+      },
+      {
+        "id": "otherRecommendations",
+        "type": "textarea",
+        "name": "otherRecommendations",
+        "required": false,
+        "validation": []
+      }
+    ],
+    "html_template": "<!-- Recommendations Section -->\r\n<section class=\"avoid-break page-break-before\">\r\n    <h2>Recommendations</h2>\r\n    <div class=\"recommendations-container\">\r\n        <div class=\"checkbox-group\">\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"individualTherapy\">\r\n                <label for=\"individualTherapy\">Individual speech therapy is recommended</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"homeProgram\">\r\n                <label for=\"homeProgram\">Implementation of home practice program</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"reevaluation\">\r\n                <label for=\"reevaluation\">Reevaluation in 6 months to monitor progress</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"parentTraining\">\r\n                <label for=\"parentTraining\">Parent training and education</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"referral\">\r\n                <label for=\"referral\">Referral to:</label>\r\n                <input type=\"text\" id=\"referralDetails\">\r\n            </div>\r\n        </div>\r\n\r\n        <div class=\"notes-field\">\r\n            <label for=\"otherRecommendations\">Other Recommendations:</label>\r\n            <textarea id=\"otherRecommendations\"></textarea>\r\n        </div>\r\n    </div>\r\n</section>",
+    "styling": {
+      "theme": "clinical",
+      "print_optimized": true,
+      "responsive": true
+    },
+    "scoring": {
+      "enabled": false,
+      "method": "manual"
+    },
+    "validation": {
+      "required_fields": [],
+      "custom_rules": []
+    }
+  }
+]

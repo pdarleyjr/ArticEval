@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Navigation Test - IPLC ArticEval</title>
+    <link rel="stylesheet" href="/assets/css/styles.css">
+    <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon">
+    <style>
+        .nav-test-container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: var(--white);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .nav-test-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: var(--white);
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        
+        .nav-test-header h1 {
+            color: var(--white);
+            margin: 0;
+            font-size: 2rem;
+        }
+        
+        .test-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .test-section h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 0.5rem;
+        }
+        
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .nav-card {
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-card:hover {
+            border-color: var(--secondary-color);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .nav-card h3 {
+            color: var(--primary-color);
+            margin: 0 0 1rem 0;
+            font-size: 1.2rem;
+        }
+        
+        .nav-card p {
+            color: #666;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+            margin: 0.25rem;
+        }
+        
+        .btn-primary {
+            background-color: var(--secondary-color);
+            color: var(--white);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-color);
+        }
+        
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--secondary-color);
+            border: 2px solid var(--secondary-color);
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--secondary-color);
+            color: var(--white);
+        }
+        
+        .btn-success {
+            background-color: var(--accent-color);
+            color: var(--white);
+        }
+        
+        .btn-success:hover {
+            background-color: #7bb332;
+        }
+        
+        .btn-warning {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-warning:hover {
+            background-color: #e0a800;
+        }
+        
+        .btn-danger {
+            background-color: #dc3545;
+            color: var(--white);
+        }
+        
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+        
+        .status-online {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-offline {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .status-loading {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .auth-status {
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .auth-status h4 {
+            margin: 0 0 0.5rem 0;
+            color: var(--primary-color);
+        }
+        
+        .user-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .info-item {
+            background: #f8f9fa;
+            padding: 0.75rem;
+            border-radius: 3px;
+            text-align: center;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 0.9rem;
+        }
+        
+        .info-value {
+            color: #666;
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+        }
+        
+        .test-results {
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .test-log {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            background: #f8f9fa;
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+            padding: 1rem;
+            height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        .log-entry {
+            margin-bottom: 0.5rem;
+            padding: 0.25rem;
+            border-radius: 3px;
+        }
+        
+        .log-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .log-error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .log-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .api-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .api-test-btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .nav-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .user-info {
+                grid-template-columns: 1fr;
+            }
+            
+            .api-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="logo-header">
+        <img src="/assets/images/400dpiLogo.PNG" alt="IPLC Logo" />
+    </header>
+
+    <main class="nav-test-container">
+        <div class="nav-test-header">
+            <h1>Navigation Test Suite</h1>
+            <p>Test all navigation paths and API endpoints</p>
+        </div>
+        
+        <div class="test-section">
+            <h2>Authentication Status</h2>
+            <div class="auth-status">
+                <h4>Current Session <span id="authStatus" class="status-indicator status-loading">Checking...</span></h4>
+                <div id="userDetails" class="user-info" style="display: none;">
+                    <div class="info-item">
+                        <div class="info-label">Name</div>
+                        <div id="userName" class="info-value">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Email</div>
+                        <div id="userEmail" class="info-value">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Role</div>
+                        <div id="userRole" class="info-value">-</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Session</div>
+                        <div id="sessionStatus" class="info-value">-</div>
+                    </div>
+                </div>
+                <div style="margin-top: 1rem;">
+                    <button id="refreshAuth" class="btn btn-secondary">Refresh Status</button>
+                    <button id="logoutBtn" class="btn btn-warning" style="display: none;">Logout</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Page Navigation Tests</h2>
+            <div class="nav-grid">
+                <div class="nav-card">
+                    <h3>Home Page</h3>
+                    <p>Main landing page with hero section and feature overview</p>
+                    <a href="/" class="btn btn-primary">Visit Home</a>
+                </div>
+                
+                <div class="nav-card">
+                    <h3>Login Page</h3>
+                    <p>User authentication and login interface</p>
+                    <a href="/login.html" class="btn btn-primary">Visit Login</a>
+                </div>
+                
+                <div class="nav-card">
+                    <h3>Register Page</h3>
+                    <p>New user registration with role selection</p>
+                    <a href="/register.html" class="btn btn-primary">Visit Register</a>
+                </div>
+                
+                <div class="nav-card">
+                    <h3>Form Builder</h3>
+                    <p>Create and manage evaluation form templates</p>
+                    <a href="/builder.html" class="btn btn-primary">Visit Builder</a>
+                </div>
+                
+                <div class="nav-card">
+                    <h3>Dashboard</h3>
+                    <p>Admin analytics and system overview</p>
+                    <a href="/dashboard.html" class="btn btn-primary">Visit Dashboard</a>
+                </div>
+                
+                <div class="nav-card">
+                    <h3>Navigation Test</h3>
+                    <p>This page - test all navigation paths</p>
+                    <button class="btn btn-success" onclick="location.reload()">Reload Page</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>API Endpoint Tests</h2>
+            <div class="api-grid">
+                <button class="btn btn-secondary api-test-btn" onclick="testAPI('/api/auth/me', 'GET')">Test Auth Status</button>
+                <button class="btn btn-secondary api-test-btn" onclick="testAPI('/api/auth/session', 'GET')">Test Session</button>
+                <button class="btn btn-secondary api-test-btn" onclick="testAPI('/api/forms/templates', 'GET')">Test Templates</button>
+                <button class="btn btn-secondary api-test-btn" onclick="testAPI('/api/forms/submissions', 'GET')">Test Submissions</button>
+                <button class="btn btn-secondary api-test-btn" onclick="testAPI('/api/forms/analytics', 'GET')">Test Analytics</button>
+                <button class="btn btn-warning api-test-btn" onclick="clearTestLog()">Clear Log</button>
+            </div>
+            
+            <div class="test-results">
+                <h4>Test Results</h4>
+                <div id="testLog" class="test-log">Ready to run tests...\n</div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Advanced Tests</h2>
+            <div class="nav-grid">
+                <div class="nav-card">
+                    <h3>Form Rendering</h3>
+                    <p>Test dynamic form generation</p>
+                    <button class="btn btn-primary" onclick="testFormRender()">Test Render</button>
+                </div>
+                
+                <div class="nav-card">
+                    <h3>Session Management</h3>
+                    <p>Test session creation and validation</p>
+                    <button class="btn btn-primary" onclick="testSessionFlow()">Test Session</button>
+                </div>
+                
+                <div class="nav-card">
+                    <h3>CORS & Headers</h3>
+                    <p>Test cross-origin requests and headers</p>
+                    <button class="btn btn-primary" onclick="testCORS()">Test CORS</button>
+                </div>
+                
+                <div class="nav-card">
+                    <h3>Error Handling</h3>
+                    <p>Test error responses and handling</p>
+                    <button class="btn btn-danger" onclick="testErrorHandling()">Test Errors</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Performance Tests</h2>
+            <div style="text-align: center; margin: 2rem 0;">
+                <button class="btn btn-success" onclick="runPerformanceTests()">Run Performance Suite</button>
+                <button class="btn btn-warning" onclick="testPageLoad()">Test Page Load</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let testLogElement;
+        let currentUser = null;
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            testLogElement = document.getElementById('testLog');
+            checkAuthStatus();
+            logMessage('Navigation test suite initialized', 'info');
+        });
+        
+        // Check authentication status
+        async function checkAuthStatus() {
+            const statusElement = document.getElementById('authStatus');
+            const userDetails = document.getElementById('userDetails');
+            const logoutBtn = document.getElementById('logoutBtn');
+            
+            try {
+                statusElement.textContent = 'Checking...';
+                statusElement.className = 'status-indicator status-loading';
+                
+                const response = await fetch('/api/auth/me', { credentials: 'include' });
+                
+                if (response.ok) {
+                    currentUser = await response.json();
+                    
+                    statusElement.textContent = 'Authenticated';
+                    statusElement.className = 'status-indicator status-online';
+                    
+                    // Update user details
+                    document.getElementById('userName').textContent = currentUser.name;
+                    document.getElementById('userEmail').textContent = currentUser.email;
+                    document.getElementById('userRole').textContent = currentUser.role;
+                    document.getElementById('sessionStatus').textContent = 'Active';
+                    
+                    userDetails.style.display = 'grid';
+                    logoutBtn.style.display = 'inline-block';
+                    
+                    logMessage(`Authenticated as ${currentUser.name} (${currentUser.role})`, 'success');
+                } else {
+                    statusElement.textContent = 'Not Authenticated';
+                    statusElement.className = 'status-indicator status-offline';
+                    userDetails.style.display = 'none';
+                    logoutBtn.style.display = 'none';
+                    
+                    logMessage('Not authenticated', 'info');
+                }
+            } catch (error) {
+                statusElement.textContent = 'Error';
+                statusElement.className = 'status-indicator status-offline';
+                userDetails.style.display = 'none';
+                logoutBtn.style.display = 'none';
+                
+                logMessage('Authentication check failed: ' + error.message, 'error');
+            }
+        }
+        
+        // Logout function
+        async function logout() {
+            try {
+                const response = await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                
+                if (response.ok) {
+                    logMessage('Logged out successfully', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/login.html';
+                    }, 1000);
+                } else {
+                    logMessage('Logout failed', 'error');
+                }
+            } catch (error) {
+                logMessage('Logout error: ' + error.message, 'error');
+            }
+        }
+        
+        // Test API endpoint
+        async function testAPI(endpoint, method = 'GET') {
+            logMessage(`Testing ${method} ${endpoint}...`, 'info');
+            
+            try {
+                const startTime = performance.now();
+                const response = await fetch(endpoint, {
+                    method: method,
+                    credentials: 'include'
+                });
+                const endTime = performance.now();
+                const duration = Math.round(endTime - startTime);
+                
+                const data = await response.text();
+                
+                if (response.ok) {
+                    logMessage(`✓ ${endpoint} - ${response.status} (${duration}ms)`, 'success');
+                    if (data.length < 200) {
+                        logMessage(`Response: ${data}`, 'info');
+                    } else {
+                        logMessage(`Response: ${data.substring(0, 200)}...`, 'info');
+                    }
+                } else {
+                    logMessage(`✗ ${endpoint} - ${response.status} ${response.statusText}`, 'error');
+                    logMessage(`Error: ${data}`, 'error');
+                }
+            } catch (error) {
+                logMessage(`✗ ${endpoint} - Network error: ${error.message}`, 'error');
+            }
+        }
+        
+        // Test form rendering
+        async function testFormRender() {
+            if (!currentUser) {
+                logMessage('Must be authenticated to test form rendering', 'error');
+                return;
+            }
+            
+            logMessage('Testing form rendering...', 'info');
+            
+            try {
+                // First get templates
+                const templatesResponse = await fetch('/api/forms/templates', { credentials: 'include' });
+                if (templatesResponse.ok) {
+                    const templates = await templatesResponse.json();
+                    if (templates.length > 0) {
+                        const templateId = templates[0].id;
+                        await testAPI(`/api/forms/render?templateId=${templateId}`, 'GET');
+                    } else {
+                        logMessage('No templates available for rendering test', 'info');
+                    }
+                } else {
+                    logMessage('Failed to fetch templates for render test', 'error');
+                }
+            } catch (error) {
+                logMessage('Form render test failed: ' + error.message, 'error');
+            }
+        }
+        
+        // Test session flow
+        async function testSessionFlow() {
+            logMessage('Testing session management...', 'info');
+            
+            await testAPI('/api/auth/session', 'GET');
+            
+            if (currentUser) {
+                logMessage('Session tests complete - authenticated user', 'success');
+            } else {
+                logMessage('Session tests complete - anonymous user', 'info');
+            }
+        }
+        
+        // Test CORS and headers
+        async function testCORS() {
+            logMessage('Testing CORS and headers...', 'info');
+            
+            try {
+                const response = await fetch('/api/auth/me', {
+                    method: 'GET',
+                    credentials: 'include',
+                    headers: {
+                        'X-Test-Header': 'navigation-test'
+                    }
+                });
+                
+                logMessage(`CORS test - Status: ${response.status}`, 'info');
+                logMessage(`Headers: ${JSON.stringify([...response.headers.entries()])}`, 'info');
+            } catch (error) {
+                logMessage('CORS test failed: ' + error.message, 'error');
+            }
+        }
+        
+        // Test error handling
+        async function testErrorHandling() {
+            logMessage('Testing error handling...', 'info');
+            
+            // Test 404
+            await testAPI('/api/nonexistent', 'GET');
+            
+            // Test invalid method
+            await testAPI('/api/auth/me', 'DELETE');
+            
+            // Test malformed request
+            try {
+                const response = await fetch('/api/forms/templates', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: 'invalid json'
+                });
+                logMessage(`Malformed request test - Status: ${response.status}`, 'info');
+            } catch (error) {
+                logMessage('Malformed request test failed: ' + error.message, 'error');
+            }
+        }
+        
+        // Run performance tests
+        async function runPerformanceTests() {
+            logMessage('Running performance test suite...', 'info');
+            
+            const endpoints = [
+                '/api/auth/me',
+                '/api/auth/session',
+                '/api/forms/templates',
+                '/api/forms/submissions',
+                '/api/forms/analytics'
+            ];
+            
+            const results = [];
+            
+            for (const endpoint of endpoints) {
+                try {
+                    const startTime = performance.now();
+                    const response = await fetch(endpoint, { credentials: 'include' });
+                    const endTime = performance.now();
+                    const duration = Math.round(endTime - startTime);
+                    
+                    results.push({ endpoint, duration, status: response.status });
+                    logMessage(`${endpoint}: ${duration}ms (${response.status})`, 'info');
+                } catch (error) {
+                    results.push({ endpoint, duration: -1, status: 'error' });
+                    logMessage(`${endpoint}: Error - ${error.message}`, 'error');
+                }
+            }
+            
+            const avgDuration = results
+                .filter(r => r.duration > 0)
+                .reduce((sum, r) => sum + r.duration, 0) / results.filter(r => r.duration > 0).length;
+            
+            logMessage(`Performance test complete - Average: ${Math.round(avgDuration)}ms`, 'success');
+        }
+        
+        // Test page load performance
+        function testPageLoad() {
+            logMessage('Testing page load performance...', 'info');
+            
+            const navigation = performance.getEntriesByType('navigation')[0];
+            if (navigation) {
+                logMessage(`DOM Content Loaded: ${Math.round(navigation.domContentLoadedEventEnd - navigation.fetchStart)}ms`, 'info');
+                logMessage(`Page Load Complete: ${Math.round(navigation.loadEventEnd - navigation.fetchStart)}ms`, 'info');
+                logMessage(`DNS Lookup: ${Math.round(navigation.domainLookupEnd - navigation.domainLookupStart)}ms`, 'info');
+                logMessage(`Connect Time: ${Math.round(navigation.connectEnd - navigation.connectStart)}ms`, 'info');
+            } else {
+                logMessage('Navigation timing not available', 'error');
+            }
+        }
+        
+        // Log message to test log
+        function logMessage(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            
+            testLogElement.appendChild(logEntry);
+            testLogElement.scrollTop = testLogElement.scrollHeight;
+        }
+        
+        // Clear test log
+        function clearTestLog() {
+            testLogElement.innerHTML = 'Test log cleared...\n';
+        }
+        
+        // Event listeners
+        document.getElementById('refreshAuth').addEventListener('click', checkAuthStatus);
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+        
+        // Auto-refresh auth status every 30 seconds
+        setInterval(checkAuthStatus, 30000);
+    </script>
+</body>
+</html>

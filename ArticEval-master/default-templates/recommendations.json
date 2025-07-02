@@ -1,0 +1,75 @@
+{
+  "id": "default-recommendations",
+  "name": "Recommendations",
+  "description": "Treatment recommendations and referrals",
+  "category": "summary",
+  "version": "1.0.0",
+  "created_by": "system",
+  "is_default": true,
+  "order": 10,
+  "fields": [
+    {
+      "id": "individualTherapy",
+      "type": "checkbox",
+      "name": "individualTherapy",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "homeProgram",
+      "type": "checkbox",
+      "name": "homeProgram",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "reevaluation",
+      "type": "checkbox",
+      "name": "reevaluation",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "parentTraining",
+      "type": "checkbox",
+      "name": "parentTraining",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "referral",
+      "type": "checkbox",
+      "name": "referral",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "referralDetails",
+      "type": "text",
+      "name": "referralDetails",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "otherRecommendations",
+      "type": "textarea",
+      "name": "otherRecommendations",
+      "required": false,
+      "validation": []
+    }
+  ],
+  "html_template": "<!-- Recommendations Section -->\r\n<section class=\"avoid-break page-break-before\">\r\n    <h2>Recommendations</h2>\r\n    <div class=\"recommendations-container\">\r\n        <div class=\"checkbox-group\">\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"individualTherapy\">\r\n                <label for=\"individualTherapy\">Individual speech therapy is recommended</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"homeProgram\">\r\n                <label for=\"homeProgram\">Implementation of home practice program</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"reevaluation\">\r\n                <label for=\"reevaluation\">Reevaluation in 6 months to monitor progress</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"parentTraining\">\r\n                <label for=\"parentTraining\">Parent training and education</label>\r\n            </div>\r\n            <div class=\"field-group\">\r\n                <input type=\"checkbox\" id=\"referral\">\r\n                <label for=\"referral\">Referral to:</label>\r\n                <input type=\"text\" id=\"referralDetails\">\r\n            </div>\r\n        </div>\r\n\r\n        <div class=\"notes-field\">\r\n            <label for=\"otherRecommendations\">Other Recommendations:</label>\r\n            <textarea id=\"otherRecommendations\"></textarea>\r\n        </div>\r\n    </div>\r\n</section>",
+  "styling": {
+    "theme": "clinical",
+    "print_optimized": true,
+    "responsive": true
+  },
+  "scoring": {
+    "enabled": false,
+    "method": "manual"
+  },
+  "validation": {
+    "required_fields": [],
+    "custom_rules": []
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "id": "default-protocol",
+  "name": "Articulation Evaluation Protocol",
+  "description": "Evaluation protocol overview and component selection",
+  "category": "assessment",
+  "version": "1.0.0",
+  "created_by": "system",
+  "is_default": true,
+  "order": 2,
+  "fields": [
+    {
+      "id": "backgroundInfo",
+      "type": "checkbox",
+      "name": "backgroundInfo",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "oralMechanism",
+      "type": "checkbox",
+      "name": "oralMechanism",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "speechSound",
+      "type": "checkbox",
+      "name": "speechSound",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "speechSample",
+      "type": "checkbox",
+      "name": "speechSample",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "otherComponent",
+      "type": "checkbox",
+      "name": "otherComponent",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "otherComponentText",
+      "type": "text",
+      "name": "otherComponentText",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "assessmentLanguage",
+      "type": "select",
+      "name": "assessmentLanguage",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "assessmentSummaryLanguage",
+      "type": "select",
+      "name": "assessmentSummaryLanguage",
+      "required": false,
+      "validation": []
+    }
+  ],
+  "html_template": "<!-- Protocol Section -->\r\n<section class=\"mb-4 avoid-break\">\r\n    <h2 class=\"h4 mb-3\">Articulation Evaluation Protocol</h2>\r\n    <div class=\"protocol-content\">\r\n        <p class=\"protocol-description mb-4\">\r\n            An articulation evaluation was conducted to assess <span class=\"patient-name\"></span>'s ability to produce speech \r\n            sounds clearly and appropriately for their age. The purpose of the evaluation is to identify any \r\n            speech sound errors that may affect ability to communicate effectively. Errors in articulation \r\n            can significantly affect ability to be understood, academic performance, and social \r\n            interactions. By understanding specific speech patterns, we can create a tailored intervention \r\n            plan to improve overall communication skills.\r\n        </p>\r\n        <div class=\"language-selection mt-4\">\r\n            <label for=\"assessmentLanguage\" class=\"form-label\">Assessment Language:</label>\r\n            <select class=\"form-select\" id=\"assessmentLanguage\" name=\"assessmentLanguage\">\r\n                <option value=\"\">Select Language</option>\r\n                <option value=\"English\">English</option>\r\n                <option value=\"Spanish\">Spanish</option>\r\n                <option value=\"Bilingual (English/Spanish)\">Bilingual (English/Spanish)</option>\r\n                <option value=\"Other\">Other</option>\r\n            </select>\r\n        </div>\r\n        <div class=\"components-list mt-4\">\r\n            <p class=\"mb-3\">The evaluation included the following components:</p>\r\n            <div class=\"components-grid\" style=\"display: grid; gap: 1rem; margin-bottom: 1rem;\">\r\n                <div class=\"form-check\">\r\n                    <input class=\"form-check-input\" type=\"checkbox\" id=\"backgroundInfo\">\r\n                    <label class=\"form-check-label\" for=\"backgroundInfo\">Collection of Relevant Background Information</label>\r\n                </div>\r\n                <div class=\"form-check\">\r\n                    <input class=\"form-check-input\" type=\"checkbox\" id=\"oralMechanism\">\r\n                    <label class=\"form-check-label\" for=\"oralMechanism\">Oral Mechanism Examination</label>\r\n                </div>\r\n                <div class=\"form-check\">\r\n                    <input class=\"form-check-input\" type=\"checkbox\" id=\"speechSound\">\r\n                    <label class=\"form-check-label\" for=\"speechSound\">Speech Sound Assessment</label>\r\n                </div>\r\n                <div class=\"form-check\">\r\n                    <input class=\"form-check-input\" type=\"checkbox\" id=\"speechSample\">\r\n                    <label class=\"form-check-label\" for=\"speechSample\">Connected Speech Sample Analysis</label>\r\n                </div>\r\n                <div class=\"form-check\">\r\n                    <input class=\"form-check-input\" type=\"checkbox\" id=\"otherComponent\">\r\n                    <label class=\"form-check-label\" for=\"otherComponent\">Other:</label>\r\n                    <input type=\"text\" class=\"form-control mt-2\" id=\"otherComponentText\">\r\n                </div>\r\n            </div>\r\n            \r\n            <!-- Assessment Summary Paragraph -->\r\n            <div class=\"assessment-summary mt-4\">\r\n                <p class=\"mb-3\">\r\n                    This thorough process allows us to gain a clear picture of your child's speech strengths and challenges and to make informed recommendations for therapy. All measures were performed in:\r\n                    <select class=\"form-select d-inline-block\" id=\"assessmentSummaryLanguage\" name=\"assessmentSummaryLanguage\" style=\"width: auto; display: inline-block; margin: 0 5px;\">\r\n                        <option value=\"\">Select Language</option>\r\n                        <option value=\"English\">English</option>\r\n                        <option value=\"Spanish\">Spanish</option>\r\n                    </select>\r\n                    . Results of all formal and informal assessments appear to be reliable.\r\n                </p>\r\n            </div>\r\n        </div>\r\n    </div>\r\n</section>",
+  "styling": {
+    "theme": "clinical",
+    "print_optimized": true,
+    "responsive": true
+  },
+  "scoring": {
+    "enabled": false,
+    "method": "manual"
+  },
+  "validation": {
+    "required_fields": [],
+    "custom_rules": []
+  }
+}

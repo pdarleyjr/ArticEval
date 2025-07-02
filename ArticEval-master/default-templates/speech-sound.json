@@ -1,0 +1,502 @@
+{
+  "id": "default-speech-sound",
+  "name": "Speech Sound Assessment",
+  "description": "Comprehensive phoneme assessment with detailed error analysis",
+  "category": "assessment",
+  "version": "1.0.0",
+  "created_by": "system",
+  "is_default": true,
+  "order": 5,
+  "fields": [
+    {
+      "id": "sound_p",
+      "type": "checkbox",
+      "name": "sound_p",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_p_position",
+      "type": "text",
+      "name": "sound_p_position",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_p_type",
+      "type": "text",
+      "name": "sound_p_type",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_p_detail",
+      "type": "text",
+      "name": "sound_p_detail",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_b",
+      "type": "checkbox",
+      "name": "sound_b",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_b_position",
+      "type": "text",
+      "name": "sound_b_position",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_b_type",
+      "type": "text",
+      "name": "sound_b_type",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_b_detail",
+      "type": "text",
+      "name": "sound_b_detail",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_t",
+      "type": "checkbox",
+      "name": "sound_t",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_t_position",
+      "type": "text",
+      "name": "sound_t_position",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_t_type",
+      "type": "text",
+      "name": "sound_t_type",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_t_detail",
+      "type": "text",
+      "name": "sound_t_detail",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_d",
+      "type": "checkbox",
+      "name": "sound_d",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_d_position",
+      "type": "text",
+      "name": "sound_d_position",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_d_type",
+      "type": "text",
+      "name": "sound_d_type",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_d_detail",
+      "type": "text",
+      "name": "sound_d_detail",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_k",
+      "type": "checkbox",
+      "name": "sound_k",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_k_position",
+      "type": "text",
+      "name": "sound_k_position",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_k_type",
+      "type": "text",
+      "name": "sound_k_type",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_k_detail",
+      "type": "text",
+      "name": "sound_k_detail",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_g",
+      "type": "checkbox",
+      "name": "sound_g",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_g_position",
+      "type": "text",
+      "name": "sound_g_position",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_g_type",
+      "type": "text",
+      "name": "sound_g_type",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_g_detail",
+      "type": "text",
+      "name": "sound_g_detail",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_f",
+      "type": "checkbox",
+      "name": "sound_f",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_f_position",
+      "type": "text",
+      "name": "sound_f_position",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_f_type",
+      "type": "text",
+      "name": "sound_f_type",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_f_detail",
+      "type": "text",
+      "name": "sound_f_detail",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_v",
+      "type": "checkbox",
+      "name": "sound_v",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_v_position",
+      "type": "text",
+      "name": "sound_v_position",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_v_type",
+      "type": "text",
+      "name": "sound_v_type",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_v_detail",
+      "type": "text",
+      "name": "sound_v_detail",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_s",
+      "type": "checkbox",
+      "name": "sound_s",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_s_position",
+      "type": "text",
+      "name": "sound_s_position",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_s_type",
+      "type": "text",
+      "name": "sound_s_type",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_s_detail",
+      "type": "text",
+      "name": "sound_s_detail",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_z",
+      "type": "checkbox",
+      "name": "sound_z",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_z_position",
+      "type": "text",
+      "name": "sound_z_position",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_z_type",
+      "type": "text",
+      "name": "sound_z_type",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_z_detail",
+      "type": "text",
+      "name": "sound_z_detail",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_sh",
+      "type": "checkbox",
+      "name": "sound_sh",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_sh_position",
+      "type": "text",
+      "name": "sound_sh_position",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_sh_type",
+      "type": "text",
+      "name": "sound_sh_type",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_sh_detail",
+      "type": "text",
+      "name": "sound_sh_detail",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_ch",
+      "type": "checkbox",
+      "name": "sound_ch",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_ch_position",
+      "type": "text",
+      "name": "sound_ch_position",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_ch_type",
+      "type": "text",
+      "name": "sound_ch_type",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_ch_detail",
+      "type": "text",
+      "name": "sound_ch_detail",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_j",
+      "type": "checkbox",
+      "name": "sound_j",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_j_position",
+      "type": "text",
+      "name": "sound_j_position",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_j_type",
+      "type": "text",
+      "name": "sound_j_type",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_j_detail",
+      "type": "text",
+      "name": "sound_j_detail",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_th_voiced",
+      "type": "checkbox",
+      "name": "sound_th_voiced",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_th_voiced_position",
+      "type": "text",
+      "name": "sound_th_voiced_position",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_th_voiced_type",
+      "type": "text",
+      "name": "sound_th_voiced_type",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_th_voiced_detail",
+      "type": "text",
+      "name": "sound_th_voiced_detail",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_th_voiceless",
+      "type": "checkbox",
+      "name": "sound_th_voiceless",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_th_voiceless_position",
+      "type": "text",
+      "name": "sound_th_voiceless_position",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_th_voiceless_type",
+      "type": "text",
+      "name": "sound_th_voiceless_type",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_th_voiceless_detail",
+      "type": "text",
+      "name": "sound_th_voiceless_detail",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_r",
+      "type": "checkbox",
+      "name": "sound_r",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_r_position",
+      "type": "text",
+      "name": "sound_r_position",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_r_type",
+      "type": "text",
+      "name": "sound_r_type",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_r_detail",
+      "type": "text",
+      "name": "sound_r_detail",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_l",
+      "type": "checkbox",
+      "name": "sound_l",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_l_position",
+      "type": "text",
+      "name": "sound_l_position",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_l_type",
+      "type": "text",
+      "name": "sound_l_type",
+      "required": false,
+      "validation": []
+    },
+    {
+      "id": "sound_l_detail",
+      "type": "text",
+      "name": "sound_l_detail",
+      "required": false,
+      "validation": []
+    }
+  ],
+  "html_template": "<!-- Speech Sound Assessment Section -->\r\n<section class=\"avoid-break\">\r\n    <h2>Speech Sound Assessment</h2>\r\n    <p>\r\n        Speech Sound Assessment: The ability to produce speech sounds was assessed throughout \r\n        the course of the evaluation in order to measure articulation of sounds and determine types of \r\n        misarticulation. The Clinical Assessment of Articulation and Phonology - 2nd Edition \r\n        (CAAP-2) was administered. Additionally, spontaneous speech was elicited both in words and \r\n        connected speech. Data was collected and analyzed using the Age of Customary Consonant \r\n        Production chart as recommended by The American Speech-Language-Hearing Association \r\n        (ASHA). The acquisition of speech sounds is a developmental process and children often \r\n        demonstrate \"typical\" errors and phonological patterns during this acquisition period. \r\n        Developmentally appropriate error patterns were taken into consideration during assessment \r\n        of speech sounds in order to differentiate typical errors from those that are not.\r\n    </p>\r\n\r\n    <div class=\"table-responsive avoid-break\">\r\n        <table>\r\n            <thead>\r\n                <tr>\r\n                    <th>Sound</th>\r\n                    <th>Misarticulated</th>\r\n                    <th>Position of word</th>\r\n                    <th>Type</th>\r\n                    <th>Detail</th>\r\n                </tr>\r\n            </thead>\r\n            <tbody>\r\n                <tr class=\"sound-row\" data-sound=\"/p/\">\r\n                    <td>/p/</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_p\"></td>\r\n                    <td><input type=\"text\" id=\"sound_p_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_p_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_p_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/b/\">\r\n                    <td>/b/</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_b\"></td>\r\n                    <td><input type=\"text\" id=\"sound_b_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_b_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_b_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/t/\">\r\n                    <td>/t/</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_t\"></td>\r\n                    <td><input type=\"text\" id=\"sound_t_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_t_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_t_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/d/\">\r\n                    <td>/d/</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_d\"></td>\r\n                    <td><input type=\"text\" id=\"sound_d_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_d_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_d_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/k/\">\r\n                    <td>/k/</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_k\"></td>\r\n                    <td><input type=\"text\" id=\"sound_k_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_k_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_k_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/g/\">\r\n                    <td>/g/</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_g\"></td>\r\n                    <td><input type=\"text\" id=\"sound_g_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_g_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_g_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/f/\">\r\n                    <td>/f/</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_f\"></td>\r\n                    <td><input type=\"text\" id=\"sound_f_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_f_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_f_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/v/\">\r\n                    <td>/v/</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_v\"></td>\r\n                    <td><input type=\"text\" id=\"sound_v_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_v_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_v_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/s/\">\r\n                    <td>/s/</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_s\"></td>\r\n                    <td><input type=\"text\" id=\"sound_s_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_s_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_s_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/z/\">\r\n                    <td>/z/</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_z\"></td>\r\n                    <td><input type=\"text\" id=\"sound_z_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_z_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_z_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/sh/\">\r\n                    <td>/sh/</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_sh\"></td>\r\n                    <td><input type=\"text\" id=\"sound_sh_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_sh_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_sh_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/ch/\">\r\n                    <td>/ch/</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_ch\"></td>\r\n                    <td><input type=\"text\" id=\"sound_ch_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_ch_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_ch_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/j/\">\r\n                    <td>/j/</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_j\"></td>\r\n                    <td><input type=\"text\" id=\"sound_j_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_j_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_j_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/th-voiced/\">\r\n                    <td>/th/ (voiced)</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_th_voiced\"></td>\r\n                    <td><input type=\"text\" id=\"sound_th_voiced_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_th_voiced_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_th_voiced_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/th-voiceless/\">\r\n                    <td>/th/ (voiceless)</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_th_voiceless\"></td>\r\n                    <td><input type=\"text\" id=\"sound_th_voiceless_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_th_voiceless_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_th_voiceless_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/r/\">\r\n                    <td>/r/</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_r\"></td>\r\n                    <td><input type=\"text\" id=\"sound_r_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_r_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_r_detail\"></td>\r\n                </tr>\r\n                <tr class=\"sound-row\" data-sound=\"/l/\">\r\n                    <td>/l/</td>\r\n                    <td><input type=\"checkbox\" id=\"sound_l\"></td>\r\n                    <td><input type=\"text\" id=\"sound_l_position\"></td>\r\n                    <td><input type=\"text\" id=\"sound_l_type\"></td>\r\n                    <td><input type=\"text\" id=\"sound_l_detail\"></td>\r\n                </tr>\r\n            </tbody>\r\n        </table>\r\n    </div>\r\n</section>",
+  "styling": {
+    "theme": "clinical",
+    "print_optimized": true,
+    "responsive": true
+  },
+  "scoring": {
+    "enabled": false,
+    "method": "manual"
+  },
+  "validation": {
+    "required_fields": [],
+    "custom_rules": []
+  }
+}
