@@ -12,13 +12,12 @@
   },
   "dependencies": {
     "formeo": "^3.1.3",
-    "pdfmake": "^0.2.7",
-    "bcryptjs": "^2.4.3",
-    "openai": "^4.20.1",
-    "chart.js": "^4.4.0"
+    "pdfmake": "^0.2.20",
+    "openai": "^5.8.2",
+    "chart.js": "^4.5.0"
   },
   "devDependencies": {
-    "esbuild": "^0.19.12"
+    "esbuild": "^0.25.5"
   },
   "engines": {
     "node": ">=18"

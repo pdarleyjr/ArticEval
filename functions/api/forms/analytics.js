@@ -148,7 +148,7 @@ async function getOverviewAnalytics(env, userId, templateId, startDate, endDate)
             MAX(fs.submitted_at) as last_submission
         FROM form_templates ft
         LEFT JOIN form_submissions fs ON ft.id = fs.template_id ${dateFilter}
-        WHERE ft.created_by = ? ${templateFilter}
+        WHERE ft.user_id = ? ${templateFilter}
         GROUP BY ft.id, ft.name, ft.description, ft.created_at
         ORDER BY submission_count DESC
         LIMIT 10

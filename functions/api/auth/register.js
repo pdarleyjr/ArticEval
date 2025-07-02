@@ -32,11 +32,16 @@ export async function onRequestPost({ request, env }) {
 
   } catch (error) {
     console.error('Registration error:', error);
+    console.error('Error stack:', error.stack);
+    console.error('Error name:', error.name);
+    console.error('Error message:', error.message);
     
-    // Return appropriate error response
+    // Return appropriate error response with debugging info
     const errorResponse = {
       success: false,
-      message: error.message || 'Registration failed'
+      message: error.message || 'Registration failed',
+      errorType: error.name || 'Unknown',
+      errorDetails: error.toString()
     };
 
     return new Response(JSON.stringify(errorResponse), {
