@@ -5,21 +5,23 @@
     "/dashboard"
   ],
   "exclude": [
+    "/",
+    "/*.html",
     "/assets/*",
     "/images/*",
     "/css/*",
     "/js/*",
-    "*.css",
-    "*.js",
-    "*.png",
-    "*.jpg",
-    "*.jpeg",
-    "*.gif",
-    "*.svg",
-    "*.ico",
-    "*.woff",
-    "*.woff2",
-    "*.ttf",
-    "*.eot"
+    "/*.css",
+    "/*.js",
+    "/*.png",
+    "/*.jpg",
+    "/*.jpeg",
+    "/*.gif",
+    "/*.svg",
+    "/*.ico",
+    "/*.woff",
+    "/*.woff2",
+    "/*.ttf",
+    "/*.eot"
   ]
 }

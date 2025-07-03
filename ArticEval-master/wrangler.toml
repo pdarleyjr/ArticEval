@@ -1,9 +1,10 @@
-name = "iplc-artic-eval"
+name = "articeval"
 compatibility_date = "2024-12-01"
 pages_build_output_dir = "public"
+compatibility_flags = ["nodejs_compat"]
 
 [env.production]
-account_id = "265122b6d6f29457b0ca950c55f3ac6e"
+JWT_SECRET = "your-super-secret-jwt-key-change-this-in-production-2024"
 
 [[env.production.d1_databases]]
 binding = "DB"
@@ -12,5 +13,5 @@ database_id = "690d60be-7ba3-4a2c-8de9-4cd8f034430e"
 
 [[env.production.kv_namespaces]]
 binding = "SESSIONS"
-id = "your-kv-namespace-id"
-preview_id = "your-preview-kv-namespace-id"
+id = "786a335542bf4f758fb3d7ad13b21ba9"
+preview_id = "33d19a17dee0462480c70d093aacfce"

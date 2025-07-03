@@ -45,7 +45,7 @@ export async function authenticateUser(request, env) {
     
     // Check if session exists in KV store
     const sessionKey = `session:${decoded.id}`;
-    const sessionData = await env.sessions.get(sessionKey);
+    const sessionData = await env.SESSIONS.get(sessionKey);
     
     if (!sessionData) {
       return {
@@ -60,7 +60,7 @@ export async function authenticateUser(request, env) {
     // Verify session is still valid
     if (session.expires < Date.now()) {
       // Clean up expired session
-      await env.sessions.delete(sessionKey);
+      await env.SESSIONS.delete(sessionKey);
       return {
         success: false,
         error: 'Session expired',
@@ -207,7 +207,7 @@ export async function optionalAuth(request, env) {
 export async function refreshSession(userId, sessionId, env) {
   try {
     const sessionKey = `session:${userId}`;
-    const sessionData = await env.sessions.get(sessionKey);
+    const sessionData = await env.SESSIONS.get(sessionKey);
     
     if (!sessionData) {
       return false;
@@ -219,7 +219,7 @@ export async function refreshSession(userId, sessionId, env) {
     session.expires = Date.now() + (24 * 60 * 60 * 1000);
     session.lastActivity = Date.now();
     
-    await env.sessions.put(sessionKey, JSON.stringify(session), {
+    await env.SESSIONS.put(sessionKey, JSON.stringify(session), {
       expirationTtl: 24 * 60 * 60 // 24 hours
     });
     
@@ -228,4 +228,35 @@ export async function refreshSession(userId, sessionId, env) {
     console.error('Session refresh error:', error);
     return false;
   }
+}
+
+/**
+ * Generic role-based access control middleware
+ * Returns authenticated user if they have the required role, or error response
+ */
+export async function requireRole(roles, request, env) {
+  const authResult = await authenticateUser(request, env);
+  
+  if (!authResult.success) {
+    return createResponse(
+      false,
+      authResult.error,
+      null,
+      authResult.statusCode
+    );
+  }
+  
+  // Convert single role to array for consistency
+  const requiredRoles = Array.isArray(roles) ? roles : [roles];
+  
+  if (!requiredRoles.includes(authResult.user.role)) {
+    return createResponse(
+      false,
+      `Access denied. Required role(s): ${requiredRoles.join(', ')}`,
+      null,
+      403
+    );
+  }
+  
+  return authResult;
 }

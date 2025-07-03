@@ -40,6 +40,9 @@ export function generateToken(user, jwtSecret) {
   );
 }
 
+// Alias for compatibility
+export const generateJWT = generateToken;
+
 /**
  * Verify and decode a JWT token
  * @param {string} token - JWT token
@@ -71,6 +74,9 @@ export function isValidEmail(email) {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 }
+
+// Alias for compatibility
+export const validateEmail = isValidEmail;
 
 /**
  * Validate password strength
