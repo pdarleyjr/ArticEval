@@ -13,13 +13,14 @@ export async function onRequest(context) {
   }
   
   try {
-    const { 
-      email, 
-      password, 
-      firstName, 
-      lastName, 
-      role = 'user',
-      autoLogin = true 
+    const {
+      email,
+      password,
+      firstName,
+      lastName,
+      organization,
+      role = 'clinician',
+      autoLogin = true
     } = await request.json();
     
     // Validate required fields
@@ -44,6 +45,11 @@ export async function onRequest(context) {
       return createResponse(false, 'Invalid role specified', null, 400);
     }
     
+    // Validate organization if provided
+    if (organization && organization.trim().length < 2) {
+      return createResponse(false, 'Organization name must be at least 2 characters long', null, 400);
+    }
+    
     // Validate name fields
     if (firstName.trim().length < 2 || lastName.trim().length < 2) {
       return createResponse(false, 'First name and last name must be at least 2 characters long', null, 400);
@@ -66,16 +72,17 @@ export async function onRequest(context) {
     // Create user in database
     const now = new Date().toISOString();
     const insertResult = await db.prepare(`
-      INSERT INTO users (email, password_hash, first_name, last_name, role, created_at, is_active)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO users (email, password_hash, first_name, last_name, organization, role, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       email.toLowerCase(),
       passwordHash,
       firstName.trim(),
       lastName.trim(),
+      organization ? organization.trim() : null,
       role,
       now,
-      true
+      now
     ).run();
     
     if (!insertResult.success) {
@@ -91,7 +98,8 @@ export async function onRequest(context) {
       email: email.toLowerCase(),
       role,
       firstName: firstName.trim(),
-      lastName: lastName.trim()
+      lastName: lastName.trim(),
+      organization: organization ? organization.trim() : null
     };
     
     let responseData = {
@@ -125,7 +133,7 @@ export async function onRequest(context) {
       
       // Store session in KV
       const sessionKey = `session:${userId}`;
-      await env.sessions.put(sessionKey, JSON.stringify(sessionData), {
+      await env.SESSIONS.put(sessionKey, JSON.stringify(sessionData), {
         expirationTtl: Math.floor((sessionExpires - Date.now()) / 1000)
       });
       
