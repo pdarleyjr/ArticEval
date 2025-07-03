@@ -34,7 +34,7 @@ export async function authenticateUser(request, env) {
     }
     
     // Verify JWT token
-    const decoded = verifyToken(token, env.JWT_SECRET);
+    const decoded = await verifyToken(token, env.JWT_SECRET);
     if (!decoded) {
       return {
         success: false,
@@ -45,7 +45,7 @@ export async function authenticateUser(request, env) {
     
     // Check if session exists in KV store
     const sessionKey = `session:${decoded.id}`;
-    const sessionData = await env.sessions.get(sessionKey);
+    const sessionData = await env.SESSION_STORE.get(sessionKey);
     
     if (!sessionData) {
       return {
@@ -60,7 +60,7 @@ export async function authenticateUser(request, env) {
     // Verify session is still valid
     if (session.expires < Date.now()) {
       // Clean up expired session
-      await env.sessions.delete(sessionKey);
+      await env.SESSION_STORE.delete(sessionKey);
       return {
         success: false,
         error: 'Session expired',
@@ -207,7 +207,7 @@ export async function optionalAuth(request, env) {
 export async function refreshSession(userId, sessionId, env) {
   try {
     const sessionKey = `session:${userId}`;
-    const sessionData = await env.sessions.get(sessionKey);
+    const sessionData = await env.SESSION_STORE.get(sessionKey);
     
     if (!sessionData) {
       return false;
@@ -219,7 +219,7 @@ export async function refreshSession(userId, sessionId, env) {
     session.expires = Date.now() + (24 * 60 * 60 * 1000);
     session.lastActivity = Date.now();
     
-    await env.sessions.put(sessionKey, JSON.stringify(session), {
+    await env.SESSION_STORE.put(sessionKey, JSON.stringify(session), {
       expirationTtl: 24 * 60 * 60 // 24 hours
     });
     

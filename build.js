@@ -1,4 +1,3 @@
-import { build } from 'esbuild';
 import { existsSync, mkdirSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';

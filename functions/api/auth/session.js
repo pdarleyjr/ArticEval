@@ -1,4 +1,4 @@
-import { createResponse, handleCORS, generateJWT } from '../../auth/utils.js';
+import { createResponse, handleCORS, generateToken } from '../../auth/utils.js';
 import { authenticateUser } from '../../auth/middleware.js';
 
 export async function onRequest(context) {
@@ -91,7 +91,7 @@ async function handleRefreshSession(request, env) {
     // Calculate TTL for KV store (in seconds)
     const ttl = Math.floor((newExpiresAt - Date.now()) / 1000);
     
-    await env.sessions.put(sessionKey, JSON.stringify(updatedSessionData), {
+    await env.SESSION_STORE.put(sessionKey, JSON.stringify(updatedSessionData), {
       expirationTtl: ttl
     });
     
@@ -103,7 +103,7 @@ async function handleRefreshSession(request, env) {
       exp: Math.floor(newExpiresAt / 1000) // JWT exp is in seconds
     };
     
-    const token = await generateJWT(tokenPayload, env.JWT_SECRET);
+    const token = await generateToken(tokenPayload, env.JWT_SECRET);
     
     // Create response
     const response = createResponse(true, 'Session refreshed successfully', {
@@ -156,7 +156,7 @@ async function handleDeleteSession(request, env) {
   try {
     // Remove session from KV store
     const sessionKey = `session:${user.id}`;
-    await env.sessions.delete(sessionKey);
+    await env.SESSION_STORE.delete(sessionKey);
     
     return createResponse(true, 'Session invalidated successfully', {
       invalidated: true,

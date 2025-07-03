@@ -42,7 +42,7 @@ export async function onRequest(context) {
     }
     
     // Generate JWT token
-    const token = generateToken({
+    const token = await generateToken({
       id: user.id,
       email: user.email,
       role: user.role

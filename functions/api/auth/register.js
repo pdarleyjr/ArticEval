@@ -1,4 +1,4 @@
-import { hashPassword, generateToken, generateSessionId, createResponse, handleCORS, validateEmail, validatePassword } from '../../auth/utils.js';
+import { hashPassword, generateToken, generateSessionId, createResponse, handleCORS, isValidEmail, validatePassword } from '../../auth/utils.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -28,7 +28,7 @@ export async function onRequest(context) {
     }
     
     // Validate email format
-    if (!validateEmail(email)) {
+    if (!isValidEmail(email)) {
       return createResponse(false, 'Invalid email format', null, 400);
     }
     
@@ -102,7 +102,7 @@ export async function onRequest(context) {
     // Auto-login if requested
     if (autoLogin) {
       // Generate JWT token
-      const token = generateToken({
+      const token = await generateToken({
         id: userId,
         email: email.toLowerCase(),
         role
@@ -125,7 +125,7 @@ export async function onRequest(context) {
       
       // Store session in KV
       const sessionKey = `session:${userId}`;
-      await env.sessions.put(sessionKey, JSON.stringify(sessionData), {
+      await env.SESSION_STORE.put(sessionKey, JSON.stringify(sessionData), {
         expirationTtl: Math.floor((sessionExpires - Date.now()) / 1000)
       });
       

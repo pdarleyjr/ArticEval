@@ -1,0 +1,43 @@
+name = "iplc-articulation-eval"
+compatibility_date = "2024-01-01"
+
+# Pages configuration
+[env.production]
+account_id = ""
+zone_id = ""
+
+# KV namespace bindings
+[[env.production.kv_namespaces]]
+binding = "SESSION_STORE"
+id = ""
+
+# D1 database binding
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "iplc-articulation-db"
+database_id = ""
+
+# Local development configuration
+[env.development]
+# KV namespace for local development
+[[env.development.kv_namespaces]]
+binding = "SESSION_STORE"
+preview_id = ""
+
+# D1 database for local development
+[[env.development.d1_databases]]
+binding = "DB"
+database_name = "iplc-articulation-db-dev"
+database_id = ""
+
+# Pages build configuration
+[build]
+command = "node build.js"
+cwd = "."
+watch_dir = "public"
+
+# Local development settings
+[dev]
+ip = "127.0.0.1"
+port = 8787
+local_protocol = "http"

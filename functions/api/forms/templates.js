@@ -1,5 +1,5 @@
 import { createResponse, handleCORS } from '../../auth/utils.js';
-import { authenticateUser, requireRole } from '../../auth/middleware.js';
+import { authenticateUser } from '../../auth/middleware.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
