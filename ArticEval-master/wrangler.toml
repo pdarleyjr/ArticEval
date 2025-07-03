@@ -10,13 +10,7 @@ binding = "DB"
 database_name = "iplc-eval-db"
 database_id = "690d60be-7ba3-4a2c-8de9-4cd8f034430e"
 
-[env.production.vars]
-JWT_SECRET = "1b3c4a9a942fcc161d164c4872d1bd39cbfc69d83a3489d8a4573e371968071bd85bc599667328ec4076f32effe8b2ef5cd833297d87c3122e2cc29539c8e617"
-ENVIRONMENT = "production"
-
 [[env.production.kv_namespaces]]
-binding = "SESSION_STORE"
-id = "b68836e642d84fd08a40b96879cbbda47"
-
-[env.production.ai]
-binding = "AI"
+binding = "SESSIONS"
+id = "your-kv-namespace-id"
+preview_id = "your-preview-kv-namespace-id"
