@@ -4,20 +4,17 @@ compatibility_date = "2024-01-01"
 # Pages configuration
 pages_build_output_dir = "public"
 
-[env.production]
-account_id = ""
-zone_id = ""
-
-# KV namespace bindings
-[[env.production.kv_namespaces]]
-binding = "SESSION_STORE"
-id = ""
-
-# D1 database binding
-[[env.production.d1_databases]]
-binding = "DB"
-database_name = "iplc-articulation-db"
-database_id = ""
+# Production environment configuration
+# Note: Bindings with actual resource IDs should be configured here when available
+# [env.production]
+# [[env.production.kv_namespaces]]
+# binding = "SESSION_STORE"
+# id = "your-kv-namespace-id"
+#
+# [[env.production.d1_databases]]
+# binding = "DB"
+# database_name = "iplc-articulation-db"
+# database_id = "your-d1-database-id"
 
 # Local development configuration
 [env.development]
