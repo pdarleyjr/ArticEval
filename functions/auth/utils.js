@@ -1,15 +1,40 @@
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { v4 as uuidv4 } from 'uuid';
-
 /**
- * Hash a password using bcrypt
+ * Hash a password using Web Crypto API (Cloudflare Workers compatible)
  * @param {string} password - Plain text password
  * @returns {Promise<string>} - Hashed password
  */
 export async function hashPassword(password) {
-  const salt = await bcrypt.genSalt(12);
-  return await bcrypt.hash(password, salt);
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password);
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  
+  // Use PBKDF2 for password hashing
+  const key = await crypto.subtle.importKey(
+    'raw',
+    data,
+    { name: 'PBKDF2' },
+    false,
+    ['deriveBits']
+  );
+  
+  const derivedBits = await crypto.subtle.deriveBits(
+    {
+      name: 'PBKDF2',
+      salt: salt,
+      iterations: 100000,
+      hash: 'SHA-256'
+    },
+    key,
+    256
+  );
+  
+  // Combine salt and hash
+  const hashArray = new Uint8Array(derivedBits);
+  const combined = new Uint8Array(salt.length + hashArray.length);
+  combined.set(salt);
+  combined.set(hashArray, salt.length);
+  
+  return btoa(String.fromCharCode(...combined));
 }
 
 /**
@@ -19,50 +44,146 @@ export async function hashPassword(password) {
  * @returns {Promise<boolean>} - Whether password is valid
  */
 export async function verifyPassword(password, hash) {
-  return await bcrypt.compare(password, hash);
+  try {
+    const combined = new Uint8Array(atob(hash).split('').map(c => c.charCodeAt(0)));
+    const salt = combined.slice(0, 16);
+    const storedHash = combined.slice(16);
+    
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    
+    const key = await crypto.subtle.importKey(
+      'raw',
+      data,
+      { name: 'PBKDF2' },
+      false,
+      ['deriveBits']
+    );
+    
+    const derivedBits = await crypto.subtle.deriveBits(
+      {
+        name: 'PBKDF2',
+        salt: salt,
+        iterations: 100000,
+        hash: 'SHA-256'
+      },
+      key,
+      256
+    );
+    
+    const computedHash = new Uint8Array(derivedBits);
+    
+    // Compare hashes
+    if (computedHash.length !== storedHash.length) return false;
+    for (let i = 0; i < computedHash.length; i++) {
+      if (computedHash[i] !== storedHash[i]) return false;
+    }
+    return true;
+  } catch (error) {
+    return false;
+  }
 }
 
 /**
- * Generate a JWT token for a user
+ * Generate a JWT token for a user using Web Crypto API
  * @param {Object} user - User object
  * @param {string} jwtSecret - JWT secret key
- * @returns {string} - JWT token
+ * @returns {Promise<string>} - JWT token
  */
-export function generateToken(user, jwtSecret) {
-  return jwt.sign(
-    {
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
-    },
-    jwtSecret
+export async function generateToken(user, jwtSecret) {
+  const header = {
+    alg: 'HS256',
+    typ: 'JWT'
+  };
+  
+  const payload = {
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
+  };
+  
+  const encodedHeader = btoa(JSON.stringify(header)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+  const encodedPayload = btoa(JSON.stringify(payload)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+  
+  const message = encodedHeader + '.' + encodedPayload;
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(jwtSecret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
   );
+  
+  const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(message));
+  const encodedSignature = btoa(String.fromCharCode(...new Uint8Array(signature)))
+    .replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+  
+  return message + '.' + encodedSignature;
 }
 
 // Alias for compatibility
 export const generateJWT = generateToken;
 
 /**
- * Verify and decode a JWT token
+ * Verify and decode a JWT token using Web Crypto API
  * @param {string} token - JWT token
  * @param {string} jwtSecret - JWT secret key
- * @returns {Object|null} - Decoded token payload or null if invalid
+ * @returns {Promise<Object|null>} - Decoded token payload or null if invalid
  */
-export function verifyToken(token, jwtSecret) {
+export async function verifyToken(token, jwtSecret) {
   try {
-    return jwt.verify(token, jwtSecret);
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    
+    const [encodedHeader, encodedPayload, encodedSignature] = parts;
+    const message = encodedHeader + '.' + encodedPayload;
+    
+    // Verify signature
+    const encoder = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      'raw',
+      encoder.encode(jwtSecret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['verify']
+    );
+    
+    const signature = new Uint8Array(
+      atob(encodedSignature.replace(/-/g, '+').replace(/_/g, '/'))
+        .split('').map(c => c.charCodeAt(0))
+    );
+    
+    const isValid = await crypto.subtle.verify(
+      'HMAC',
+      key,
+      signature,
+      encoder.encode(message)
+    );
+    
+    if (!isValid) return null;
+    
+    // Decode payload
+    const payload = JSON.parse(atob(encodedPayload.replace(/-/g, '+').replace(/_/g, '/')));
+    
+    // Check expiration
+    if (payload.exp && payload.exp < Math.floor(Date.now() / 1000)) {
+      return null;
+    }
+    
+    return payload;
   } catch (error) {
     return null;
   }
 }
 
 /**
- * Generate a unique session ID
+ * Generate a unique session ID using Web Crypto API
  * @returns {string} - Session ID
  */
 export function generateSessionId() {
-  return uuidv4();
+  return crypto.randomUUID();
 }
 
 /**
