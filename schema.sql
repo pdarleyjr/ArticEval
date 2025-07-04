@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
     first_name TEXT,
     last_name TEXT,
     organization TEXT,
+    is_active BOOLEAN DEFAULT 1,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -123,3 +124,31 @@ INSERT OR IGNORE INTO form_templates (id, name, description, sections) VALUES
         ]
     }
 ]');
+
+-- IPLC Staff User Accounts
+INSERT OR IGNORE INTO users (email, password_hash, role, first_name, last_name, organization) VALUES
+('aquin217@fiu.edu', 'ETaVDgxVOoNTTZujLf3ypfXZ3pM1xnDvc5Ayz/HB3SfASWEE5MU6/xyHT+Q8cdgQfB', 'clinician', 'Student', 'Part Time', 'IPLC');
+
+INSERT OR IGNORE INTO users (email, password_hash, role, first_name, last_name, organization) VALUES
+('Bammservices@yahoo.com', '5g5f2KKBIKvUuDsqYuomgQgpic43wKZv9VTp4wHuttFyot4AcVBOBY5qvGyqcu+BMI', 'clinician', 'Maggy', 'Del Valle', 'IPLC');
+
+INSERT OR IGNORE INTO users (email, password_hash, role, first_name, last_name, organization) VALUES
+('giannaiesposito@gmail.com', '/RrrXkQnneMRSoim04eUgknjzJ+noSIgowDQ5995Ekf4+2SjOlG22C0hNT5tZfceLk', 'clinician', 'Gianna', 'Esposito', 'IPLC');
+
+INSERT OR IGNORE INTO users (email, password_hash, role, first_name, last_name, organization) VALUES
+('iguerra.ots@gmail.com', 'KcvbzxCwRD3ET/HzpOd1n4cIOPVCEzvjnPxP9oa2kkesgT2XLR0/FWB+MQMbnWvk2', 'clinician', 'Isabel', 'Guerra', 'IPLC');
+
+INSERT OR IGNORE INTO users (email, password_hash, role, first_name, last_name, organization) VALUES
+('IsaAreces1@gmail.com', 'jpNYxBBmAqy1w/Z+vclfEXpANJzZp3D8HQZUl2bQHXXm9WLh7PYbFMX6eVpDynW/x', 'clinician', 'Isabelle', 'Areces', 'IPLC');
+
+INSERT OR IGNORE INTO users (email, password_hash, role, first_name, last_name, organization) VALUES
+('Karinadelarosa914@gmail.com', 'o5Xr7K9HNIzIYsWjyRfTRbczxfch3SPTcZ2OhGnuWRHCf76y5VVJ3Rq813empGmj', 'clinician', 'Karina', 'De La Rosa', 'IPLC');
+
+INSERT OR IGNORE INTO users (email, password_hash, role, first_name, last_name, organization) VALUES
+('adarley23@gmail.com', 'FeZNcKRnLPjZGlRG7sDMjurzBI9nkErGmYqxb3FTUlS/R9tAbVEt2zbYcWZEzUeB', 'admin', 'Alissa M', 'Darley', 'IPLC');
+
+INSERT OR IGNORE INTO users (email, password_hash, role, first_name, last_name, organization) VALUES
+('Nancyc731@icloud.com', 'otYxmzqKiiKv4hVnz+N8+/Wy3kKht3jCIyUNC/YimNVHpSbAZNacfcgDkWu0O6LH', 'clinician', 'Nancy', 'Beato', 'IPLC');
+
+INSERT OR IGNORE INTO users (email, password_hash, role, first_name, last_name, organization) VALUES
+('iplcmiami@gmail.com', 'WTOmxSF8uS8k1wcc+NV4nEUH7viwnIXget1WPAJ5BUrAi8+7sRwpUAK1ecY/zORm', 'admin', 'IPLC', 'Admin', 'IPLC');
