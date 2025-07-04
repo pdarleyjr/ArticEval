@@ -4,9 +4,9 @@
   "type": "module",
   "description": "Speech-Language Evaluation System",
   "scripts": {
-    "start": "npx serve -s dist -l 3000",
+    "start": "npx serve -s public -l 3000",
     "dev": "npx serve . -l 3000",
-    "build": "esbuild assets/js/main.js --bundle --outfile=dist/bundle.js --format=esm",
+    "build": "esbuild public/assets/js/main.js --bundle --outfile=public/bundle.js --format=esm",
     "test-articulation": "npx serve . -l 3001",
     "test-articulation-node": "node test-articulation-info.js",
     "db:init": "wrangler d1 execute iplc-eval-db --env production --remote --file=schema.sql",
@@ -39,6 +39,7 @@
     ]
   },
   "devDependencies": {
+    "esbuild": "^0.21.0",
     "wrangler": "^4.23.0"
   }
 }
