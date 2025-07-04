@@ -4,6 +4,9 @@ pages_build_output_dir = "public"
 compatibility_flags = ["nodejs_compat"]
 
 [env.production]
+# Environment variables for production
+[env.production.vars]
+# JWT_SECRET is configured in Cloudflare Pages dashboard
 
 [[env.production.d1_databases]]
 binding = "DB"

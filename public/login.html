@@ -315,7 +315,7 @@
                         }
                     }, 1500);
                 } else {
-                    throw new Error(data.error || 'Login failed');
+                    throw new Error(data.message || 'Login failed');
                 }
             } catch (error) {
                 console.error('Login error:', error);
