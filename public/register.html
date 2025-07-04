@@ -216,17 +216,32 @@
                 
                 <form id="registerForm">
                     <div class="form-group">
-                        <label for="name" class="form-label">Full Name</label>
-                        <input 
-                            type="text" 
-                            id="name" 
-                            name="name" 
-                            class="form-input" 
-                            required 
-                            autocomplete="name"
-                            placeholder="Enter your full name"
+                        <label for="firstName" class="form-label">First Name</label>
+                        <input
+                            type="text"
+                            id="firstName"
+                            name="firstName"
+                            class="form-input"
+                            required
+                            autocomplete="given-name"
+                            placeholder="Enter your first name"
                             minlength="2"
-                            maxlength="100"
+                            maxlength="50"
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="lastName" class="form-label">Last Name</label>
+                        <input
+                            type="text"
+                            id="lastName"
+                            name="lastName"
+                            class="form-input"
+                            required
+                            autocomplete="family-name"
+                            placeholder="Enter your last name"
+                            minlength="2"
+                            maxlength="50"
                         >
                     </div>
                     
@@ -251,6 +266,21 @@
                             <option value="user">User</option>
                             <option value="clinician">Clinician</option>
                         </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="organization" class="form-label">Organization</label>
+                        <input
+                            type="text"
+                            id="organization"
+                            name="organization"
+                            class="form-input"
+                            required
+                            autocomplete="organization"
+                            placeholder="Enter your organization"
+                            minlength="2"
+                            maxlength="100"
+                        >
                     </div>
                     
                     <div class="form-group">
@@ -309,9 +339,11 @@
     <script>
         // DOM elements
         const registerForm = document.getElementById('registerForm');
-        const nameInput = document.getElementById('name');
+        const firstNameInput = document.getElementById('firstName');
+        const lastNameInput = document.getElementById('lastName');
         const emailInput = document.getElementById('email');
         const roleInput = document.getElementById('role');
+        const organizationInput = document.getElementById('organization');
         const passwordInput = document.getElementById('password');
         const confirmPasswordInput = document.getElementById('confirmPassword');
         const registerBtn = document.getElementById('registerBtn');
@@ -395,20 +427,32 @@
             e.preventDefault();
             clearAlerts();
             
-            const name = nameInput.value.trim();
+            const firstName = firstNameInput.value.trim();
+            const lastName = lastNameInput.value.trim();
             const email = emailInput.value.trim();
             const role = roleInput.value;
+            const organization = organizationInput.value.trim();
             const password = passwordInput.value;
             const confirmPassword = confirmPasswordInput.value;
             
             // Validation
-            if (!name || !email || !role || !password || !confirmPassword) {
+            if (!firstName || !lastName || !email || !role || !organization || !password || !confirmPassword) {
                 showAlert('Please fill in all fields');
                 return;
             }
             
-            if (name.length < 2) {
-                showAlert('Name must be at least 2 characters long');
+            if (firstName.length < 2) {
+                showAlert('First name must be at least 2 characters long');
+                return;
+            }
+            
+            if (lastName.length < 2) {
+                showAlert('Last name must be at least 2 characters long');
+                return;
+            }
+            
+            if (organization.length < 2) {
+                showAlert('Organization must be at least 2 characters long');
                 return;
             }
             
@@ -436,7 +480,7 @@
                         'Content-Type': 'application/json',
                     },
                     credentials: 'include',
-                    body: JSON.stringify({ name, email, role, password })
+                    body: JSON.stringify({ firstName, lastName, email, role, organization, password })
                 });
                 
                 const data = await response.json();
@@ -448,7 +492,7 @@
                         window.location.href = '/login.html';
                     }, 2000);
                 } else {
-                    throw new Error(data.error || 'Registration failed');
+                    throw new Error(data.message || 'Registration failed');
                 }
             } catch (error) {
                 console.error('Registration error:', error);
@@ -458,16 +502,18 @@
             }
         });
         
-        // Auto-focus name field
+        // Auto-focus first name field
         document.addEventListener('DOMContentLoaded', () => {
             checkAuthStatus();
-            nameInput.focus();
+            firstNameInput.focus();
         });
         
         // Clear error messages when user starts typing
-        nameInput.addEventListener('input', clearAlerts);
+        firstNameInput.addEventListener('input', clearAlerts);
+        lastNameInput.addEventListener('input', clearAlerts);
         emailInput.addEventListener('input', clearAlerts);
         roleInput.addEventListener('change', clearAlerts);
+        organizationInput.addEventListener('input', clearAlerts);
         confirmPasswordInput.addEventListener('input', clearAlerts);
     </script>
 </body>
