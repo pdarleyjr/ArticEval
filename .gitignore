@@ -21,6 +21,14 @@ Thumbs.db
 # Credentials
 .git-credentials
 
+# Wrangler local development files
+.wrangler/
+
+# Temporary scripts and generated files
+generate-user-hashes.js
+*-temp.js
+temp-*.js
+
 # AI Analysis Documentation (Local Only)
 ai-project-documentation.json
 *-ai-documentation.json
