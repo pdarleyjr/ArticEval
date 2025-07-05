@@ -55,8 +55,15 @@ export async function onRequest(context) {
  * Handle GET requests - list templates or get specific template
  */
 async function handleGetTemplates(env, templateId) {
+  console.log('=== STARTING handleGetTemplates function ===');
+  console.log('Environment DB binding available:', !!env.DB);
+  console.log('Template ID parameter:', templateId);
+  
   try {
     if (templateId) {
+      console.log('=== SINGLE TEMPLATE RETRIEVAL MODE ===');
+      console.log('Querying for template ID:', templateId);
+      
       // Get specific template
       const template = await env.DB.prepare(`
         SELECT ft.*, 'Anonymous' as creator_name
@@ -64,35 +71,123 @@ async function handleGetTemplates(env, templateId) {
         WHERE ft.id = ?
       `).bind(templateId).first();
       
+      console.log('Single template query result:', JSON.stringify(template, null, 2));
+      
       if (!template) {
+        console.log('Template not found for ID:', templateId);
         return createResponse(false, 'Template not found', null, 404);
       }
       
       // Parse JSON sections
+      console.log('Parsing sections for template:', template.id);
+      console.log('Raw sections value:', template.sections);
+      console.log('Sections type:', typeof template.sections);
+      
       if (template.sections) {
-        template.sections = JSON.parse(template.sections);
+        try {
+          template.sections = JSON.parse(template.sections);
+          console.log('Successfully parsed sections:', JSON.stringify(template.sections, null, 2));
+        } catch (parseError) {
+          console.error('Failed to parse template sections:', parseError);
+          console.error('Raw sections content:', template.sections);
+        }
       }
       
+      console.log('Final template object:', JSON.stringify(template, null, 2));
       return createResponse(true, 'Template retrieved successfully', { template });
     } else {
-      // List all templates
-      const templates = await env.DB.prepare(`
-        SELECT ft.id, ft.name, ft.description, ft.created_by, ft.created_at, ft.updated_at,
+      console.log('=== TEMPLATE LIST RETRIEVAL MODE ===');
+      
+      // List all templates - MODIFIED QUERY TO INCLUDE SECTIONS
+      console.log('Executing templates list query...');
+      const result = await env.DB.prepare(`
+        SELECT ft.id, ft.name, ft.description, ft.sections, ft.created_by, ft.created_at, ft.updated_at,
                'Anonymous' as creator_name,
                COUNT(fs.id) as submission_count
         FROM form_templates ft
         LEFT JOIN form_submissions fs ON ft.id = fs.template_id
-        GROUP BY ft.id, ft.name, ft.description, ft.created_by, ft.created_at, ft.updated_at
+        GROUP BY ft.id, ft.name, ft.description, ft.sections, ft.created_by, ft.created_at, ft.updated_at
         ORDER BY ft.updated_at DESC
       `).all();
       
-      return createResponse(true, 'Templates retrieved successfully', {
-        templates: templates.results || []
+      console.log('=== DATABASE QUERY RESULT ANALYSIS ===');
+      console.log('Query success:', result.success);
+      console.log('Result object keys:', Object.keys(result));
+      console.log('Results array length:', result.results ? result.results.length : 'N/A');
+      console.log('Full result object:', JSON.stringify(result, null, 2));
+      
+      if (!result.success) {
+        console.error('=== DATABASE QUERY FAILED ===');
+        console.error('Query error:', result.error);
+        return createResponse(false, 'Database query failed', null, 500);
+      }
+      
+      console.log('=== PROCESSING TEMPLATES ===');
+      const processedTemplates = [];
+      
+      if (result.results && Array.isArray(result.results)) {
+        for (let i = 0; i < result.results.length; i++) {
+          const template = result.results[i];
+          console.log(`Processing template ${i + 1}:`, template.id, template.name);
+          console.log(`Template ${i + 1} raw data:`, JSON.stringify(template, null, 2));
+          
+          // Parse sections if present
+          if (template.sections) {
+            console.log(`Template ${i + 1} has sections, attempting to parse...`);
+            console.log(`Raw sections value:`, template.sections);
+            console.log(`Sections type:`, typeof template.sections);
+            
+            try {
+              template.sections = JSON.parse(template.sections);
+              console.log(`Template ${i + 1} sections parsed successfully:`, JSON.stringify(template.sections, null, 2));
+              
+              // Validate sections using our validation function
+              console.log(`=== VALIDATING TEMPLATE ${i + 1} SECTIONS ===`);
+              const isValid = isValidTemplateSections(template.sections);
+              console.log(`Template ${i + 1} validation result:`, isValid);
+              
+              if (!isValid) {
+                console.warn(`Template ${i + 1} failed validation - excluding from results`);
+                continue;
+              }
+            } catch (parseError) {
+              console.error(`Template ${i + 1} sections parse error:`, parseError);
+              console.error(`Failed to parse sections:`, template.sections);
+              template.sections = [];
+            }
+          } else {
+            console.log(`Template ${i + 1} has no sections`);
+            template.sections = [];
+          }
+          
+          processedTemplates.push(template);
+          console.log(`Template ${i + 1} added to processed list`);
+        }
+      } else {
+        console.warn('No results array found or results is not an array');
+      }
+      
+      console.log('=== FINAL PROCESSING COMPLETE ===');
+      console.log('Total processed templates:', processedTemplates.length);
+      console.log('Final templates array:', JSON.stringify(processedTemplates, null, 2));
+      
+      const response = createResponse(true, 'Templates retrieved successfully', {
+        templates: processedTemplates
       });
+      
+      console.log('=== RESPONSE OBJECT ===');
+      console.log('Response object:', JSON.stringify(response, null, 2));
+      
+      return response;
     }
   } catch (error) {
-    console.error('Get templates error:', error);
-    return createResponse(false, 'Failed to retrieve templates', null, 500);
+    console.error('=== CRITICAL ERROR IN handleGetTemplates ===');
+    console.error('Error message:', error.message);
+    console.error('Error name:', error.name);
+    console.error('Error stack:', error.stack);
+    console.error('Error object (serialized):', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+    
+    return createResponse(false, 'Failed to retrieve templates: ' + error.message, null, 500);
   }
 }
 
@@ -262,19 +357,51 @@ async function handleDeleteTemplate(env, templateId) {
  * @returns {boolean} True if valid
  */
 function isValidTemplateSections(sections) {
+  console.log('=== STARTING TEMPLATE SECTIONS VALIDATION ===');
+  console.log('Sections input:', JSON.stringify(sections, null, 2));
+  console.log('Sections type:', typeof sections);
+  console.log('Is array:', Array.isArray(sections));
+  
   if (!sections || !Array.isArray(sections)) {
+    console.log('VALIDATION FAILED: Sections is not an array or is null/undefined');
     return false;
   }
   
+  console.log('Sections array length:', sections.length);
+  
   // Validate each section
-  for (const section of sections) {
+  for (let i = 0; i < sections.length; i++) {
+    const section = sections[i];
+    console.log(`=== VALIDATING SECTION ${i + 1} ===`);
+    console.log(`Section ${i + 1} data:`, JSON.stringify(section, null, 2));
+    
+    // Check section structure
+    console.log(`Section ${i + 1} has id:`, !!section.id, 'Value:', section.id);
+    console.log(`Section ${i + 1} has title:`, !!section.title, 'Value:', section.title);
+    console.log(`Section ${i + 1} has fields:`, !!section.fields, 'Type:', typeof section.fields);
+    console.log(`Section ${i + 1} fields is array:`, Array.isArray(section.fields));
+    
     if (!section.id || !section.title || !section.fields || !Array.isArray(section.fields)) {
+      console.log(`VALIDATION FAILED: Section ${i + 1} missing required properties`);
+      console.log(`Missing - id: ${!section.id}, title: ${!section.title}, fields: ${!section.fields}, fields array: ${!Array.isArray(section.fields)}`);
       return false;
     }
     
+    console.log(`Section ${i + 1} fields array length:`, section.fields.length);
+    
     // Validate each field
-    for (const field of section.fields) {
+    for (let j = 0; j < section.fields.length; j++) {
+      const field = section.fields[j];
+      console.log(`=== VALIDATING SECTION ${i + 1} FIELD ${j + 1} ===`);
+      console.log(`Field ${j + 1} data:`, JSON.stringify(field, null, 2));
+      
+      console.log(`Field ${j + 1} has id:`, !!field.id, 'Value:', field.id);
+      console.log(`Field ${j + 1} has type:`, !!field.type, 'Value:', field.type);
+      console.log(`Field ${j + 1} has label:`, !!field.label, 'Value:', field.label);
+      
       if (!field.id || !field.type || !field.label) {
+        console.log(`VALIDATION FAILED: Section ${i + 1} Field ${j + 1} missing required properties`);
+        console.log(`Missing - id: ${!field.id}, type: ${!field.type}, label: ${!field.label}`);
         return false;
       }
       
@@ -284,11 +411,20 @@ function isValidTemplateSections(sections) {
         'select', 'radio', 'checkbox', 'file', 'rating', 'slider', 'textarea-rich'
       ];
       
+      console.log(`Field ${j + 1} type validation:`, field.type, 'Valid:', validTypes.includes(field.type));
+      
       if (!validTypes.includes(field.type)) {
+        console.log(`VALIDATION FAILED: Section ${i + 1} Field ${j + 1} has invalid type: ${field.type}`);
+        console.log('Valid types:', validTypes);
         return false;
       }
+      
+      console.log(`Field ${j + 1} validation PASSED`);
     }
+    
+    console.log(`Section ${i + 1} validation PASSED`);
   }
   
+  console.log('=== ALL SECTIONS VALIDATION PASSED ===');
   return true;
 }
