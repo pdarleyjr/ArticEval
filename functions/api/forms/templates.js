@@ -195,21 +195,30 @@ async function handleGetTemplates(env, templateId) {
  * Handle POST requests - create new template
  */
 async function handleCreateTemplate(request, env) {
+  console.log('=== STARTING handleCreateTemplate ===');
   try {
     const data = await request.json();
+    console.log('Request data:', JSON.stringify(data, null, 2));
     const { name, description, sections } = data;
     
-    // Validate required fields
-    if (!name || !sections) {
-      return createResponse(false, 'Name and sections are required', null, 400);
+    // Validate required fields - only name is required for initial creation
+    if (!name) {
+      console.log('Validation failed: name is required');
+      return createResponse(false, 'Template name is required', null, 400);
     }
     
-    // Validate sections structure
-    if (!isValidTemplateSections(sections)) {
+    // Use empty sections array if not provided (for initial template creation)
+    const templateSections = sections || [];
+    console.log('Template sections:', JSON.stringify(templateSections, null, 2));
+    
+    // Validate sections structure only if sections are provided
+    if (templateSections.length > 0 && !isValidTemplateSections(templateSections)) {
+      console.log('Validation failed: invalid template sections');
       return createResponse(false, 'Invalid template sections', null, 400);
     }
     
     const now = new Date().toISOString();
+    console.log('Creating template with name:', name, 'description:', description);
     
     // Insert new template
     const result = await env.DB.prepare(`
@@ -218,15 +227,20 @@ async function handleCreateTemplate(request, env) {
     `).bind(
       name,
       description || null,
-      JSON.stringify(sections),
+      JSON.stringify(templateSections),
       null, // No user tracking in open access mode
       now,
       now
     ).run();
     
+    console.log('Database insert result:', JSON.stringify(result, null, 2));
+    
     if (!result.success) {
+      console.error('Database insert failed:', result.error);
       return createResponse(false, 'Failed to create template', null, 500);
     }
+    
+    console.log('Template created with ID:', result.meta.last_row_id);
     
     // Get the created template
     const template = await env.DB.prepare(`
@@ -235,14 +249,18 @@ async function handleCreateTemplate(request, env) {
       WHERE ft.id = ?
     `).bind(result.meta.last_row_id).first();
     
+    console.log('Retrieved created template:', JSON.stringify(template, null, 2));
+    
     if (template.sections) {
       template.sections = JSON.parse(template.sections);
     }
     
+    console.log('Template creation successful');
     return createResponse(true, 'Template created successfully', { template }, 201);
   } catch (error) {
     console.error('Create template error:', error);
-    return createResponse(false, 'Failed to create template', null, 500);
+    console.error('Error stack:', error.stack);
+    return createResponse(false, 'Failed to create template: ' + error.message, null, 500);
   }
 }
 
