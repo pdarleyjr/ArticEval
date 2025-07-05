@@ -1,5 +1,4 @@
 import { createResponse, handleCORS } from '../../auth/utils.js';
-import { authenticateUser } from '../../auth/middleware.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -10,20 +9,13 @@ export async function onRequest(context) {
   }
   
   try {
-    // Authenticate user for all operations
-    const authResult = await authenticateUser(request, env);
-    if (!authResult.success) {
-      return createResponse(false, authResult.message, null, 401);
-    }
-    
-    const { user } = authResult;
     const url = new URL(request.url);
     
     switch (request.method) {
       case 'GET':
-        return await handleGetAnalytics(env, user, url.searchParams);
+        return await handleGetAnalytics(env, url.searchParams);
       case 'POST':
-        return await handleTrackEvent(request, env, user);
+        return await handleTrackEvent(request, env);
       default:
         return createResponse(false, 'Method not allowed', null, 405);
     }
@@ -36,33 +28,28 @@ export async function onRequest(context) {
 /**
  * Handle GET requests - retrieve analytics data
  */
-async function handleGetAnalytics(env, user, searchParams) {
+async function handleGetAnalytics(env, searchParams) {
   const type = searchParams.get('type') || 'overview';
   const templateId = searchParams.get('template_id');
   const startDate = searchParams.get('start_date');
   const endDate = searchParams.get('end_date');
   const timeframe = searchParams.get('timeframe') || '30d'; // 7d, 30d, 90d, 1y
   
-  // Check permissions - only clinicians and admins can view analytics
-  if (!['clinician', 'admin'].includes(user.role)) {
-    return createResponse(false, 'Insufficient permissions to view analytics', null, 403);
-  }
-  
   try {
     switch (type) {
       case 'overview':
-        return await getOverviewAnalytics(env, user, timeframe, startDate, endDate);
+        return await getOverviewAnalytics(env, timeframe, startDate, endDate);
       case 'template':
         if (!templateId) {
           return createResponse(false, 'Template ID is required for template analytics', null, 400);
         }
-        return await getTemplateAnalytics(env, user, templateId, timeframe, startDate, endDate);
+        return await getTemplateAnalytics(env, templateId, timeframe, startDate, endDate);
       case 'submissions':
-        return await getSubmissionAnalytics(env, user, templateId, timeframe, startDate, endDate);
+        return await getSubmissionAnalytics(env, templateId, timeframe, startDate, endDate);
       case 'users':
-        return await getUserAnalytics(env, user, timeframe, startDate, endDate);
+        return await getUserAnalytics(env, timeframe, startDate, endDate);
       case 'performance':
-        return await getPerformanceAnalytics(env, user, templateId, timeframe, startDate, endDate);
+        return await getPerformanceAnalytics(env, templateId, timeframe, startDate, endDate);
       default:
         return createResponse(false, 'Invalid analytics type', null, 400);
     }
@@ -75,7 +62,7 @@ async function handleGetAnalytics(env, user, searchParams) {
 /**
  * Handle POST requests - track analytics events
  */
-async function handleTrackEvent(request, env, user) {
+async function handleTrackEvent(request, env) {
   try {
     const data = await request.json();
     const { event_type, template_id, metadata } = data;
@@ -86,14 +73,14 @@ async function handleTrackEvent(request, env, user) {
     
     const now = new Date().toISOString();
     
-    // Insert analytics event
+    // Insert analytics event - use "Anonymous" as user_id for open access
     const result = await env.DB.prepare(`
       INSERT INTO analytics_events (event_type, template_id, user_id, timestamp, metadata)
       VALUES (?, ?, ?, ?, ?)
     `).bind(
       event_type,
       template_id || null,
-      user.id,
+      'anonymous', // Anonymous user for open access
       now,
       metadata ? JSON.stringify(metadata) : null
     ).run();
@@ -110,12 +97,12 @@ async function handleTrackEvent(request, env, user) {
 }
 
 /**
- * Get overview analytics
+ * Get overview analytics - system-wide data without user restrictions
  */
-async function getOverviewAnalytics(env, user, timeframe, startDate, endDate) {
+async function getOverviewAnalytics(env, timeframe, startDate, endDate) {
   const dateRange = getDateRange(timeframe, startDate, endDate);
   
-  // Total statistics
+  // Total statistics - system-wide
   const totalStats = await env.DB.prepare(`
     SELECT 
       (SELECT COUNT(*) FROM form_templates WHERE is_active = 1) as total_templates,
@@ -124,7 +111,7 @@ async function getOverviewAnalytics(env, user, timeframe, startDate, endDate) {
       (SELECT COUNT(*) FROM users WHERE role = 'user') as total_users
   `).bind(dateRange.start, dateRange.end, dateRange.start, dateRange.end).first();
   
-  // Submission trends (daily)
+  // Submission trends (daily) - all submissions
   const submissionTrends = await env.DB.prepare(`
     SELECT 
       DATE(submitted_at) as date,
@@ -135,7 +122,7 @@ async function getOverviewAnalytics(env, user, timeframe, startDate, endDate) {
     ORDER BY date
   `).bind(dateRange.start, dateRange.end).all();
   
-  // Top templates by submissions
+  // Top templates by submissions - all templates
   const topTemplates = await env.DB.prepare(`
     SELECT 
       ft.id,
@@ -151,7 +138,7 @@ async function getOverviewAnalytics(env, user, timeframe, startDate, endDate) {
     LIMIT 10
   `).bind(dateRange.start, dateRange.end).all();
   
-  // User activity distribution
+  // User activity distribution - all users
   const userActivity = await env.DB.prepare(`
     SELECT 
       u.role,
@@ -175,22 +162,21 @@ async function getOverviewAnalytics(env, user, timeframe, startDate, endDate) {
 }
 
 /**
- * Get template-specific analytics
+ * Get template-specific analytics - open access
  */
-async function getTemplateAnalytics(env, user, templateId, timeframe, startDate, endDate) {
+async function getTemplateAnalytics(env, templateId, timeframe, startDate, endDate) {
   const dateRange = getDateRange(timeframe, startDate, endDate);
   
   // Template info and stats
   const templateInfo = await env.DB.prepare(`
     SELECT 
       ft.*,
-      u.name as creator_name,
+      'Anonymous' as creator_name,
       COUNT(fs.id) as total_submissions,
       AVG(fs.score) as average_score,
       MIN(fs.score) as min_score,
       MAX(fs.score) as max_score
     FROM form_templates ft
-    LEFT JOIN users u ON ft.created_by = u.id
     LEFT JOIN form_submissions fs ON ft.id = fs.template_id
       AND fs.submitted_at >= ? AND fs.submitted_at <= ?
     WHERE ft.id = ?
@@ -201,7 +187,7 @@ async function getTemplateAnalytics(env, user, templateId, timeframe, startDate,
     return createResponse(false, 'Template not found', null, 404);
   }
   
-  // Submission timeline
+  // Submission timeline - all submissions for this template
   const submissionTimeline = await env.DB.prepare(`
     SELECT 
       DATE(submitted_at) as date,
@@ -213,7 +199,7 @@ async function getTemplateAnalytics(env, user, templateId, timeframe, startDate,
     ORDER BY date
   `).bind(templateId, dateRange.start, dateRange.end).all();
   
-  // Score distribution
+  // Score distribution - all scores for this template
   const scoreDistribution = await env.DB.prepare(`
     SELECT 
       CASE 
@@ -231,7 +217,7 @@ async function getTemplateAnalytics(env, user, templateId, timeframe, startDate,
     ORDER BY score_range DESC
   `).bind(templateId, dateRange.start, dateRange.end).all();
   
-  // Completion rate by section (if template config allows analysis)
+  // Completion stats - all submissions for this template
   const completionStats = await env.DB.prepare(`
     SELECT 
       status,
@@ -241,17 +227,16 @@ async function getTemplateAnalytics(env, user, templateId, timeframe, startDate,
     GROUP BY status
   `).bind(templateId, dateRange.start, dateRange.end).all();
   
-  // Recent submissions
+  // Recent submissions - all recent submissions for this template
   const recentSubmissions = await env.DB.prepare(`
     SELECT 
       fs.id,
       fs.score,
       fs.status,
       fs.submitted_at,
-      u.name as submitter_name,
-      u.email as submitter_email
+      'Anonymous' as submitter_name,
+      'anonymous@example.com' as submitter_email
     FROM form_submissions fs
-    LEFT JOIN users u ON fs.submitted_by = u.id
     WHERE fs.template_id = ? AND fs.submitted_at >= ? AND fs.submitted_at <= ?
     ORDER BY fs.submitted_at DESC
     LIMIT 20
@@ -268,9 +253,9 @@ async function getTemplateAnalytics(env, user, templateId, timeframe, startDate,
 }
 
 /**
- * Get submission analytics
+ * Get submission analytics - system-wide data
  */
-async function getSubmissionAnalytics(env, user, templateId, timeframe, startDate, endDate) {
+async function getSubmissionAnalytics(env, templateId, timeframe, startDate, endDate) {
   const dateRange = getDateRange(timeframe, startDate, endDate);
   
   let whereClause = 'WHERE fs.submitted_at >= ? AND fs.submitted_at <= ?';
@@ -281,7 +266,7 @@ async function getSubmissionAnalytics(env, user, templateId, timeframe, startDat
     params.push(templateId);
   }
   
-  // Submission volume trends
+  // Submission volume trends - all submissions
   const volumeTrends = await env.DB.prepare(`
     SELECT 
       DATE(fs.submitted_at) as date,
@@ -294,20 +279,19 @@ async function getSubmissionAnalytics(env, user, templateId, timeframe, startDat
     ORDER BY date
   `).bind(...params).all();
   
-  // Time-to-completion analysis
+  // Time-to-completion analysis - all submissions
   const timeAnalysis = await env.DB.prepare(`
     SELECT 
       AVG(JULIANDAY(fs.submitted_at) - JULIANDAY(ae.timestamp)) * 24 * 60 as avg_completion_time_minutes,
       COUNT(*) as sample_size
     FROM form_submissions fs
     JOIN analytics_events ae ON fs.template_id = ae.template_id 
-      AND fs.submitted_by = ae.user_id 
       AND ae.event_type = 'form_started'
       AND ae.timestamp <= fs.submitted_at
     ${whereClause.replace('fs.submitted_at', 'fs.submitted_at')}
   `).bind(...params).first();
   
-  // Popular submission times
+  // Popular submission times - all submissions
   const timeDistribution = await env.DB.prepare(`
     SELECT 
       CASE 
@@ -322,7 +306,7 @@ async function getSubmissionAnalytics(env, user, templateId, timeframe, startDat
     GROUP BY time_period
   `).bind(...params).all();
   
-  // User engagement metrics
+  // User engagement metrics - system-wide
   const engagementMetrics = await env.DB.prepare(`
     SELECT 
       COUNT(DISTINCT fs.submitted_by) as unique_users,
@@ -351,12 +335,12 @@ async function getSubmissionAnalytics(env, user, templateId, timeframe, startDat
 }
 
 /**
- * Get user analytics
+ * Get user analytics - system-wide data
  */
-async function getUserAnalytics(env, user, timeframe, startDate, endDate) {
+async function getUserAnalytics(env, timeframe, startDate, endDate) {
   const dateRange = getDateRange(timeframe, startDate, endDate);
   
-  // User registration trends
+  // User registration trends - all users
   const registrationTrends = await env.DB.prepare(`
     SELECT 
       DATE(created_at) as date,
@@ -367,7 +351,7 @@ async function getUserAnalytics(env, user, timeframe, startDate, endDate) {
     ORDER BY date
   `).bind(dateRange.start, dateRange.end).all();
   
-  // User role distribution
+  // User role distribution - all users
   const roleDistribution = await env.DB.prepare(`
     SELECT 
       role,
@@ -376,27 +360,24 @@ async function getUserAnalytics(env, user, timeframe, startDate, endDate) {
     GROUP BY role
   `).bind().all();
   
-  // Most active users
+  // Most active users - all users
   const activeUsers = await env.DB.prepare(`
     SELECT 
-      u.id,
-      u.name,
-      u.email,
-      u.role,
+      'Anonymous' as name,
+      'anonymous@example.com' as email,
+      'user' as role,
       COUNT(fs.id) as submission_count,
       AVG(fs.score) as average_score,
       MAX(fs.submitted_at) as last_submission
-    FROM users u
-    LEFT JOIN form_submissions fs ON u.id = fs.submitted_by
-      AND fs.submitted_at >= ? AND fs.submitted_at <= ?
-    WHERE u.role = 'user'
-    GROUP BY u.id, u.name, u.email, u.role
+    FROM form_submissions fs
+    WHERE fs.submitted_at >= ? AND fs.submitted_at <= ?
+    GROUP BY fs.submitted_by
     HAVING submission_count > 0
     ORDER BY submission_count DESC, average_score DESC
     LIMIT 20
   `).bind(dateRange.start, dateRange.end).all();
   
-  // User activity patterns
+  // User activity patterns - all users
   const activityPatterns = await env.DB.prepare(`
     SELECT 
       strftime('%w', fs.submitted_at) as day_of_week,
@@ -418,9 +399,9 @@ async function getUserAnalytics(env, user, timeframe, startDate, endDate) {
 }
 
 /**
- * Get performance analytics
+ * Get performance analytics - system-wide data
  */
-async function getPerformanceAnalytics(env, user, templateId, timeframe, startDate, endDate) {
+async function getPerformanceAnalytics(env, templateId, timeframe, startDate, endDate) {
   const dateRange = getDateRange(timeframe, startDate, endDate);
   
   let whereClause = 'WHERE ae.timestamp >= ? AND ae.timestamp <= ?';
@@ -431,7 +412,7 @@ async function getPerformanceAnalytics(env, user, templateId, timeframe, startDa
     params.push(templateId);
   }
   
-  // Event distribution
+  // Event distribution - all events
   const eventDistribution = await env.DB.prepare(`
     SELECT 
       event_type,
@@ -442,7 +423,7 @@ async function getPerformanceAnalytics(env, user, templateId, timeframe, startDa
     ORDER BY count DESC
   `).bind(...params).all();
   
-  // Template performance comparison
+  // Template performance comparison - all templates
   const templatePerformance = await env.DB.prepare(`
     SELECT 
       ft.id,
@@ -466,7 +447,7 @@ async function getPerformanceAnalytics(env, user, templateId, timeframe, startDa
     ORDER BY completion_rate DESC, starts DESC
   `).bind(dateRange.start, dateRange.end, dateRange.start, dateRange.end).all();
   
-  // Error tracking
+  // Error tracking - all errors
   const errorEvents = await env.DB.prepare(`
     SELECT 
       DATE(ae.timestamp) as date,

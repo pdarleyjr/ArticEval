@@ -1,5 +1,4 @@
 import { createResponse, handleCORS } from '../../auth/utils.js';
-import { authenticateUser } from '../../auth/middleware.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -10,26 +9,19 @@ export async function onRequest(context) {
   }
   
   try {
-    // Authenticate user for all operations
-    const authResult = await authenticateUser(request, env);
-    if (!authResult.success) {
-      return createResponse(false, authResult.message, null, 401);
-    }
-    
-    const { user } = authResult;
     const url = new URL(request.url);
     const submissionId = url.searchParams.get('id');
     const templateId = url.searchParams.get('template_id');
     
     switch (request.method) {
       case 'GET':
-        return await handleGetSubmissions(env, user, submissionId, templateId, url.searchParams);
+        return await handleGetSubmissions(env, submissionId, templateId, url.searchParams);
       case 'POST':
-        return await handleCreateSubmission(request, env, user);
+        return await handleCreateSubmission(request, env);
       case 'PUT':
-        return await handleUpdateSubmission(request, env, user, submissionId);
+        return await handleUpdateSubmission(request, env, submissionId);
       case 'DELETE':
-        return await handleDeleteSubmission(env, user, submissionId);
+        return await handleDeleteSubmission(env, submissionId);
       default:
         return createResponse(false, 'Method not allowed', null, 405);
     }
@@ -42,14 +34,14 @@ export async function onRequest(context) {
 /**
  * Handle GET requests - list submissions or get specific submission
  */
-async function handleGetSubmissions(env, user, submissionId, templateId, searchParams) {
+async function handleGetSubmissions(env, submissionId, templateId, searchParams) {
   try {
     if (submissionId) {
       // Get specific submission
-      return await getSubmissionById(env, user, submissionId);
+      return await getSubmissionById(env, submissionId);
     } else {
       // List submissions with filtering and pagination
-      return await listSubmissions(env, user, templateId, searchParams);
+      return await listSubmissions(env, templateId, searchParams);
     }
   } catch (error) {
     console.error('Get submissions error:', error);
@@ -60,26 +52,15 @@ async function handleGetSubmissions(env, user, submissionId, templateId, searchP
 /**
  * Get specific submission by ID
  */
-async function getSubmissionById(env, user, submissionId) {
-  let query = `
-    SELECT fs.*, ft.name as template_name, u.name as submitter_name, u.email as submitter_email
+async function getSubmissionById(env, submissionId) {
+  const query = `
+    SELECT fs.*, ft.name as template_name, 'Anonymous' as submitter_name, 'anonymous@example.com' as submitter_email
     FROM form_submissions fs
     LEFT JOIN form_templates ft ON fs.template_id = ft.id
-    LEFT JOIN users u ON fs.submitted_by = u.id
     WHERE fs.id = ?
   `;
   
-  // Apply user-based filtering
-  if (user.role === 'user') {
-    query += ` AND fs.submitted_by = ?`;
-  }
-  
-  const params = [submissionId];
-  if (user.role === 'user') {
-    params.push(user.id);
-  }
-  
-  const submission = await env.DB.prepare(query).bind(...params).first();
+  const submission = await env.DB.prepare(query).bind(submissionId).first();
   
   if (!submission) {
     return createResponse(false, 'Submission not found', null, 404);
@@ -99,7 +80,7 @@ async function getSubmissionById(env, user, submissionId) {
 /**
  * List submissions with filtering and pagination
  */
-async function listSubmissions(env, user, templateId, searchParams) {
+async function listSubmissions(env, templateId, searchParams) {
   const page = parseInt(searchParams.get('page')) || 1;
   const limit = Math.min(parseInt(searchParams.get('limit')) || 20, 100);
   const offset = (page - 1) * limit;
@@ -109,12 +90,6 @@ async function listSubmissions(env, user, templateId, searchParams) {
   
   let whereConditions = [];
   let params = [];
-  
-  // Apply user-based filtering
-  if (user.role === 'user') {
-    whereConditions.push('fs.submitted_by = ?');
-    params.push(user.id);
-  }
   
   // Template filter
   if (templateId) {
@@ -153,10 +128,9 @@ async function listSubmissions(env, user, templateId, searchParams) {
   // Get submissions
   const query = `
     SELECT fs.id, fs.template_id, fs.submitted_by, fs.submitted_at, fs.status, fs.score,
-           ft.name as template_name, u.name as submitter_name, u.email as submitter_email
+           ft.name as template_name, 'Anonymous' as submitter_name, 'anonymous@example.com' as submitter_email
     FROM form_submissions fs
     LEFT JOIN form_templates ft ON fs.template_id = ft.id
-    LEFT JOIN users u ON fs.submitted_by = u.id
     ${whereClause}
     ORDER BY fs.submitted_at DESC
     LIMIT ? OFFSET ?
@@ -178,7 +152,7 @@ async function listSubmissions(env, user, templateId, searchParams) {
 /**
  * Handle POST requests - create new submission
  */
-async function handleCreateSubmission(request, env, user) {
+async function handleCreateSubmission(request, env) {
   try {
     const data = await request.json();
     const { template_id, data: formData, client_data } = data;
@@ -217,7 +191,7 @@ async function handleCreateSubmission(request, env, user) {
       VALUES (?, ?, ?, ?, 'completed', ?, ?)
     `).bind(
       template_id,
-      user.id,
+      null, // No user tracking in open access mode
       JSON.stringify(formData),
       client_data ? JSON.stringify(client_data) : null,
       score,
@@ -228,8 +202,8 @@ async function handleCreateSubmission(request, env, user) {
       return createResponse(false, 'Failed to create submission', null, 500);
     }
     
-    // Track analytics
-    await trackSubmissionAnalytics(env, template_id, user.id, now);
+    // Track analytics (without user ID)
+    await trackSubmissionAnalytics(env, template_id, null, now);
     
     // Get the created submission
     const submission = await env.DB.prepare(`
@@ -256,25 +230,19 @@ async function handleCreateSubmission(request, env, user) {
 /**
  * Handle PUT requests - update existing submission
  */
-async function handleUpdateSubmission(request, env, user, submissionId) {
+async function handleUpdateSubmission(request, env, submissionId) {
   if (!submissionId) {
     return createResponse(false, 'Submission ID is required', null, 400);
   }
   
   try {
-    // Check if submission exists and user has permission to edit
-    let query = `SELECT * FROM form_submissions WHERE id = ?`;
-    let params = [submissionId];
-    
-    if (user.role === 'user') {
-      query += ` AND submitted_by = ?`;
-      params.push(user.id);
-    }
-    
-    const existingSubmission = await env.DB.prepare(query).bind(...params).first();
+    // Check if submission exists
+    const existingSubmission = await env.DB.prepare(`
+      SELECT * FROM form_submissions WHERE id = ?
+    `).bind(submissionId).first();
     
     if (!existingSubmission) {
-      return createResponse(false, 'Submission not found or access denied', null, 404);
+      return createResponse(false, 'Submission not found', null, 404);
     }
     
     const data = await request.json();
@@ -308,14 +276,14 @@ async function handleUpdateSubmission(request, env, user, submissionId) {
       }
     }
     
-    // Update status if provided (clinicians and admins only)
-    if (status && ['clinician', 'admin'].includes(user.role)) {
+    // Update status if provided
+    if (status) {
       updateFields.push('status = ?');
       updateParams.push(status);
     }
     
-    // Update score if provided (clinicians and admins only)
-    if (score !== undefined && ['clinician', 'admin'].includes(user.role)) {
+    // Update score if provided
+    if (score !== undefined) {
       updateFields.push('score = ?');
       updateParams.push(score);
     }
@@ -325,7 +293,7 @@ async function handleUpdateSubmission(request, env, user, submissionId) {
     }
     
     const updateQuery = `
-      UPDATE form_submissions 
+      UPDATE form_submissions
       SET ${updateFields.join(', ')}
       WHERE id = ?
     `;
@@ -362,14 +330,9 @@ async function handleUpdateSubmission(request, env, user, submissionId) {
 /**
  * Handle DELETE requests - delete submission
  */
-async function handleDeleteSubmission(env, user, submissionId) {
+async function handleDeleteSubmission(env, submissionId) {
   if (!submissionId) {
     return createResponse(false, 'Submission ID is required', null, 400);
-  }
-  
-  // Check permissions - only clinicians and admins can delete submissions
-  if (!['clinician', 'admin'].includes(user.role)) {
-    return createResponse(false, 'Insufficient permissions to delete submissions', null, 403);
   }
   
   try {

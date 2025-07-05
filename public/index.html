@@ -89,17 +89,6 @@
             margin-bottom: 1rem;
         }
         
-        .auth-status {
-            position: fixed;
-            top: 1rem;
-            right: 1rem;
-            background: var(--white);
-            padding: 0.5rem 1rem;
-            border-radius: 5px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            display: none;
-        }
-        
         .loading {
             text-align: center;
             padding: 2rem;
@@ -108,12 +97,6 @@
     </style>
 </head>
 <body>
-    <!-- Authentication Status -->
-    <div id="authStatus" class="auth-status">
-        <span id="userInfo"></span>
-        <button id="logoutBtn" class="btn btn-secondary" style="margin-left: 1rem; padding: 0.25rem 1rem;">Logout</button>
-    </div>
-
     <header class="logo-header">
         <img src="/assets/images/400dpiLogo.PNG" alt="IPLC Logo" />
     </header>
@@ -124,10 +107,9 @@
             <h1>IPLC ArticEval Platform</h1>
             <p>Professional articulation evaluation forms with advanced analytics and reporting</p>
             <div class="cta-buttons">
-                <a href="/builder.html" class="btn btn-primary" id="builderBtn">Start Evaluation</a>
-                <a href="/login.html" class="btn btn-secondary" id="loginBtn">Login</a>
-                <a href="/register.html" class="btn btn-secondary" id="registerBtn">Register</a>
-                <a href="/dashboard" class="btn btn-primary" id="dashboardBtn" style="display: none;">Dashboard</a>
+                <a href="/builder.html" class="btn btn-primary">Create Evaluation Form</a>
+                <a href="/evaluation.html" class="btn btn-secondary">Take Evaluation</a>
+                <a href="/ai-summary.html" class="btn btn-secondary">AI Summary</a>
             </div>
         </section>
 
@@ -152,15 +134,15 @@
             </div>
             
             <div class="feature-card">
-                <div class="feature-icon">👥</div>
-                <h3>Multi-User Platform</h3>
-                <p>Secure authentication system with role-based access for clinicians, administrators, and users with comprehensive session management.</p>
+                <div class="feature-icon">🤖</div>
+                <h3>AI-Powered Analysis</h3>
+                <p>Advanced artificial intelligence for automated analysis and reporting with intelligent insights and recommendations for clinical assessments.</p>
             </div>
             
             <div class="feature-card">
-                <div class="feature-icon">🔒</div>
-                <h3>Secure & Compliant</h3>
-                <p>HIPAA-ready security features with encrypted data storage, secure sessions, and privacy-first design for clinical environments.</p>
+                <div class="feature-icon">✨</div>
+                <h3>Open Access Platform</h3>
+                <p>No login required - instant access to all features for form creation, evaluation, analytics, and reporting with complete functionality available to everyone.</p>
             </div>
             
             <div class="feature-card">
@@ -170,101 +152,12 @@
             </div>
         </section>
 
-        <!-- System Status -->
-        <section id="systemStatus" class="loading">
-            <p>Loading system status...</p>
-        </section>
     </main>
 
     <script>
-        // Authentication state management
-        let currentUser = null;
-        
-        // DOM elements
-        const authStatus = document.getElementById('authStatus');
-        const userInfo = document.getElementById('userInfo');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const loginBtn = document.getElementById('loginBtn');
-        const registerBtn = document.getElementById('registerBtn');
-        const builderBtn = document.getElementById('builderBtn');
-        const dashboardBtn = document.getElementById('dashboardBtn');
-        const systemStatus = document.getElementById('systemStatus');
-        
-        // Check authentication status on page load
-        async function checkAuthStatus() {
-            try {
-                const response = await fetch('/api/auth/me', {
-                    credentials: 'include'
-                });
-                
-                if (response.ok) {
-                    currentUser = await response.json();
-                    updateUIForAuthenticatedUser();
-                } else {
-                    updateUIForUnauthenticatedUser();
-                }
-                
-                updateSystemStatus('System operational');
-            } catch (error) {
-                console.error('Auth check failed:', error);
-                updateUIForUnauthenticatedUser();
-                updateSystemStatus('System check failed');
-            }
-        }
-        
-        // Update UI for authenticated users
-        function updateUIForAuthenticatedUser() {
-            authStatus.style.display = 'block';
-            userInfo.textContent = `Welcome, ${currentUser.name} (${currentUser.role})`;
-            
-            loginBtn.style.display = 'none';
-            registerBtn.style.display = 'none';
-            
-            if (currentUser.role === 'admin') {
-                dashboardBtn.style.display = 'inline-block';
-            }
-            
-            builderBtn.textContent = 'Create Evaluation';
-        }
-        
-        // Update UI for unauthenticated users
-        function updateUIForUnauthenticatedUser() {
-            authStatus.style.display = 'none';
-            loginBtn.style.display = 'inline-block';
-            registerBtn.style.display = 'inline-block';
-            dashboardBtn.style.display = 'none';
-            builderBtn.textContent = 'Start Evaluation';
-        }
-        
-        // Update system status
-        function updateSystemStatus(message) {
-            systemStatus.innerHTML = `<p>Status: ${message}</p>`;
-        }
-        
-        // Logout functionality
-        logoutBtn.addEventListener('click', async () => {
-            try {
-                const response = await fetch('/api/auth/logout', {
-                    method: 'POST',
-                    credentials: 'include'
-                });
-                
-                if (response.ok) {
-                    currentUser = null;
-                    updateUIForUnauthenticatedUser();
-                    updateSystemStatus('Logged out successfully');
-                } else {
-                    throw new Error('Logout failed');
-                }
-            } catch (error) {
-                console.error('Logout error:', error);
-                updateSystemStatus('Logout failed');
-            }
-        });
-        
-        // Initialize page
+        // Simple page initialization for open access platform
         document.addEventListener('DOMContentLoaded', () => {
-            checkAuthStatus();
+            console.log('IPLC ArticEval Platform - Open Access Mode');
         });
     </script>
 </body>

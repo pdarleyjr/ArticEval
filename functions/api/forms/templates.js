@@ -1,5 +1,4 @@
 import { createResponse, handleCORS } from '../../auth/utils.js';
-import { authenticateUser, requireRole } from '../../auth/middleware.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -10,25 +9,18 @@ export async function onRequest(context) {
   }
   
   try {
-    // Authenticate user for all operations
-    const authResult = await authenticateUser(request, env);
-    if (!authResult.success) {
-      return createResponse(false, authResult.message, null, 401);
-    }
-    
-    const { user } = authResult;
     const url = new URL(request.url);
     const templateId = url.searchParams.get('id');
     
     switch (request.method) {
       case 'GET':
-        return await handleGetTemplates(env, templateId, user);
+        return await handleGetTemplates(env, templateId);
       case 'POST':
-        return await handleCreateTemplate(request, env, user);
+        return await handleCreateTemplate(request, env);
       case 'PUT':
-        return await handleUpdateTemplate(request, env, user, templateId);
+        return await handleUpdateTemplate(request, env, templateId);
       case 'DELETE':
-        return await handleDeleteTemplate(env, user, templateId);
+        return await handleDeleteTemplate(env, templateId);
       default:
         return createResponse(false, 'Method not allowed', null, 405);
     }
@@ -41,14 +33,13 @@ export async function onRequest(context) {
 /**
  * Handle GET requests - list templates or get specific template
  */
-async function handleGetTemplates(env, templateId, user) {
+async function handleGetTemplates(env, templateId) {
   try {
     if (templateId) {
       // Get specific template
       const template = await env.DB.prepare(`
-        SELECT ft.*, u.name as creator_name 
+        SELECT ft.*, 'Anonymous' as creator_name
         FROM form_templates ft
-        LEFT JOIN users u ON ft.created_by = u.id
         WHERE ft.id = ? AND ft.is_active = 1
       `).bind(templateId).first();
       
@@ -66,18 +57,17 @@ async function handleGetTemplates(env, templateId, user) {
       // List all active templates
       const templates = await env.DB.prepare(`
         SELECT ft.id, ft.name, ft.description, ft.created_by, ft.created_at, ft.updated_at,
-               u.name as creator_name,
+               'Anonymous' as creator_name,
                COUNT(fs.id) as submission_count
         FROM form_templates ft
-        LEFT JOIN users u ON ft.created_by = u.id
         LEFT JOIN form_submissions fs ON ft.id = fs.template_id
         WHERE ft.is_active = 1
-        GROUP BY ft.id, ft.name, ft.description, ft.created_by, ft.created_at, ft.updated_at, u.name
+        GROUP BY ft.id, ft.name, ft.description, ft.created_by, ft.created_at, ft.updated_at
         ORDER BY ft.updated_at DESC
       `).all();
       
-      return createResponse(true, 'Templates retrieved successfully', { 
-        templates: templates.results || [] 
+      return createResponse(true, 'Templates retrieved successfully', {
+        templates: templates.results || []
       });
     }
   } catch (error) {
@@ -89,12 +79,7 @@ async function handleGetTemplates(env, templateId, user) {
 /**
  * Handle POST requests - create new template
  */
-async function handleCreateTemplate(request, env, user) {
-  // Check permissions - only clinicians and admins can create templates
-  if (!['clinician', 'admin'].includes(user.role)) {
-    return createResponse(false, 'Insufficient permissions to create templates', null, 403);
-  }
-  
+async function handleCreateTemplate(request, env) {
   try {
     const data = await request.json();
     const { name, description, config } = data;
@@ -119,7 +104,7 @@ async function handleCreateTemplate(request, env, user) {
       name,
       description || null,
       JSON.stringify(config),
-      user.id,
+      null, // No user tracking in open access mode
       now,
       now
     ).run();
@@ -130,9 +115,8 @@ async function handleCreateTemplate(request, env, user) {
     
     // Get the created template
     const template = await env.DB.prepare(`
-      SELECT ft.*, u.name as creator_name 
+      SELECT ft.*, 'Anonymous' as creator_name
       FROM form_templates ft
-      LEFT JOIN users u ON ft.created_by = u.id
       WHERE ft.id = ?
     `).bind(result.meta.last_row_id).first();
     
@@ -150,29 +134,19 @@ async function handleCreateTemplate(request, env, user) {
 /**
  * Handle PUT requests - update existing template
  */
-async function handleUpdateTemplate(request, env, user, templateId) {
+async function handleUpdateTemplate(request, env, templateId) {
   if (!templateId) {
     return createResponse(false, 'Template ID is required', null, 400);
   }
   
-  // Check permissions - only clinicians and admins can edit templates
-  if (!['clinician', 'admin'].includes(user.role)) {
-    return createResponse(false, 'Insufficient permissions to edit templates', null, 403);
-  }
-  
   try {
-    // Check if template exists and user has permission to edit
+    // Check if template exists
     const existingTemplate = await env.DB.prepare(`
       SELECT * FROM form_templates WHERE id = ? AND is_active = 1
     `).bind(templateId).first();
     
     if (!existingTemplate) {
       return createResponse(false, 'Template not found', null, 404);
-    }
-    
-    // Check if user can edit this template (creator or admin)
-    if (existingTemplate.created_by !== user.id && user.role !== 'admin') {
-      return createResponse(false, 'Insufficient permissions to edit this template', null, 403);
     }
     
     const data = await request.json();
@@ -187,7 +161,7 @@ async function handleUpdateTemplate(request, env, user, templateId) {
     
     // Update template
     const result = await env.DB.prepare(`
-      UPDATE form_templates 
+      UPDATE form_templates
       SET name = COALESCE(?, name),
           description = COALESCE(?, description),
           config = COALESCE(?, config),
@@ -207,9 +181,8 @@ async function handleUpdateTemplate(request, env, user, templateId) {
     
     // Get the updated template
     const template = await env.DB.prepare(`
-      SELECT ft.*, u.name as creator_name 
+      SELECT ft.*, 'Anonymous' as creator_name
       FROM form_templates ft
-      LEFT JOIN users u ON ft.created_by = u.id
       WHERE ft.id = ?
     `).bind(templateId).first();
     
@@ -227,14 +200,9 @@ async function handleUpdateTemplate(request, env, user, templateId) {
 /**
  * Handle DELETE requests - soft delete template
  */
-async function handleDeleteTemplate(env, user, templateId) {
+async function handleDeleteTemplate(env, templateId) {
   if (!templateId) {
     return createResponse(false, 'Template ID is required', null, 400);
-  }
-  
-  // Check permissions - only admins can delete templates
-  if (user.role !== 'admin') {
-    return createResponse(false, 'Insufficient permissions to delete templates', null, 403);
   }
   
   try {

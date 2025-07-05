@@ -377,7 +377,6 @@
                 <button id="newTemplateBtn" class="btn btn-primary">+ New Template</button>
             </div>
             <div class="nav-right">
-                <span id="userInfo" class="user-info"></span>
                 <a href="/dashboard.html" class="btn btn-secondary">Dashboard</a>
             </div>
         </div>
@@ -436,14 +435,12 @@
 
     <script>
         // Global state
-        let currentUser = null;
         let templates = [];
         let currentTemplate = null;
         let isEditing = false;
         
         // DOM elements
         const alertContainer = document.getElementById('alertContainer');
-        const userInfo = document.getElementById('userInfo');
         const newTemplateBtn = document.getElementById('newTemplateBtn');
         const newTemplateForm = document.getElementById('newTemplateForm');
         const templatesList = document.getElementById('templatesList');
@@ -458,32 +455,8 @@
         
         // Initialize app
         async function initializeApp() {
-            await checkAuthStatus();
+            console.log('IPLC ArticEval Form Builder - Open Access Mode');
             await loadTemplates();
-        }
-        
-        // Check authentication status
-        async function checkAuthStatus() {
-            try {
-                const response = await fetch('/api/auth/me', { credentials: 'include' });
-                
-                if (response.ok) {
-                    currentUser = await response.json();
-                    userInfo.textContent = `Welcome, ${currentUser.name}`;
-                    
-                    // Check if user has permission to create templates
-                    if (currentUser.role === 'user') {
-                        newTemplateBtn.style.display = 'none';
-                        showAlert('You have view-only access to form templates.', 'info');
-                    }
-                } else {
-                    // Redirect to login if not authenticated
-                    window.location.href = '/login.html';
-                }
-            } catch (error) {
-                console.error('Auth check failed:', error);
-                window.location.href = '/login.html';
-            }
         }
         
         // Show alert message
@@ -556,17 +529,11 @@
                         Created: ${new Date(template.created_at).toLocaleDateString()}
                         ${template.is_active ? '' : '(Inactive)'}
                     </div>
-                    ${currentUser.role !== 'user' ? `
-                        <div class="template-actions">
-                            <button class="btn btn-primary edit-template" data-id="${template.id}">Edit</button>
-                            <button class="btn btn-secondary preview-template" data-id="${template.id}">Preview</button>
-                            <button class="btn btn-danger delete-template" data-id="${template.id}">Delete</button>
-                        </div>
-                    ` : `
-                        <div class="template-actions">
-                            <button class="btn btn-secondary preview-template" data-id="${template.id}">Preview</button>
-                        </div>
-                    `}
+                    <div class="template-actions">
+                        <button class="btn btn-primary edit-template" data-id="${template.id}">Edit</button>
+                        <button class="btn btn-secondary preview-template" data-id="${template.id}">Preview</button>
+                        <button class="btn btn-danger delete-template" data-id="${template.id}">Delete</button>
+                    </div>
                 </div>
             `).join('');
             
@@ -688,37 +655,32 @@
                 return;
             }
             
-            const isReadOnly = currentUser.role === 'user';
-            
             editorContent.innerHTML = `
                 <div class="editor-header">
                     <h2>${currentTemplate.name}</h2>
-                    ${!isReadOnly ? `
-                        <div>
-                            <button id="saveTemplateBtn" class="btn btn-success">Save Changes</button>
-                            <button id="cancelEditBtn" class="btn btn-secondary">Cancel</button>
-                        </div>
-                    ` : ''}
+                    <div>
+                        <button id="saveTemplateBtn" class="btn btn-success">Save Changes</button>
+                        <button id="cancelEditBtn" class="btn btn-secondary">Cancel</button>
+                    </div>
                 </div>
                 
                 <div class="form-columns">
                     <div>
                         <div class="form-group">
                             <label for="editTemplateName" class="form-label">Template Name</label>
-                            <input type="text" id="editTemplateName" class="form-input" 
-                                   value="${currentTemplate.name}" ${isReadOnly ? 'readonly' : ''}>
+                            <input type="text" id="editTemplateName" class="form-input"
+                                   value="${currentTemplate.name}">
                         </div>
                         
                         <div class="form-group">
                             <label for="editTemplateDescription" class="form-label">Description</label>
-                            <textarea id="editTemplateDescription" class="form-textarea" 
-                                      ${isReadOnly ? 'readonly' : ''}>${currentTemplate.description || ''}</textarea>
+                            <textarea id="editTemplateDescription" class="form-textarea">${currentTemplate.description || ''}</textarea>
                         </div>
                         
                         <div class="form-group">
                             <label for="templateActive" class="form-label">
-                                <input type="checkbox" id="templateActive" 
-                                       ${currentTemplate.is_active ? 'checked' : ''} ${isReadOnly ? 'disabled' : ''}>
+                                <input type="checkbox" id="templateActive"
+                                       ${currentTemplate.is_active ? 'checked' : ''}>
                                 Active Template
                             </label>
                         </div>
@@ -727,8 +689,7 @@
                     <div>
                         <div class="form-group">
                             <label for="templateConfig" class="form-label">Template Configuration (JSON)</label>
-                            <textarea id="templateConfig" class="json-editor" 
-                                      ${isReadOnly ? 'readonly' : ''}>${JSON.stringify(currentTemplate.config, null, 2)}</textarea>
+                            <textarea id="templateConfig" class="json-editor">${JSON.stringify(currentTemplate.config, null, 2)}</textarea>
                         </div>
                     </div>
                 </div>
@@ -745,13 +706,11 @@
             `;
             
             // Add event listeners for editor
-            if (!isReadOnly) {
-                const saveBtn = document.getElementById('saveTemplateBtn');
-                const cancelBtn = document.getElementById('cancelEditBtn');
-                
-                saveBtn.addEventListener('click', saveTemplate);
-                cancelBtn.addEventListener('click', cancelEdit);
-            }
+            const saveBtn = document.getElementById('saveTemplateBtn');
+            const cancelBtn = document.getElementById('cancelEditBtn');
+            
+            saveBtn.addEventListener('click', saveTemplate);
+            cancelBtn.addEventListener('click', cancelEdit);
             
             const refreshBtn = document.getElementById('refreshPreviewBtn');
             refreshBtn.addEventListener('click', refreshPreview);
