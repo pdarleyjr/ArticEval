@@ -857,7 +857,8 @@
                 });
                 
                 if (response.ok) {
-                    const newTemplate = await response.json();
+                    const responseData = await response.json();
+                    const newTemplate = responseData.data.template;
                     templates.push(newTemplate);
                     
                     newTemplateForm.style.display = 'none';
