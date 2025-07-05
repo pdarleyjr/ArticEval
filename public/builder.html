@@ -496,7 +496,9 @@
                 });
                 
                 if (response.ok) {
-                    templates = await response.json();
+                    const data = await response.json();
+                    // Extract templates array from API response data structure
+                    templates = data.data && data.data.templates ? data.data.templates : [];
                     renderTemplatesList();
                 } else {
                     throw new Error('Failed to load templates');
