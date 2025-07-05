@@ -496,17 +496,25 @@
                 });
                 
                 if (response.ok) {
-                    const data = await response.json();
-                    console.log('Templates API response:', data);
+                    const result = await response.json();
+                    console.log('Templates API response:', result);
                     
-                    // Extract templates array from API response data structure
-                    const rawTemplates = data.data && data.data.templates ? data.data.templates : [];
+                    // Validate API response structure
+                    if (!result.success) {
+                        throw new Error(result.message || 'API returned unsuccessful response');
+                    }
                     
-                    // Ensure each template has proper structure
+                    // Extract templates array from wrapped API response
+                    const rawTemplates = result.data && result.data.templates ? result.data.templates : [];
+                    
+                    // Ensure each template has proper structure with sections array
                     templates = rawTemplates.map(template => ({
                         ...template,
+                        // Backend stores sections array, ensure it exists
+                        sections: template.sections || [],
+                        // Keep config for backwards compatibility, populate from sections
                         config: template.config || {
-                            sections: [],
+                            sections: template.sections || [],
                             scoring: {},
                             metadata: {}
                         }
@@ -515,11 +523,12 @@
                     console.log('Processed templates:', templates);
                     renderTemplatesList();
                 } else {
-                    throw new Error('Failed to load templates');
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.message || `Failed to load templates (${response.status})`);
                 }
             } catch (error) {
                 console.error('Error loading templates:', error);
-                showAlert('Failed to load templates. Please try again.');
+                showAlert(`Failed to load templates: ${error.message}`);
             } finally {
                 setLoading(false);
             }
@@ -752,9 +761,14 @@
                 return;
             }
             
-            let config;
+            let sections;
             try {
-                config = JSON.parse(configText);
+                const parsed = JSON.parse(configText);
+                // Extract sections array from config structure or use parsed directly if it's already an array
+                sections = parsed.sections || parsed;
+                if (!Array.isArray(sections)) {
+                    sections = [];
+                }
             } catch (error) {
                 showAlert('Invalid JSON configuration');
                 return;
@@ -772,14 +786,25 @@
                     body: JSON.stringify({
                         name,
                         description,
-                        config,
-                        is_active: isActive
+                        sections // Backend expects sections array, not config object
                     })
                 });
                 
                 if (response.ok) {
-                    const responseData = await response.json();
-                    const updatedTemplate = responseData.data.template;
+                    const result = await response.json();
+                    if (!result.success) {
+                        throw new Error(result.message || 'Failed to save template');
+                    }
+                    
+                    const updatedTemplate = result.data.template;
+                    // Ensure template has proper structure
+                    updatedTemplate.sections = updatedTemplate.sections || [];
+                    updatedTemplate.config = {
+                        sections: updatedTemplate.sections,
+                        scoring: updatedTemplate.config?.scoring || {},
+                        metadata: updatedTemplate.config?.metadata || {}
+                    };
+                    
                     currentTemplate = updatedTemplate;
                     
                     // Update templates list
@@ -791,11 +816,12 @@
                     renderTemplatesList();
                     showAlert('Template saved successfully', 'success');
                 } else {
-                    throw new Error('Failed to save template');
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.message || `Failed to save template (${response.status})`);
                 }
             } catch (error) {
                 console.error('Save error:', error);
-                showAlert('Failed to save template');
+                showAlert(`Failed to save template: ${error.message}`);
             } finally {
                 setLoading(false);
             }
@@ -871,17 +897,25 @@
                     body: JSON.stringify({
                         name,
                         description,
-                        config: {
-                            sections: [],
-                            scoring: {},
-                            metadata: {}
-                        }
+                        sections: [] // Backend expects sections array, not config object
                     })
                 });
                 
                 if (response.ok) {
-                    const responseData = await response.json();
-                    const newTemplate = responseData.data.template;
+                    const result = await response.json();
+                    if (!result.success) {
+                        throw new Error(result.message || 'Failed to create template');
+                    }
+                    
+                    const newTemplate = result.data.template;
+                    // Ensure template has proper structure
+                    newTemplate.sections = newTemplate.sections || [];
+                    newTemplate.config = {
+                        sections: newTemplate.sections,
+                        scoring: {},
+                        metadata: {}
+                    };
+                    
                     templates.push(newTemplate);
                     
                     newTemplateForm.style.display = 'none';
@@ -892,11 +926,12 @@
                     editTemplate(newTemplate.id);
                     showAlert('Template created successfully', 'success');
                 } else {
-                    throw new Error('Failed to create template');
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.message || `Failed to create template (${response.status})`);
                 }
             } catch (error) {
                 console.error('Create error:', error);
-                showAlert('Failed to create template');
+                showAlert(`Failed to create template: ${error.message}`);
             } finally {
                 setLoading(false);
             }
