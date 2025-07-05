@@ -47,10 +47,9 @@ async function handleRenderForm(env, user, templateId, format, theme) {
   try {
     // Get template
     const template = await env.DB.prepare(`
-      SELECT ft.*, u.name as creator_name
+      SELECT ft.*, 'Anonymous' as creator_name
       FROM form_templates ft
-      LEFT JOIN users u ON ft.created_by = u.id
-      WHERE ft.id = ? AND ft.is_active = 1
+      WHERE ft.id = ?
     `).bind(templateId).first();
     
     if (!template) {
@@ -58,16 +57,8 @@ async function handleRenderForm(env, user, templateId, format, theme) {
     }
     
     // Check access permissions
-    const templateConfig = JSON.parse(template.config);
-    if (templateConfig.access && templateConfig.access.requireAuth && !user) {
-      return createResponse(false, 'Authentication required for this form', null, 401);
-    }
-    
-    if (templateConfig.access && templateConfig.access.allowedRoles) {
-      if (!user || !templateConfig.access.allowedRoles.includes(user.role)) {
-        return createResponse(false, 'Insufficient permissions to access this form', null, 403);
-      }
-    }
+    // Parse template sections (open access - no auth required)
+    const templateConfig = JSON.parse(template.sections);
     
     switch (format) {
       case 'html':
@@ -75,19 +66,18 @@ async function handleRenderForm(env, user, templateId, format, theme) {
       case 'json':
         return await renderFormAsJSON(template, templateConfig);
       case 'config':
-        return createResponse(true, 'Template configuration retrieved', { 
+        return createResponse(true, 'Template configuration retrieved', {
           template: {
             id: template.id,
             name: template.name,
             description: template.description,
-            config: templateConfig,
+            sections: templateConfig,
             created_by: template.created_by,
             creator_name: template.creator_name,
             created_at: template.created_at,
             updated_at: template.updated_at
           }
         });
-      default:
         return createResponse(false, 'Invalid format specified', null, 400);
     }
   } catch (error) {
@@ -110,14 +100,14 @@ async function handleValidateForm(request, env, user) {
     
     // Get template
     const template = await env.DB.prepare(`
-      SELECT * FROM form_templates WHERE id = ? AND is_active = 1
+      SELECT * FROM form_templates WHERE id = ?
     `).bind(template_id).first();
     
     if (!template) {
-      return createResponse(false, 'Template not found or inactive', null, 404);
+      return createResponse(false, 'Template not found', null, 404);
     }
     
-    const templateConfig = JSON.parse(template.config);
+    const templateConfig = JSON.parse(template.sections);
     const validation = validateFormData(formData, templateConfig);
     
     return createResponse(true, 'Form validation completed', {

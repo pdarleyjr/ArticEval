@@ -104,8 +104,8 @@ async function getOverviewAnalytics(env, timeframe, startDate, endDate) {
   
   // Total statistics - system-wide
   const totalStats = await env.DB.prepare(`
-    SELECT 
-      (SELECT COUNT(*) FROM form_templates WHERE is_active = 1) as total_templates,
+    SELECT
+      (SELECT COUNT(*) FROM form_templates) as total_templates,
       (SELECT COUNT(*) FROM form_submissions WHERE submitted_at >= ? AND submitted_at <= ?) as total_submissions,
       (SELECT COUNT(DISTINCT submitted_by) FROM form_submissions WHERE submitted_at >= ? AND submitted_at <= ?) as active_users,
       (SELECT COUNT(*) FROM users WHERE role = 'user') as total_users
@@ -124,15 +124,14 @@ async function getOverviewAnalytics(env, timeframe, startDate, endDate) {
   
   // Top templates by submissions - all templates
   const topTemplates = await env.DB.prepare(`
-    SELECT 
+    SELECT
       ft.id,
       ft.name,
       COUNT(fs.id) as submission_count,
       AVG(fs.score) as average_score
     FROM form_templates ft
-    LEFT JOIN form_submissions fs ON ft.id = fs.template_id 
+    LEFT JOIN form_submissions fs ON ft.id = fs.template_id
       AND fs.submitted_at >= ? AND fs.submitted_at <= ?
-    WHERE ft.is_active = 1
     GROUP BY ft.id, ft.name
     ORDER BY submission_count DESC
     LIMIT 10
@@ -425,24 +424,23 @@ async function getPerformanceAnalytics(env, templateId, timeframe, startDate, en
   
   // Template performance comparison - all templates
   const templatePerformance = await env.DB.prepare(`
-    SELECT 
+    SELECT
       ft.id,
       ft.name,
       COUNT(CASE WHEN ae.event_type = 'form_started' THEN 1 END) as starts,
       COUNT(CASE WHEN ae.event_type = 'form_submission' THEN 1 END) as completions,
-      CASE 
-        WHEN COUNT(CASE WHEN ae.event_type = 'form_started' THEN 1 END) > 0 
-        THEN (COUNT(CASE WHEN ae.event_type = 'form_submission' THEN 1 END) * 100.0 / 
+      CASE
+        WHEN COUNT(CASE WHEN ae.event_type = 'form_started' THEN 1 END) > 0
+        THEN (COUNT(CASE WHEN ae.event_type = 'form_submission' THEN 1 END) * 100.0 /
               COUNT(CASE WHEN ae.event_type = 'form_started' THEN 1 END))
-        ELSE 0 
+        ELSE 0
       END as completion_rate,
       AVG(fs.score) as average_score
     FROM form_templates ft
-    LEFT JOIN analytics_events ae ON ft.id = ae.template_id 
+    LEFT JOIN analytics_events ae ON ft.id = ae.template_id
       AND ae.timestamp >= ? AND ae.timestamp <= ?
     LEFT JOIN form_submissions fs ON ft.id = fs.template_id
       AND fs.submitted_at >= ? AND fs.submitted_at <= ?
-    WHERE ft.is_active = 1
     GROUP BY ft.id, ft.name
     ORDER BY completion_rate DESC, starts DESC
   `).bind(dateRange.start, dateRange.end, dateRange.start, dateRange.end).all();
