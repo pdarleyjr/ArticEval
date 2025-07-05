@@ -6,6 +6,7 @@
     <title>Form Builder - IPLC ArticEval</title>
     <link rel="stylesheet" href="/assets/css/styles.css">
     <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="/node_modules/survey-creator-core/survey-creator-core.css">
     <style>
         .builder-container {
             max-width: 1200px;
@@ -213,12 +214,44 @@
             height: 100px;
             resize: vertical;
         }
-        
         .json-editor {
             height: 300px;
             font-family: 'Courier New', monospace;
             font-size: 0.9rem;
             resize: vertical;
+        }
+        
+        .survey-creator-container {
+            height: 500px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            margin-top: 1rem;
+        }
+        
+        .builder-mode-toggle {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .mode-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--border-color);
+            background: var(--white);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .mode-btn.active {
+            background: var(--secondary-color);
+            color: var(--white);
+            border-color: var(--secondary-color);
+        }
+        
+        .mode-btn:hover:not(.active) {
+            background: #f0f7ff;
+            border-color: var(--secondary-color);
         }
         
         .alert {
@@ -433,11 +466,16 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        // Import SurveyJS Creator
+        import { SurveyCreator } from '/node_modules/survey-creator-core/survey-creator-core.js';
+        
         // Global state
         let templates = [];
         let currentTemplate = null;
         let isEditing = false;
+        let surveyCreator = null;
+        let builderMode = 'visual'; // 'visual' or 'json'
         
         // DOM elements
         const alertContainer = document.getElementById('alertContainer');
@@ -452,6 +490,129 @@
         const templateDescriptionInput = document.getElementById('templateDescription');
         const createTemplateBtn = document.getElementById('createTemplateBtn');
         const cancelTemplateBtn = document.getElementById('cancelTemplateBtn');
+        
+        // SurveyJS Helper Functions
+        function convertSectionsToSurveyJS(sections) {
+            if (!Array.isArray(sections) || sections.length === 0) {
+                return {
+                    title: "Evaluation Form",
+                    pages: [{
+                        name: "page1",
+                        elements: []
+                    }]
+                };
+            }
+            
+            const pages = sections.map((section, index) => ({
+                name: `page${index + 1}`,
+                title: section.title || `Section ${index + 1}`,
+                elements: (section.fields || []).map((field, fieldIndex) => ({
+                    type: field.type === 'textarea' ? 'comment' :
+                          field.type === 'select' ? 'dropdown' : 'text',
+                    name: field.name || `field_${index}_${fieldIndex}`,
+                    title: field.label || field.title || 'Field',
+                    isRequired: field.required || false,
+                    choices: field.options || undefined
+                }))
+            }));
+            
+            return {
+                title: "Evaluation Form",
+                pages: pages.length > 0 ? pages : [{
+                    name: "page1",
+                    elements: []
+                }]
+            };
+        }
+        
+        function convertSurveyJSToSections(surveyJSON) {
+            if (!surveyJSON || !surveyJSON.pages) {
+                return [];
+            }
+            
+            return surveyJSON.pages.map((page, index) => ({
+                title: page.title || `Section ${index + 1}`,
+                fields: (page.elements || []).map(element => ({
+                    name: element.name,
+                    label: element.title,
+                    type: element.type === 'comment' ? 'textarea' :
+                          element.type === 'dropdown' ? 'select' : 'text',
+                    required: element.isRequired || false,
+                    options: element.choices || undefined
+                }))
+            }));
+        }
+        
+        function initializeSurveyCreator() {
+            if (!currentTemplate) return;
+            
+            // Convert sections to SurveyJS format
+            const surveyJSON = convertSectionsToSurveyJS(currentTemplate.sections || []);
+            
+            // Create SurveyJS Creator instance
+            surveyCreator = new SurveyCreator({
+                showLogicTab: true,
+                showTranslationTab: true,
+                showJSONEditorTab: false,
+                showTestSurveyTab: true,
+                showEmbedSurveyTab: false
+            });
+            
+            // Set the survey JSON
+            surveyCreator.JSON = surveyJSON;
+            
+            // Render creator in container
+            const creatorContainer = document.getElementById('surveyCreatorContainer');
+            if (creatorContainer) {
+                surveyCreator.render(creatorContainer);
+            }
+        }
+        
+        function switchBuilderMode(mode) {
+            builderMode = mode;
+            
+            // Update button states
+            const visualBtn = document.getElementById('visualModeBtn');
+            const jsonBtn = document.getElementById('jsonModeBtn');
+            
+            if (visualBtn && jsonBtn) {
+                visualBtn.classList.toggle('active', mode === 'visual');
+                jsonBtn.classList.toggle('active', mode === 'json');
+            }
+            
+            // Show/hide appropriate editor
+            const creatorContainer = document.getElementById('surveyCreatorContainer');
+            const jsonContainer = document.getElementById('jsonEditorContainer');
+            
+            if (mode === 'visual') {
+                if (creatorContainer) creatorContainer.style.display = 'block';
+                if (jsonContainer) jsonContainer.style.display = 'none';
+                
+                // Sync from JSON to visual if needed
+                const jsonEditor = document.getElementById('templateConfig');
+                if (jsonEditor && surveyCreator) {
+                    try {
+                        const sections = JSON.parse(jsonEditor.value);
+                        const surveyJSON = convertSectionsToSurveyJS(sections);
+                        surveyCreator.JSON = surveyJSON;
+                    } catch (e) {
+                        console.warn('Failed to sync JSON to visual editor:', e);
+                    }
+                }
+            } else {
+                if (creatorContainer) creatorContainer.style.display = 'none';
+                if (jsonContainer) jsonContainer.style.display = 'block';
+                
+                // Sync from visual to JSON
+                if (surveyCreator) {
+                    const sections = convertSurveyJSToSections(surveyCreator.JSON);
+                    const jsonEditor = document.getElementById('templateConfig');
+                    if (jsonEditor) {
+                        jsonEditor.value = JSON.stringify(sections, null, 2);
+                    }
+                }
+            }
+        }
         
         // Initialize app
         async function initializeApp() {
@@ -721,9 +882,21 @@
                     
                     <div>
                         <div class="form-group">
-                            <label for="templateConfig" class="form-label">Template Configuration (JSON)</label>
-                            <textarea id="templateConfig" class="json-editor">${JSON.stringify(currentTemplate.config, null, 2)}</textarea>
+                            <label class="form-label">Form Builder Mode</label>
+                            <div class="builder-mode-toggle">
+                                <button id="visualModeBtn" class="mode-btn ${builderMode === 'visual' ? 'active' : ''}">Visual Builder</button>
+                                <button id="jsonModeBtn" class="mode-btn ${builderMode === 'json' ? 'active' : ''}">JSON Editor</button>
+                            </div>
                         </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <div id="surveyCreatorContainer" class="survey-creator-container" style="display: ${builderMode === 'visual' ? 'block' : 'none'}"></div>
+                    
+                    <div id="jsonEditorContainer" style="display: ${builderMode === 'json' ? 'block' : 'none'}">
+                        <label for="templateConfig" class="form-label">Template Sections (JSON)</label>
+                        <textarea id="templateConfig" class="json-editor">${JSON.stringify(currentTemplate.sections || [], null, 2)}</textarea>
                     </div>
                 </div>
                 
@@ -741,12 +914,23 @@
             // Add event listeners for editor
             const saveBtn = document.getElementById('saveTemplateBtn');
             const cancelBtn = document.getElementById('cancelEditBtn');
+            const visualBtn = document.getElementById('visualModeBtn');
+            const jsonBtn = document.getElementById('jsonModeBtn');
             
             saveBtn.addEventListener('click', saveTemplate);
             cancelBtn.addEventListener('click', cancelEdit);
+            visualBtn.addEventListener('click', () => switchBuilderMode('visual'));
+            jsonBtn.addEventListener('click', () => switchBuilderMode('json'));
             
             const refreshBtn = document.getElementById('refreshPreviewBtn');
             refreshBtn.addEventListener('click', refreshPreview);
+            
+            // Initialize SurveyJS Creator if in visual mode
+            if (builderMode === 'visual') {
+                setTimeout(() => {
+                    initializeSurveyCreator();
+                }, 100);
+            }
         }
         
         // Save template
@@ -754,7 +938,6 @@
             const name = document.getElementById('editTemplateName').value.trim();
             const description = document.getElementById('editTemplateDescription').value.trim();
             const isActive = document.getElementById('templateActive').checked;
-            const configText = document.getElementById('templateConfig').value.trim();
             
             if (!name) {
                 showAlert('Template name is required');
@@ -762,16 +945,24 @@
             }
             
             let sections;
-            try {
-                const parsed = JSON.parse(configText);
-                // Extract sections array from config structure or use parsed directly if it's already an array
-                sections = parsed.sections || parsed;
-                if (!Array.isArray(sections)) {
-                    sections = [];
+            
+            if (builderMode === 'visual' && surveyCreator) {
+                // Get sections from SurveyJS Creator
+                sections = convertSurveyJSToSections(surveyCreator.JSON);
+            } else {
+                // Get sections from JSON editor
+                const configText = document.getElementById('templateConfig').value.trim();
+                try {
+                    const parsed = JSON.parse(configText);
+                    // Extract sections array from config structure or use parsed directly if it's already an array
+                    sections = parsed.sections || parsed;
+                    if (!Array.isArray(sections)) {
+                        sections = [];
+                    }
+                } catch (error) {
+                    showAlert('Invalid JSON configuration');
+                    return;
                 }
-            } catch (error) {
-                showAlert('Invalid JSON configuration');
-                return;
             }
             
             setLoading(true);
