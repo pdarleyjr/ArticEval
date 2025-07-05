@@ -7,6 +7,11 @@
     <link rel="stylesheet" href="/assets/css/styles.css">
     <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="https://unpkg.com/survey-creator-core@2.2.3/survey-creator-core.min.css">
+    <!-- SurveyJS Core JS (required dependency) -->
+    <script src="https://unpkg.com/survey-core@1.12.14/survey.core.min.js"></script>
+    
+    <!-- SurveyJS Creator Core JS -->
+    <script src="https://unpkg.com/survey-creator-core@2.2.3/survey-creator-core.min.js"></script>
     <style>
         .builder-container {
             max-width: 1200px;
@@ -467,8 +472,7 @@
     </div>
 
     <script type="module">
-        // Import SurveyJS Creator
-        import { SurveyCreator } from 'https://unpkg.com/survey-creator-core@2.2.3/survey-creator-core.min.js';
+        // SurveyJS Creator will be available as global SurveyCreatorCore after script tags load
         
         // Global state
         let templates = [];
@@ -550,7 +554,7 @@
             const surveyJSON = convertSectionsToSurveyJS(currentTemplate.sections || []);
             
             // Create SurveyJS Creator instance
-            surveyCreator = new SurveyCreator({
+            surveyCreator = new SurveyCreatorCore({
                 showLogicTab: true,
                 showTranslationTab: true,
                 showJSONEditorTab: false,
