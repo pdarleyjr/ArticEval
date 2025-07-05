@@ -98,29 +98,29 @@ INSERT OR IGNORE INTO form_templates (id, name, description, sections) VALUES
         "id": "client_info",
         "title": "Client Information",
         "fields": [
-            {"name": "client_name", "type": "text", "label": "Client Name", "required": true},
-            {"name": "age", "type": "number", "label": "Age", "required": true},
-            {"name": "date_of_birth", "type": "date", "label": "Date of Birth"},
-            {"name": "evaluation_date", "type": "date", "label": "Evaluation Date", "required": true}
+            {"id": "client_name", "type": "text", "label": "Client Name", "required": true},
+            {"id": "age", "type": "number", "label": "Age", "required": true},
+            {"id": "date_of_birth", "type": "date", "label": "Date of Birth"},
+            {"id": "evaluation_date", "type": "date", "label": "Evaluation Date", "required": true}
         ]
     },
     {
         "id": "articulation_tests",
         "title": "Articulation Testing",
         "fields": [
-            {"name": "initial_sounds", "type": "checkbox_group", "label": "Initial Sound Production", "options": ["p", "b", "t", "d", "k", "g", "f", "v", "th", "s", "z", "sh", "ch", "j", "l", "r", "w", "y", "h", "m", "n", "ng"]},
-            {"name": "medial_sounds", "type": "checkbox_group", "label": "Medial Sound Production", "options": ["p", "b", "t", "d", "k", "g", "f", "v", "th", "s", "z", "sh", "ch", "j", "l", "r", "w", "y", "h", "m", "n", "ng"]},
-            {"name": "final_sounds", "type": "checkbox_group", "label": "Final Sound Production", "options": ["p", "b", "t", "d", "k", "g", "f", "v", "th", "s", "z", "sh", "ch", "j", "l", "r", "w", "y", "h", "m", "n", "ng"]}
+            {"id": "initial_sounds", "type": "checkbox", "label": "Initial Sound Production", "options": ["p", "b", "t", "d", "k", "g", "f", "v", "th", "s", "z", "sh", "ch", "j", "l", "r", "w", "y", "h", "m", "n", "ng"]},
+            {"id": "medial_sounds", "type": "checkbox", "label": "Medial Sound Production", "options": ["p", "b", "t", "d", "k", "g", "f", "v", "th", "s", "z", "sh", "ch", "j", "l", "r", "w", "y", "h", "m", "n", "ng"]},
+            {"id": "final_sounds", "type": "checkbox", "label": "Final Sound Production", "options": ["p", "b", "t", "d", "k", "g", "f", "v", "th", "s", "z", "sh", "ch", "j", "l", "r", "w", "y", "h", "m", "n", "ng"]}
         ]
     },
     {
         "id": "recommendations",
         "title": "Clinical Recommendations",
         "fields": [
-            {"name": "therapy_recommended", "type": "radio", "label": "Therapy Recommended", "options": ["Yes", "No", "Monitor"]},
-            {"name": "frequency", "type": "select", "label": "Recommended Frequency", "options": ["1x/week", "2x/week", "3x/week", "Daily"]},
-            {"name": "goals", "type": "textarea", "label": "Treatment Goals"},
-            {"name": "notes", "type": "textarea", "label": "Additional Notes"}
+            {"id": "therapy_recommended", "type": "radio", "label": "Therapy Recommended", "options": ["Yes", "No", "Monitor"]},
+            {"id": "frequency", "type": "select", "label": "Recommended Frequency", "options": ["1x/week", "2x/week", "3x/week", "Daily"]},
+            {"id": "goals", "type": "textarea", "label": "Treatment Goals"},
+            {"id": "notes", "type": "textarea", "label": "Additional Notes"}
         ]
     }
 ]');
