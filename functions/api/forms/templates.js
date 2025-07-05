@@ -395,13 +395,13 @@ function isValidTemplateSections(sections) {
       console.log(`=== VALIDATING SECTION ${i + 1} FIELD ${j + 1} ===`);
       console.log(`Field ${j + 1} data:`, JSON.stringify(field, null, 2));
       
-      console.log(`Field ${j + 1} has id:`, !!field.id, 'Value:', field.id);
+      console.log(`Field ${j + 1} has name:`, !!field.name, 'Value:', field.name);
       console.log(`Field ${j + 1} has type:`, !!field.type, 'Value:', field.type);
       console.log(`Field ${j + 1} has label:`, !!field.label, 'Value:', field.label);
       
-      if (!field.id || !field.type || !field.label) {
+      if (!field.name || !field.type || !field.label) {
         console.log(`VALIDATION FAILED: Section ${i + 1} Field ${j + 1} missing required properties`);
-        console.log(`Missing - id: ${!field.id}, type: ${!field.type}, label: ${!field.label}`);
+        console.log(`Missing - name: ${!field.name}, type: ${!field.type}, label: ${!field.label}`);
         return false;
       }
       
