@@ -497,8 +497,22 @@
                 
                 if (response.ok) {
                     const data = await response.json();
+                    console.log('Templates API response:', data);
+                    
                     // Extract templates array from API response data structure
-                    templates = data.data && data.data.templates ? data.data.templates : [];
+                    const rawTemplates = data.data && data.data.templates ? data.data.templates : [];
+                    
+                    // Ensure each template has proper structure
+                    templates = rawTemplates.map(template => ({
+                        ...template,
+                        config: template.config || {
+                            sections: [],
+                            scoring: {},
+                            metadata: {}
+                        }
+                    }));
+                    
+                    console.log('Processed templates:', templates);
                     renderTemplatesList();
                 } else {
                     throw new Error('Failed to load templates');
@@ -567,7 +581,15 @@
             const template = templates.find(t => t.id === templateId);
             if (!template) return;
             
-            currentTemplate = template;
+            // Ensure template has proper config structure
+            currentTemplate = {
+                ...template,
+                config: template.config || {
+                    sections: [],
+                    scoring: {},
+                    metadata: {}
+                }
+            };
             isEditing = true;
             
             // Clear active states
@@ -756,7 +778,8 @@
                 });
                 
                 if (response.ok) {
-                    const updatedTemplate = await response.json();
+                    const responseData = await response.json();
+                    const updatedTemplate = responseData.data.template;
                     currentTemplate = updatedTemplate;
                     
                     // Update templates list
