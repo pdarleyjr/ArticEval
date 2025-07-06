@@ -1,6 +1,19 @@
 // Main application entry point
 
-import "survey-creator-js";
+// Import SurveyJS components and expose globally
+import "survey-creator-core/survey-creator-core.min.css";
+import { SurveyCreatorModel } from "survey-creator-core";
+import "survey-creator-js"; // <-- This is what adds the .render() method
+import * as SurveyCore from "survey-core";
+
+
+// Make SurveyJS available globally for builder.html
+window.SurveyCreatorCore = {
+    SurveyCreatorModel
+};
+window.Survey = SurveyCore.default;
+window.SurveyModel = SurveyCore.Model;
+
 import FormHandler from './form-handler.js';
 import { templateEngine } from './template-engine.js';
 import { dbManager } from './db-utils.js';

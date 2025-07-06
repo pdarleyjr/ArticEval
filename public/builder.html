@@ -7,17 +7,7 @@
     <link rel="stylesheet" href="/assets/css/styles.css">
     <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon">
     
-    <!-- SurveyJS Form Builder Libraries (Official Vanilla JS Configuration) -->
-    <!-- SurveyJS Form Library resources -->
-    <link href="https://unpkg.com/survey-core/survey-core.min.css" type="text/css" rel="stylesheet">
-    <script src="https://unpkg.com/survey-core/survey.core.min.js"></script>
-    <script src="https://unpkg.com/survey-js-ui/survey-js-ui.min.js"></script>
-    <!-- (Optional) Predefined theme configurations -->
-    <script src="https://unpkg.com/survey-core/themes/index.min.js"></script>
-    <!-- Survey Creator resources -->
-    <link href="https://unpkg.com/survey-creator-core/survey-creator-core.min.css" type="text/css" rel="stylesheet">
-    <script src="https://unpkg.com/survey-creator-core/survey-creator-core.min.js"></script>
-    <script src="https://unpkg.com/survey-creator-js/survey-creator-js.min.js"></script>
+    <!-- SurveyJS CSS is now included via the JS bundle -->
     <style>
         .builder-container {
             max-width: 1200px;
@@ -687,6 +677,7 @@
 
     <!-- Template Library -->
     <script src="/assets/js/template-library.js"></script>
+    <script type="module" src="/bundle.js"></script>
 
     <script type="module">
         // SurveyJS Creator will be available as global SurveyCreatorCore after script tags load
