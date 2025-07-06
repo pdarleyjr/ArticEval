@@ -16,7 +16,8 @@
     "jspdf": "^3.0.0",
     "serve": "^14.2.1",
     "survey-core": "^2.2.3",
-    "survey-creator-core": "^2.2.3"
+    "survey-creator-core": "^2.2.3",
+    "survey-creator-js": "^2.2.3"
   },
   "serve": {
     "headers": [

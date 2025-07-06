@@ -1,5 +1,6 @@
 // Main application entry point
 
+import "survey-creator-js";
 import FormHandler from './form-handler.js';
 import { templateEngine } from './template-engine.js';
 import { dbManager } from './db-utils.js';
