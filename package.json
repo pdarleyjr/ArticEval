@@ -6,7 +6,7 @@
   "scripts": {
     "start": "npx serve -s public -l 3000",
     "dev": "npx serve . -l 3000",
-    "build": "echo \"No build required\"",
+    "build": "echo \"No build required for this configuration.\"",
     "test-articulation": "npx serve . -l 3001",
     "test-articulation-node": "node test-articulation-info.js",
     "db:init": "wrangler d1 execute iplc-eval-db --env production --remote --file=schema.sql",
