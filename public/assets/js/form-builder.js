@@ -18,6 +18,26 @@ class IPLCFormBuilder {
         };
         this.currentPageIndex = 0;
         this.selectedElement = null;
+        
+        // Undo/Redo system
+        this.history = [];
+        this.historyIndex = -1;
+        this.maxHistorySize = 50;
+        
+        // Field templates
+        this.fieldTemplates = this.initFieldTemplates();
+        
+        // Initialize form builder tour
+        this.tour = new FormBuilderTour();
+        
+        // Check if this is the first time user
+        if (!localStorage.getItem('formBuilderTourCompleted')) {
+            // Show tour after a short delay to let the form builder fully load
+            setTimeout(() => {
+                this.tour.startTour();
+            }, 1000);
+        }
+        
         this.init();
     }
 
@@ -34,6 +54,20 @@ class IPLCFormBuilder {
                 <div class="builder-header">
                     <h2>${this.options.mode === 'edit' ? 'Edit Form' : 'Create New Form'}</h2>
                     <div class="builder-actions">
+                        <button class="btn btn-secondary btn-sm" onclick="formBuilder.undo()" title="Undo (Ctrl+Z)">
+                            <span class="icon">↶</span>
+                        </button>
+                        <button class="btn btn-secondary btn-sm" onclick="formBuilder.redo()" title="Redo (Ctrl+Y)">
+                            <span class="icon">↷</span>
+                        </button>
+                        <span style="width: 1px; height: 24px; background: #ddd; margin: 0 0.5rem;"></span>
+                        <button class="btn btn-secondary" onclick="formBuilder.tour.startTour()" title="Start Tour (?)">
+                            <span class="icon">🎓</span> Tour
+                        </button>
+                        <button class="btn btn-secondary" onclick="formBuilder.tour.showHelp()" title="Help (F1)">
+                            <span class="icon">❓</span> Help
+                        </button>
+                        <span style="width: 1px; height: 24px; background: #ddd; margin: 0 0.5rem;"></span>
                         <button class="btn btn-secondary" onclick="formBuilder.preview()">
                             <span class="icon">👁️</span> Preview
                         </button>
@@ -50,6 +84,18 @@ class IPLCFormBuilder {
                             <label for="creatorName">Created by</label>
                             <input type="text" id="creatorName" placeholder="Your name" />
                         </div>
+                        
+                        <!-- Field Templates -->
+                        <div class="field-templates-section">
+                            <h3>Quick Templates</h3>
+                            <select id="fieldTemplateSelect" class="template-select" onchange="formBuilder.insertFieldTemplate(this.value)">
+                                <option value="">Select a template...</option>
+                                ${Object.entries(this.fieldTemplates).map(([key, template]) =>
+                                    `<option value="${key}">${template.name}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        
                         <h3>Form Elements</h3>
                         <div class="element-categories">
                             ${this.renderToolboxCategories()}
@@ -113,7 +159,9 @@ class IPLCFormBuilder {
                     { type: 'dropdown', icon: '📋', label: 'Dropdown' },
                     { type: 'radiogroup', icon: '⭕', label: 'Radio Group' },
                     { type: 'checkbox', icon: '☑️', label: 'Checkbox' },
-                    { type: 'boolean', icon: '✅', label: 'Yes/No' }
+                    { type: 'boolean', icon: '✅', label: 'Yes/No' },
+                    { type: 'rating', icon: '⭐', label: 'Rating' },
+                    { type: 'signaturepad', icon: '✍️', label: 'Signature Field' }
                 ]
             },
             {
@@ -196,6 +244,7 @@ class IPLCFormBuilder {
                 flex: 1;
                 display: flex;
                 overflow: hidden;
+                width: 100%;
             }
 
             .builder-toolbox {
@@ -241,6 +290,7 @@ class IPLCFormBuilder {
                 padding: 2rem;
                 overflow-y: auto;
                 background: #f5f7fa;
+                min-width: 0;
             }
 
             .form-metadata {
@@ -487,6 +537,7 @@ class IPLCFormBuilder {
         }
 
         this.setupDragAndDrop();
+        this.setupKeyboardShortcuts();
     }
 
     setupDragAndDrop() {
@@ -528,6 +579,7 @@ class IPLCFormBuilder {
     }
 
     addElement(type, isCustom = false) {
+        this.saveToHistory();
         const element = isCustom ? this.createCustomElement(type) : this.createDefaultElement(type);
         const currentPage = this.formData.pages[this.currentPageIndex];
         
@@ -563,6 +615,12 @@ class IPLCFormBuilder {
                 baseElement.labelTrue = 'Yes';
                 baseElement.labelFalse = 'No';
                 break;
+            case 'signaturepad':
+                baseElement.width = '300';
+                baseElement.height = '150';
+                baseElement.penColor = '#000080';
+                baseElement.backgroundColor = '#ffffff';
+                break;
         }
 
         return baseElement;
@@ -574,10 +632,7 @@ class IPLCFormBuilder {
                 type: 'html',
                 name: 'iplc_logo',
                 html: `<div style="text-align: center; margin-bottom: 2rem;">
-                    <div style="display: inline-block; padding: 2rem; background-color: #0047AB; color: white; border-radius: 8px;">
-                        <h1 style="margin: 0; font-size: 3rem; font-weight: bold;">IPLC</h1>
-                        <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem;">ASSOCIATES, INC.</p>
-                    </div>
+                    <img src="/assets/images/400dpiLogo.PNG" alt="IPLC Logo" style="max-width: 200px; height: auto;">
                 </div>`
             },
             'iplc-header': {
@@ -656,6 +711,15 @@ class IPLCFormBuilder {
                 rowCount: 1,
                 addRowText: 'Add Test'
             },
+            'signaturepad': {
+                type: 'signaturepad',
+                name: `signature_${Date.now()}`,
+                title: 'Signature',
+                width: '300',
+                height: '150',
+                penColor: '#000080',
+                backgroundColor: '#ffffff'
+            },
             'adl-skills': {
                 type: 'panel',
                 name: 'adl_assessment',
@@ -687,10 +751,17 @@ class IPLCFormBuilder {
                 name: 'signatures',
                 title: 'Signatures and Consent',
                 elements: [
-                    { type: 'signaturepad', name: 'therapist_signature', title: 'Therapist Signature' },
-                    { type: 'text', name: 'therapist_name', title: 'Therapist Name (Print)' },
-                    { type: 'text', name: 'license_number', title: 'License Number' },
-                    { type: 'text', name: 'signature_date', title: 'Date', inputType: 'date' }
+                    {
+                        type: 'signaturepad',
+                        name: 'therapist_signature',
+                        title: 'Therapist Signature',
+                        width: '300',
+                        height: '150',
+                        penColor: '#000080'
+                    },
+                    { type: 'text', name: 'therapist_name', title: 'Therapist Name (Print)', isRequired: true },
+                    { type: 'text', name: 'license_number', title: 'License Number', isRequired: true },
+                    { type: 'text', name: 'signature_date', title: 'Date', inputType: 'date', isRequired: true }
                 ]
             }
         };
@@ -737,17 +808,22 @@ class IPLCFormBuilder {
         let propertiesHTML = `
             <div class="property-group">
                 <label class="property-label">Name (ID)</label>
-                <input type="text" class="property-input" value="${element.name || ''}" 
+                <input type="text" class="property-input" value="${element.name || ''}"
                        onchange="formBuilder.updateElementProperty('name', this.value)">
             </div>
             <div class="property-group">
                 <label class="property-label">Title</label>
-                <input type="text" class="property-input" value="${element.title || ''}" 
+                <input type="text" class="property-input" value="${element.title || ''}"
                        onchange="formBuilder.updateElementProperty('title', this.value)">
             </div>
             <div class="property-group">
+                <label class="property-label">Description</label>
+                <textarea class="property-input" rows="2"
+                       onchange="formBuilder.updateElementProperty('description', this.value)">${element.description || ''}</textarea>
+            </div>
+            <div class="property-group">
                 <label class="property-label">
-                    <input type="checkbox" class="property-checkbox" 
+                    <input type="checkbox" class="property-checkbox"
                            ${element.isRequired ? 'checked' : ''}
                            onchange="formBuilder.updateElementProperty('isRequired', this.checked)">
                     Required
@@ -763,7 +839,7 @@ class IPLCFormBuilder {
                     <div class="choices-editor">
                         ${(element.choices || []).map((choice, i) => `
                             <div class="choice-item">
-                                <input type="text" class="property-input" value="${choice}" 
+                                <input type="text" class="property-input" value="${choice}"
                                        onchange="formBuilder.updateChoice(${i}, this.value)">
                                 <button onclick="formBuilder.removeChoice(${i})">×</button>
                             </div>
@@ -774,17 +850,468 @@ class IPLCFormBuilder {
             `;
         }
 
+        // Add signature-specific properties
+        if (element.type === 'signaturepad') {
+            propertiesHTML += `
+                <div class="property-group">
+                    <label class="property-label">Width</label>
+                    <input type="number" class="property-input" value="${element.width || '300'}"
+                           onchange="formBuilder.updateElementProperty('width', this.value)">
+                </div>
+                <div class="property-group">
+                    <label class="property-label">Height</label>
+                    <input type="number" class="property-input" value="${element.height || '150'}"
+                           onchange="formBuilder.updateElementProperty('height', this.value)">
+                </div>
+                <div class="property-group">
+                    <label class="property-label">Pen Color</label>
+                    <input type="color" class="property-input" value="${element.penColor || '#000080'}"
+                           onchange="formBuilder.updateElementProperty('penColor', this.value)">
+                </div>
+            `;
+        }
+
+        // Add validation rules section
+        propertiesHTML += `
+            <div class="property-group">
+                <h4 style="margin-bottom: 0.5rem;">Validation Rules</h4>
+                ${this.getValidationRulesHTML(element)}
+            </div>
+        `;
+
+        // Add conditional logic section
+        propertiesHTML += `
+            <div class="property-group">
+                <h4 style="margin-bottom: 0.5rem;">Conditional Logic</h4>
+                <button class="btn btn-sm btn-secondary" onclick="formBuilder.showConditionalLogicEditor()">
+                    Configure Conditions
+                </button>
+            </div>
+        `;
+
         propertiesPanel.innerHTML = propertiesHTML;
     }
 
     updateElementProperty(property, value) {
         if (this.selectedElement === null) return;
         
+        this.saveToHistory();
         const element = this.formData.pages[this.currentPageIndex].elements[this.selectedElement];
         element[property] = value;
         this.renderFormElements();
         this.hasUnsavedChanges = true;
         this.debouncedSave();
+    }
+
+    getValidationRulesHTML(element) {
+        let html = '';
+        
+        if (element.type === 'text' || element.type === 'comment') {
+            html += `
+                <div class="property-field">
+                    <label>Min Length</label>
+                    <input type="number" class="property-input" value="${element.minLength || ''}"
+                           placeholder="No minimum" onchange="formBuilder.updateElementProperty('minLength', this.value || null)">
+                </div>
+                <div class="property-field">
+                    <label>Max Length</label>
+                    <input type="number" class="property-input" value="${element.maxLength || ''}"
+                           placeholder="No maximum" onchange="formBuilder.updateElementProperty('maxLength', this.value || null)">
+                </div>
+            `;
+        }
+        
+        if (element.type === 'text') {
+            html += `
+                <div class="property-field">
+                    <label>Input Type</label>
+                    <select class="property-input" onchange="formBuilder.updateElementProperty('inputType', this.value)">
+                        <option value="text" ${element.inputType === 'text' ? 'selected' : ''}>Text</option>
+                        <option value="email" ${element.inputType === 'email' ? 'selected' : ''}>Email</option>
+                        <option value="tel" ${element.inputType === 'tel' ? 'selected' : ''}>Phone</option>
+                        <option value="number" ${element.inputType === 'number' ? 'selected' : ''}>Number</option>
+                        <option value="date" ${element.inputType === 'date' ? 'selected' : ''}>Date</option>
+                        <option value="time" ${element.inputType === 'time' ? 'selected' : ''}>Time</option>
+                    </select>
+                </div>
+            `;
+            
+            if (element.inputType === 'number') {
+                html += `
+                    <div class="property-field">
+                        <label>Min Value</label>
+                        <input type="number" class="property-input" value="${element.min || ''}"
+                               onchange="formBuilder.updateElementProperty('min', this.value || null)">
+                    </div>
+                    <div class="property-field">
+                        <label>Max Value</label>
+                        <input type="number" class="property-input" value="${element.max || ''}"
+                               onchange="formBuilder.updateElementProperty('max', this.value || null)">
+                    </div>
+                `;
+            }
+        }
+        
+        return html;
+    }
+
+    showConditionalLogicEditor() {
+        if (this.selectedElement === null) return;
+        
+        const element = this.formData.pages[this.currentPageIndex].elements[this.selectedElement];
+        const allElements = this.getAllFormElements();
+        
+        // Create modal for conditional logic editor
+        const modal = document.createElement('div');
+        modal.className = 'conditional-logic-modal';
+        modal.innerHTML = `
+            <div class="conditional-logic-content">
+                <div class="conditional-logic-header">
+                    <h3>Conditional Logic for: ${element.title || element.name}</h3>
+                    <button class="close-button" onclick="this.closest('.conditional-logic-modal').remove()">×</button>
+                </div>
+                <div class="conditional-logic-body">
+                    <div class="enable-conditional">
+                        <label>
+                            <input type="checkbox" id="enableConditional"
+                                   ${element.visibleIf ? 'checked' : ''}
+                                   onchange="formBuilder.toggleConditionalLogic(this.checked)">
+                            Enable conditional visibility
+                        </label>
+                    </div>
+                    
+                    <div id="conditionalRules" class="conditional-rules"
+                         style="${element.visibleIf ? 'display: block;' : 'display: none;'}">
+                        <p class="help-text">Show this field when:</p>
+                        
+                        <div class="condition-builder">
+                            <select id="conditionField" class="condition-select">
+                                <option value="">Select a field...</option>
+                                ${allElements.filter(el => el.name !== element.name).map(el => `
+                                    <option value="${el.name}">${el.title || el.name}</option>
+                                `).join('')}
+                            </select>
+                            
+                            <select id="conditionOperator" class="condition-select">
+                                <option value="equals">equals</option>
+                                <option value="notequals">does not equal</option>
+                                <option value="contains">contains</option>
+                                <option value="notcontains">does not contain</option>
+                                <option value="empty">is empty</option>
+                                <option value="notempty">is not empty</option>
+                            </select>
+                            
+                            <input type="text" id="conditionValue" class="condition-value"
+                                   placeholder="Value to compare">
+                        </div>
+                        
+                        <div class="current-conditions">
+                            <h4>Current Condition:</h4>
+                            <code id="conditionExpression">${element.visibleIf || 'None'}</code>
+                        </div>
+                    </div>
+                </div>
+                <div class="conditional-logic-footer">
+                    <button class="btn btn-secondary" onclick="this.closest('.conditional-logic-modal').remove()">
+                        Cancel
+                    </button>
+                    <button class="btn btn-primary" onclick="formBuilder.saveConditionalLogic()">
+                        Save Condition
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        modal.style.display = 'block';
+        
+        // Load existing condition if present
+        if (element.visibleIf) {
+            this.parseExistingCondition(element.visibleIf);
+        }
+        
+        // Add event listeners for live preview
+        const conditionField = document.getElementById('conditionField');
+        const conditionOperator = document.getElementById('conditionOperator');
+        const conditionValue = document.getElementById('conditionValue');
+        
+        const updatePreview = () => {
+            this.updateConditionPreview(conditionField.value, conditionOperator.value, conditionValue.value);
+        };
+        
+        conditionField.addEventListener('change', updatePreview);
+        conditionOperator.addEventListener('change', updatePreview);
+        conditionValue.addEventListener('input', updatePreview);
+        
+        // Add styles for conditional logic modal
+        this.addConditionalLogicStyles();
+    }
+
+    // Get all form elements across all pages
+    getAllFormElements() {
+        const elements = [];
+        this.formData.pages.forEach(page => {
+            if (page.elements) {
+                page.elements.forEach(element => {
+                    elements.push({
+                        name: element.name,
+                        title: element.title || element.name,
+                        type: element.type
+                    });
+                });
+            }
+        });
+        return elements;
+    }
+
+    // Toggle conditional logic on/off
+    toggleConditionalLogic(enabled) {
+        const rulesDiv = document.getElementById('conditionalRules');
+        rulesDiv.style.display = enabled ? 'block' : 'none';
+        
+        if (!enabled) {
+            // Clear the condition
+            const element = this.formData.pages[this.currentPageIndex].elements[this.selectedElement];
+            delete element.visibleIf;
+            document.getElementById('conditionExpression').textContent = 'None';
+        }
+    }
+
+    // Parse existing condition to populate the UI
+    parseExistingCondition(condition) {
+        // Simple parser for basic conditions like "{fieldName} = 'value'"
+        const match = condition.match(/\{([^}]+)\}\s*(=|!=|contains|notcontains|empty|notempty)\s*'?([^']*)'?/);
+        if (match) {
+            const [, fieldName, operator, value] = match;
+            document.getElementById('conditionField').value = fieldName;
+            
+            const operatorMap = {
+                '=': 'equals',
+                '!=': 'notequals',
+                'contains': 'contains',
+                'notcontains': 'notcontains',
+                'empty': 'empty',
+                'notempty': 'notempty'
+            };
+            document.getElementById('conditionOperator').value = operatorMap[operator] || 'equals';
+            document.getElementById('conditionValue').value = value || '';
+        }
+    }
+
+    // Update the condition preview
+    updateConditionPreview(fieldName, operator, value) {
+        if (!fieldName) {
+            document.getElementById('conditionExpression').textContent = 'None';
+            return;
+        }
+        
+        let expression = '';
+        switch (operator) {
+            case 'equals':
+                expression = `{${fieldName}} = '${value}'`;
+                break;
+            case 'notequals':
+                expression = `{${fieldName}} != '${value}'`;
+                break;
+            case 'contains':
+                expression = `{${fieldName}} contains '${value}'`;
+                break;
+            case 'notcontains':
+                expression = `{${fieldName}} notcontains '${value}'`;
+                break;
+            case 'empty':
+                expression = `{${fieldName}} empty`;
+                break;
+            case 'notempty':
+                expression = `{${fieldName}} notempty`;
+                break;
+        }
+        
+        document.getElementById('conditionExpression').textContent = expression;
+    }
+
+    // Save conditional logic to the element
+    saveConditionalLogic() {
+        const element = this.formData.pages[this.currentPageIndex].elements[this.selectedElement];
+        const isEnabled = document.getElementById('enableConditional').checked;
+        
+        if (isEnabled) {
+            const fieldName = document.getElementById('conditionField').value;
+            const operator = document.getElementById('conditionOperator').value;
+            const value = document.getElementById('conditionValue').value;
+            
+            if (!fieldName) {
+                this.showNotification('Please select a field for the condition', 'warning');
+                return;
+            }
+            
+            let expression = '';
+            switch (operator) {
+                case 'equals':
+                    expression = `{${fieldName}} = '${value}'`;
+                    break;
+                case 'notequals':
+                    expression = `{${fieldName}} != '${value}'`;
+                    break;
+                case 'contains':
+                    expression = `{${fieldName}} contains '${value}'`;
+                    break;
+                case 'notcontains':
+                    expression = `{${fieldName}} notcontains '${value}'`;
+                    break;
+                case 'empty':
+                    expression = `{${fieldName}} empty`;
+                    break;
+                case 'notempty':
+                    expression = `{${fieldName}} notempty`;
+                    break;
+            }
+            
+            element.visibleIf = expression;
+        } else {
+            delete element.visibleIf;
+        }
+        
+        // Close modal
+        document.querySelector('.conditional-logic-modal').remove();
+        
+        // Save to history and show notification
+        this.saveToHistory();
+        this.hasUnsavedChanges = true;
+        this.debouncedSave();
+        this.showNotification('Conditional logic saved successfully');
+    }
+
+    // Add CSS styles for conditional logic modal
+    addConditionalLogicStyles() {
+        if (document.getElementById('conditional-logic-styles')) return;
+        
+        const styles = document.createElement('style');
+        styles.id = 'conditional-logic-styles';
+        styles.textContent = `
+            .conditional-logic-modal {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 1001;
+                padding: 2rem;
+                overflow: auto;
+            }
+            
+            .conditional-logic-content {
+                background: white;
+                max-width: 600px;
+                margin: 0 auto;
+                border-radius: 8px;
+                box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            }
+            
+            .conditional-logic-header {
+                padding: 1.5rem;
+                border-bottom: 1px solid #e1e4e8;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .conditional-logic-header h3 {
+                margin: 0;
+                font-size: 1.25rem;
+            }
+            
+            .close-button {
+                background: none;
+                border: none;
+                font-size: 2rem;
+                line-height: 1;
+                cursor: pointer;
+                color: #666;
+                padding: 0;
+                width: 30px;
+                height: 30px;
+            }
+            
+            .conditional-logic-body {
+                padding: 1.5rem;
+            }
+            
+            .enable-conditional {
+                margin-bottom: 1.5rem;
+            }
+            
+            .enable-conditional label {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                font-weight: 500;
+                cursor: pointer;
+            }
+            
+            .conditional-rules {
+                background: #f6f8fa;
+                border: 1px solid #e1e4e8;
+                border-radius: 4px;
+                padding: 1.5rem;
+            }
+            
+            .help-text {
+                margin: 0 0 1rem 0;
+                color: #586069;
+            }
+            
+            .condition-builder {
+                display: flex;
+                gap: 0.5rem;
+                margin-bottom: 1.5rem;
+                flex-wrap: wrap;
+            }
+            
+            .condition-select {
+                flex: 1;
+                min-width: 150px;
+                padding: 0.5rem;
+                border: 1px solid #e1e4e8;
+                border-radius: 4px;
+                background: white;
+            }
+            
+            .condition-value {
+                flex: 2;
+                min-width: 200px;
+                padding: 0.5rem;
+                border: 1px solid #e1e4e8;
+                border-radius: 4px;
+            }
+            
+            .current-conditions h4 {
+                margin: 0 0 0.5rem 0;
+                font-size: 0.9rem;
+                color: #586069;
+            }
+            
+            .current-conditions code {
+                display: block;
+                background: white;
+                border: 1px solid #e1e4e8;
+                border-radius: 4px;
+                padding: 0.75rem;
+                font-family: 'Consolas', 'Monaco', monospace;
+                color: #0366d6;
+            }
+            
+            .conditional-logic-footer {
+                padding: 1rem 1.5rem;
+                border-top: 1px solid #e1e4e8;
+                display: flex;
+                justify-content: flex-end;
+                gap: 0.5rem;
+            }
+        `;
+        document.head.appendChild(styles);
     }
 
     updateChoice(index, value) {
@@ -824,10 +1351,13 @@ class IPLCFormBuilder {
     }
 
     deleteElement(index) {
+        this.saveToHistory();
         this.formData.pages[this.currentPageIndex].elements.splice(index, 1);
         this.selectedElement = null;
         this.renderFormElements();
         document.getElementById('propertiesPanel').innerHTML = '<div class="empty-properties">Select an element to edit its properties</div>';
+        this.hasUnsavedChanges = true;
+        this.debouncedSave();
     }
 
     duplicateElement(index) {
@@ -880,8 +1410,18 @@ class IPLCFormBuilder {
         modal.style.display = 'block';
 
         // Initialize SurveyJS with the form data
-        const survey = new Survey.Model(this.formData);
-        survey.render("surveyPreview");
+        try {
+            const survey = new Survey.Model(this.formData);
+            survey.render("surveyPreview");
+        } catch (error) {
+            console.error('Error creating preview:', error);
+            document.getElementById('surveyPreview').innerHTML = `
+                <div style="text-align: center; padding: 2rem; color: #dc3545;">
+                    <p>Error creating preview. Please check your form configuration.</p>
+                    <small>${error.message}</small>
+                </div>
+            `;
+        }
     }
 
     getFormData() {
@@ -984,14 +1524,39 @@ class IPLCFormBuilder {
     }
     
     showAutoSaveIndicator() {
-        // Show auto-save indicator (will be added to UI later)
         const indicator = document.getElementById('autoSaveIndicator');
         if (indicator) {
-            indicator.textContent = 'Draft saved';
-            indicator.style.display = 'block';
+            // Show saving state with spinning icon
+            indicator.innerHTML = `
+                <svg class="save-icon saving" width="16" height="16" viewBox="0 0 16 16">
+                    <circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-dasharray="38" stroke-dashoffset="10" />
+                </svg>
+                <span>Saving...</span>
+            `;
+            indicator.className = 'auto-save-indicator saving';
+            indicator.style.display = 'flex';
+            
+            // After a short delay, show saved state with checkmark
             setTimeout(() => {
-                indicator.style.display = 'none';
-            }, 3000);
+                indicator.innerHTML = `
+                    <svg class="save-icon saved" width="16" height="16" viewBox="0 0 16 16">
+                        <path d="M5 8l2 2 4-4" fill="none" stroke="currentColor" stroke-width="2" />
+                        <circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5" />
+                    </svg>
+                    <span>Draft saved</span>
+                `;
+                indicator.className = 'auto-save-indicator saved';
+                
+                // Fade out after showing saved state
+                setTimeout(() => {
+                    indicator.classList.add('fade-out');
+                    setTimeout(() => {
+                        indicator.style.display = 'none';
+                        indicator.classList.remove('fade-out', 'saved');
+                    }, 500);
+                }, 2000);
+            }, 500);
         }
     }
     
@@ -1180,6 +1745,273 @@ class IPLCFormBuilder {
         };
         
         return typeMap[legacyType] || 'text';
+    }
+
+    // Initialize field templates for quick insertion
+    initFieldTemplates() {
+        return {
+            'contact-info': {
+                name: 'Contact Information',
+                elements: [
+                    { type: 'text', name: 'full_name', title: 'Full Name', isRequired: true },
+                    { type: 'text', name: 'email', title: 'Email Address', inputType: 'email', isRequired: true },
+                    { type: 'text', name: 'phone', title: 'Phone Number', inputType: 'tel' },
+                    { type: 'text', name: 'address', title: 'Street Address' },
+                    { type: 'text', name: 'city', title: 'City' },
+                    { type: 'dropdown', name: 'state', title: 'State', choices: ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'] },
+                    { type: 'text', name: 'zip', title: 'ZIP Code' }
+                ]
+            },
+            'likert-scale': {
+                name: 'Likert Scale Question',
+                elements: [
+                    {
+                        type: 'matrix',
+                        name: 'satisfaction_rating',
+                        title: 'Please rate your satisfaction with the following:',
+                        columns: ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'],
+                        rows: ['Quality of Service', 'Timeliness', 'Communication', 'Overall Experience']
+                    }
+                ]
+            },
+            'medical-history': {
+                name: 'Medical History',
+                elements: [
+                    { type: 'checkbox', name: 'conditions', title: 'Please check any conditions that apply:', choices: ['Diabetes', 'Heart Disease', 'High Blood Pressure', 'Asthma', 'Allergies', 'Other'] },
+                    { type: 'comment', name: 'medications', title: 'Current Medications', rows: 3 },
+                    { type: 'comment', name: 'allergies', title: 'Known Allergies', rows: 2 },
+                    { type: 'text', name: 'emergency_contact', title: 'Emergency Contact Name' },
+                    { type: 'text', name: 'emergency_phone', title: 'Emergency Contact Phone', inputType: 'tel' }
+                ]
+            },
+            'feedback-form': {
+                name: 'Feedback Form',
+                elements: [
+                    { type: 'rating', name: 'overall_rating', title: 'Overall Rating', isRequired: true },
+                    { type: 'radiogroup', name: 'recommend', title: 'Would you recommend us?', choices: ['Definitely', 'Probably', 'Not Sure', 'Probably Not', 'Definitely Not'] },
+                    { type: 'comment', name: 'improvements', title: 'What could we improve?', rows: 4 },
+                    { type: 'comment', name: 'additional_comments', title: 'Additional Comments', rows: 3 }
+                ]
+            }
+        };
+    }
+
+    // Insert a field template into the current form
+    insertFieldTemplate(templateKey) {
+        if (!templateKey || !this.fieldTemplates[templateKey]) {
+            return;
+        }
+
+        const template = this.fieldTemplates[templateKey];
+        const currentPage = this.formData.pages[this.currentPageIndex];
+        
+        // Generate unique names for the template fields to avoid conflicts
+        const timestamp = Date.now();
+        const elementsWithUniqueNames = template.elements.map(element => ({
+            ...element,
+            name: `${element.name}_${timestamp}`
+        }));
+        
+        // Add the template elements to the current page
+        currentPage.elements = currentPage.elements.concat(elementsWithUniqueNames);
+        
+        // Update the form designer display
+        this.updateFormDesigner();
+        
+        // Reset the dropdown
+        const select = document.getElementById('fieldTemplateSelect');
+        if (select) {
+            select.value = '';
+        }
+        
+        // Show notification
+        this.showNotification(`Added ${template.name} template to the form`);
+        
+        // Save to history
+        this.saveToHistory();
+    }
+
+    // Setup keyboard shortcuts
+    setupKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            // Ctrl/Cmd + Z for undo
+            if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+                e.preventDefault();
+                this.undo();
+            }
+            
+            // Ctrl/Cmd + Y or Ctrl/Cmd + Shift + Z for redo
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+                e.preventDefault();
+                this.redo();
+            }
+            
+            // Delete key to remove selected element
+            if (e.key === 'Delete' && this.selectedElement !== null) {
+                e.preventDefault();
+                this.deleteElement(this.selectedElement);
+            }
+            
+            // Ctrl/Cmd + C to copy element
+            if ((e.ctrlKey || e.metaKey) && e.key === 'c' && this.selectedElement !== null) {
+                e.preventDefault();
+                this.copyElement();
+            }
+            
+            // Ctrl/Cmd + V to paste element
+            if ((e.ctrlKey || e.metaKey) && e.key === 'v' && this.copiedElement) {
+                e.preventDefault();
+                this.pasteElement();
+            }
+            
+            // Ctrl/Cmd + S to save
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                this.save();
+            }
+            
+            // Ctrl/Cmd + P to preview
+            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+                e.preventDefault();
+                this.preview();
+            }
+            
+            // F1 for help
+            if (e.key === 'F1') {
+                e.preventDefault();
+                this.tour.showHelp();
+            }
+            
+            // ? key for tour (when not in an input field)
+            if (e.key === '?' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
+                e.preventDefault();
+                this.tour.startTour();
+            }
+        });
+    }
+
+    // Save current state to history
+    saveToHistory() {
+        // Remove any states after current position (when we're in the middle of history)
+        this.history = this.history.slice(0, this.historyIndex + 1);
+        
+        // Add current state
+        const state = JSON.parse(JSON.stringify(this.formData));
+        this.history.push(state);
+        
+        // Limit history size
+        if (this.history.length > this.maxHistorySize) {
+            this.history.shift();
+        } else {
+            this.historyIndex++;
+        }
+        
+        this.updateUndoRedoButtons();
+    }
+
+    // Undo last action
+    undo() {
+        if (this.historyIndex > 0) {
+            this.historyIndex--;
+            this.formData = JSON.parse(JSON.stringify(this.history[this.historyIndex]));
+            this.render();
+            this.hasUnsavedChanges = true;
+            this.debouncedSave();
+        }
+    }
+
+    // Redo action
+    redo() {
+        if (this.historyIndex < this.history.length - 1) {
+            this.historyIndex++;
+            this.formData = JSON.parse(JSON.stringify(this.history[this.historyIndex]));
+            this.render();
+            this.hasUnsavedChanges = true;
+            this.debouncedSave();
+        }
+    }
+
+    // Update undo/redo button states
+    updateUndoRedoButtons() {
+        const undoBtn = document.querySelector('[onclick="formBuilder.undo()"]');
+        const redoBtn = document.querySelector('[onclick="formBuilder.redo()"]');
+        
+        if (undoBtn) {
+            undoBtn.disabled = this.historyIndex <= 0;
+            undoBtn.style.opacity = this.historyIndex <= 0 ? '0.5' : '1';
+        }
+        
+        if (redoBtn) {
+            redoBtn.disabled = this.historyIndex >= this.history.length - 1;
+            redoBtn.style.opacity = this.historyIndex >= this.history.length - 1 ? '0.5' : '1';
+        }
+    }
+
+    // Copy selected element
+    copyElement() {
+        if (this.selectedElement !== null) {
+            const element = this.formData.pages[this.currentPageIndex].elements[this.selectedElement];
+            this.copiedElement = JSON.parse(JSON.stringify(element));
+            this.showNotification('Element copied to clipboard');
+        }
+    }
+
+    // Paste copied element
+    pasteElement() {
+        if (this.copiedElement) {
+            this.saveToHistory();
+            const newElement = JSON.parse(JSON.stringify(this.copiedElement));
+            newElement.name = `${newElement.name}_paste_${Date.now()}`;
+            newElement.title = `${newElement.title} (Pasted)`;
+            
+            const currentPage = this.formData.pages[this.currentPageIndex];
+            const insertIndex = this.selectedElement !== null ? this.selectedElement + 1 : currentPage.elements.length;
+            currentPage.elements.splice(insertIndex, 0, newElement);
+            
+            this.renderFormElements();
+            this.selectElement(insertIndex);
+            this.hasUnsavedChanges = true;
+            this.debouncedSave();
+            this.showNotification('Element pasted');
+        }
+    }
+
+    // Show notification message
+    showNotification(message) {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #333;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        `;
+        notification.textContent = message;
+        
+        // Add animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => {
+                notification.remove();
+                style.remove();
+            }, 300);
+        }, 2000);
     }
 }
 

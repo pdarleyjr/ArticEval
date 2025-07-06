@@ -10,6 +10,13 @@
     <script src="https://unpkg.com/survey-core/survey.core.min.js"></script>
     <script src="https://unpkg.com/survey-js-ui/survey-js-ui.min.js"></script>
     
+    <!-- SurveyJS Widgets for signature support -->
+    <script src="https://unpkg.com/surveyjs-widgets/surveyjs-widgets.min.js"></script>
+    <link href="https://unpkg.com/surveyjs-widgets/surveyjs-widgets.min.css" type="text/css" rel="stylesheet">
+    
+    <!-- Signature Pad library -->
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    
     <!-- Custom styles -->
     <style>
         * {
@@ -78,6 +85,7 @@
         #builder-container {
             display: flex;
             height: calc(100vh - 65px);
+            width: 100vw;
         }
         
         /* Element Library */
@@ -129,6 +137,51 @@
             text-transform: uppercase;
         }
         
+        /* Field Templates Dropdown */
+        .field-templates-section {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .field-templates-section h3 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+        }
+        
+        #fieldTemplatesDropdown {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            background-color: #fff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        #fieldTemplatesDropdown:hover {
+            border-color: #0047AB;
+            background-color: #f8f9fa;
+        }
+        
+        #fieldTemplatesDropdown:focus {
+            outline: none;
+            border-color: #0047AB;
+            box-shadow: 0 0 0 2px rgba(0, 71, 171, 0.1);
+        }
+        
+        #fieldTemplatesDropdown option {
+            padding: 0.5rem;
+        }
+        
+        #fieldTemplatesDropdown option:first-child {
+            color: #999;
+        }
+        
         .element-item {
             background-color: #f8f9fa;
             border: 1px solid #dee2e6;
@@ -151,11 +204,12 @@
         
         /* Form Design Area */
         .form-designer {
-            flex: 2;
+            flex: 1;
             display: flex;
             flex-direction: column;
             background-color: #fafafa;
             min-width: 0;
+            width: calc(100vw - 520px); /* Full width minus sidebars */
         }
         
         .page-tabs {
@@ -415,6 +469,89 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
+        /* Auto-save Indicator */
+        .auto-save-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: opacity 0.5s ease;
+        }
+        
+        .auto-save-indicator.saving {
+            color: #0047AB;
+        }
+        
+        .auto-save-indicator.saved {
+            color: #28a745;
+        }
+        
+        .auto-save-indicator svg {
+            width: 16px;
+            height: 16px;
+        }
+        
+        .auto-save-indicator.saving svg {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+        
+        /* Notification System */
+        .notification {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background-color: #28a745;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            z-index: 1001;
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .notification.show {
+            display: flex;
+        }
+        
+        .notification.error {
+            background-color: #dc3545;
+        }
+        
+        .notification.warning {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        
+        .notification.info {
+            background-color: #17a2b8;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 <body>
@@ -457,7 +594,8 @@
     
     <!-- Load our custom form builder -->
     <script src="/assets/js/form-builder.js"></script>
-    
+    <script src="/assets/js/form-builder-tour.js"></script>
+
     <script>
         // Initialize the form builder
         let formBuilder;
@@ -474,6 +612,11 @@
         
         window.addEventListener('DOMContentLoaded', () => {
             try {
+                // Initialize widgets for signature support
+                if (window.SurveyJS && window.SurveyJS.widgets && window.SurveyJS.widgets.signaturepad) {
+                    window.SurveyJS.widgets.signaturepad(Survey);
+                }
+                
                 formBuilder = new IPLCFormBuilder('builder-container');
                 
                 // Check if we're editing an existing template
