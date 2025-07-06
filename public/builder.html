@@ -782,40 +782,65 @@
                 const surveyJSON = convertSectionsToSurveyJS(currentTemplate.sections || []);
                 console.log('Initializing SurveyJS Creator with JSON:', surveyJSON);
                 
-                // Comprehensive creator options with all question types
-                const creatorOptions = {
-                    showLogicTab: true,
-                    showTranslationTab: true,
-                    showJSONEditorTab: false,
-                    showTestSurveyTab: true,
-                    showEmbedSurveyTab: false,
-                    questionTypes: [
-                        "text", "comment", "dropdown", "radiogroup", "checkbox",
-                        "boolean", "file", "html", "expression", "image",
-                        "imagepicker", "matrix", "matrixdropdown", "matrixdynamic",
-                        "multipletext", "panel", "paneldynamic", "rating"
-                    ]
-                };
+                // Debug: Check what's available in SurveyCreatorCore
+                console.log('SurveyCreatorCore object:', SurveyCreatorCore);
+                console.log('Available properties:', Object.keys(SurveyCreatorCore));
+                console.log('SurveyCreatorModel:', SurveyCreatorCore.SurveyCreatorModel);
                 
-                // Create SurveyJS Creator instance with proper constructor
+                // Verify library is loaded properly
                 if (typeof SurveyCreatorCore === 'undefined' || !SurveyCreatorCore.SurveyCreatorModel) {
                     throw new Error('SurveyCreatorCore library not loaded properly');
                 }
                 
-                surveyCreator = new SurveyCreatorCore.SurveyCreatorModel(creatorOptions);
-                console.log('SurveyJS Creator initialized successfully');
+                // Try minimal configuration first to isolate the issue
+                console.log('Attempting minimal creator configuration...');
+                const minimalOptions = {};
+                
+                try {
+                    surveyCreator = new SurveyCreatorCore.SurveyCreatorModel(minimalOptions);
+                    console.log('SurveyJS Creator initialized successfully with minimal config');
+                } catch (minimalError) {
+                    console.error('Failed with minimal config:', minimalError);
+                    
+                    // Try with no options at all
+                    console.log('Attempting no-options constructor...');
+                    try {
+                        surveyCreator = new SurveyCreatorCore.SurveyCreatorModel();
+                        console.log('SurveyJS Creator initialized successfully with no options');
+                    } catch (noOptionsError) {
+                        console.error('Failed with no options:', noOptionsError);
+                        throw new Error(`Constructor failed: ${noOptionsError.message || noOptionsError}`);
+                    }
+                }
+                
+                // If we got here, creator was initialized successfully
+                console.log('Creator instance:', surveyCreator);
                 
                 // Set the survey JSON
-                surveyCreator.JSON = surveyJSON;
+                console.log('Setting survey JSON...');
+                try {
+                    surveyCreator.JSON = surveyJSON;
+                    console.log('Survey JSON set successfully');
+                } catch (jsonError) {
+                    console.error('Failed to set survey JSON:', jsonError);
+                    throw new Error(`Failed to set survey JSON: ${jsonError.message || jsonError}`);
+                }
                 
                 // Add auto-sync event listener for real-time template updates
-                surveyCreator.onModified.add(function (sender) {
-                    console.log('Survey modified, syncing to template');
-                    if (currentTemplate) {
-                        currentTemplate.sections = convertSurveyJSToSections(sender.JSON);
-                        console.log('Template sections updated:', currentTemplate.sections);
-                    }
-                });
+                console.log('Adding onModified event listener...');
+                try {
+                    surveyCreator.onModified.add(function (sender) {
+                        console.log('Survey modified, syncing to template');
+                        if (currentTemplate) {
+                            currentTemplate.sections = convertSurveyJSToSections(sender.JSON);
+                            console.log('Template sections updated:', currentTemplate.sections);
+                        }
+                    });
+                    console.log('Event listener added successfully');
+                } catch (eventError) {
+                    console.warn('Failed to add event listener:', eventError);
+                    // Non-critical error, continue
+                }
                 
                 // Render creator in container
                 const creatorContainer = document.getElementById('surveyCreatorContainer');
@@ -823,26 +848,39 @@
                     throw new Error('Survey creator container not found');
                 }
                 
-                // Clear container before rendering
-                creatorContainer.innerHTML = '';
-                surveyCreator.render(creatorContainer);
-                console.log('SurveyJS Creator rendered successfully');
+                console.log('Rendering creator in container...');
+                try {
+                    // Clear container before rendering
+                    creatorContainer.innerHTML = '';
+                    surveyCreator.render(creatorContainer);
+                    console.log('SurveyJS Creator rendered successfully');
+                } catch (renderError) {
+                    console.error('Failed to render creator:', renderError);
+                    throw new Error(`Failed to render creator: ${renderError.message || renderError}`);
+                }
                 
             } catch (error) {
                 console.error('Failed to initialize SurveyJS Creator:', error);
-                showAlert(`Visual editor failed to load: ${error.message}. Falling back to JSON mode.`, 'error');
+                console.error('Error stack:', error.stack);
+                
+                const errorMessage = error.message || 'Unknown initialization error';
+                showAlert(`Visual Builder Unavailable - The visual form builder could not be loaded. Please use the JSON editor instead. Error: ${errorMessage}`, 'error');
                 
                 // Fallback to JSON mode
                 switchBuilderMode('json');
                 
-                // Show fallback message in creator container
+                // Show detailed fallback message in creator container
                 const creatorContainer = document.getElementById('surveyCreatorContainer');
                 if (creatorContainer) {
                     creatorContainer.innerHTML = `
                         <div style="padding: 2rem; text-align: center; color: #666; background: #f8f9fa; border-radius: 5px;">
-                            <h3>Visual Editor Unavailable</h3>
+                            <h3>Visual Builder Unavailable</h3>
                             <p>The visual form builder could not be loaded. Please use the JSON editor instead.</p>
-                            <p><small>Error: ${error.message}</small></p>
+                            <p><small>Error: ${errorMessage}</small></p>
+                            <details style="margin-top: 1rem; text-align: left;">
+                                <summary style="cursor: pointer; font-weight: bold;">Technical Details</summary>
+                                <pre style="background: #fff; padding: 1rem; border-radius: 3px; overflow: auto; margin-top: 0.5rem; font-size: 0.8rem;">${error.stack || error.toString()}</pre>
+                            </details>
                         </div>
                     `;
                 }
