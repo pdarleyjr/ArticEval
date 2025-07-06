@@ -656,7 +656,7 @@
         function previewForm() {
             if (!formBuilder) return;
             
-            const formJson = formBuilder.getFormJson();
+            const formJson = formBuilder.getFormDataWithLogo();
             const modal = document.getElementById('preview-modal');
             const surveyContainer = document.getElementById('preview-survey');
             

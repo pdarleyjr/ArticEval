@@ -139,6 +139,22 @@ class IPLCFormBuilder {
                                 Select an element to edit its properties
                             </div>
                         </div>
+                        
+                        <!-- Form Settings Section -->
+                        <div class="form-settings-section" style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e1e4e8;">
+                            <h3>Form Settings</h3>
+                            <div class="property-group">
+                                <label class="property-label">
+                                    <input type="checkbox" id="showLogoCheckbox"
+                                           ${this.formData.showLogo !== false ? 'checked' : ''}
+                                           onchange="formBuilder.updateFormSetting('showLogo', this.checked)">
+                                    Show IPLC Logo
+                                </label>
+                                <small style="display: block; color: #666; margin-top: 0.25rem;">
+                                    Displays the IPLC logo at the top of the form (800px width)
+                                </small>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -632,7 +648,7 @@ class IPLCFormBuilder {
                 type: 'html',
                 name: 'iplc_logo',
                 html: `<div style="text-align: center; margin-bottom: 2rem;">
-                    <img src="/assets/images/400dpiLogo.PNG" alt="IPLC Logo" style="max-width: 200px; height: auto;">
+                    <img src="/assets/images/iplc-logo.png" alt="IPLC Logo" style="max-width: 800px; height: auto;">
                 </div>`
             },
             'iplc-header': {
@@ -1417,7 +1433,10 @@ class IPLCFormBuilder {
                 throw new Error("Preview container not found in DOM");
             }
             
-            const survey = new Survey.Model(this.formData);
+            // Create survey with auto-loading IPLC logo
+            const surveyData = this.getFormDataWithLogo();
+            const survey = new Survey.Model(surveyData);
+            
             // Pass the DOM element, not just the ID string
             survey.render(previewElement);
         } catch (error) {
@@ -1442,6 +1461,22 @@ class IPLCFormBuilder {
             pages: this.formData.pages,
             createdBy: createdBy
         };
+    }
+
+    // Get form data with auto-loading IPLC logo configuration
+    getFormDataWithLogo() {
+        const formData = { ...this.formData };
+        
+        // Check if logo is disabled in form settings
+        if (formData.showLogo !== false) {
+            // Apply default logo configuration
+            formData.logo = "/assets/images/iplc-logo.png";
+            formData.logoWidth = "800px";
+            formData.logoPosition = "right";
+            formData.logoFit = "contain";
+        }
+        
+        return formData;
     }
 
     async save() {
@@ -2020,9 +2055,20 @@ class IPLCFormBuilder {
             }, 300);
         }, 2000);
     }
+
+    // Update form-level settings
+    updateFormSetting(setting, value) {
+        this.saveToHistory();
+        this.formData[setting] = value;
+        this.hasUnsavedChanges = true;
+        this.debouncedSave();
+        
+        // Show notification
+        this.showNotification(`Form setting updated: ${setting}`);
+    }
 }
 
 // Export for use in other modules
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = IPLCFormBuilder;
+module.exports = IPLCFormBuilder;
 }
