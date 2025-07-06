@@ -7,11 +7,15 @@
     <link rel="stylesheet" href="/assets/css/styles.css">
     <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="https://unpkg.com/survey-creator-core@2.2.3/survey-creator-core.min.css">
-    <!-- SurveyJS Core JS (required dependency) -->
-    <script src="https://unpkg.com/survey-core@1.12.14/survey.core.min.js"></script>
+    <!-- SurveyJS Core JS (FIXED VERSION COMPATIBILITY) -->
+    <script src="https://unpkg.com/survey-core@2.2.3/survey.core.min.js"></script>
     
     <!-- SurveyJS Creator Core JS -->
     <script src="https://unpkg.com/survey-creator-core@2.2.3/survey-creator-core.min.js"></script>
+    
+    <!-- SurveyJS Form Library for enhanced rendering -->
+    <script src="https://unpkg.com/survey-js-ui@2.2.3/survey.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/survey-js-ui@2.2.3/modern.min.css">
     <style>
         .builder-container {
             max-width: 1200px;
@@ -350,6 +354,167 @@
             display: none;
         }
         
+        .template-library-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .template-library-content {
+            background: var(--white);
+            border-radius: 8px;
+            width: 90%;
+            max-width: 1200px;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .template-library-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: var(--white);
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .template-library-body {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+        }
+        
+        .template-categories {
+            width: 250px;
+            background: #f8f9fa;
+            border-right: 1px solid var(--border-color);
+            overflow-y: auto;
+        }
+        
+        .template-category {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+        
+        .template-category:hover {
+            background: #e9ecef;
+        }
+        
+        .template-category.active {
+            background: var(--secondary-color);
+            color: var(--white);
+        }
+        
+        .template-grid {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+        
+        .templates-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+        
+        .template-card {
+            background: var(--white);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .template-card:hover {
+            border-color: var(--secondary-color);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .template-card-header {
+            margin-bottom: 1rem;
+        }
+        
+        .template-card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .template-card-description {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        
+        .template-card-features {
+            flex: 1;
+            margin: 1rem 0;
+        }
+        
+        .template-feature {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            font-size: 0.85rem;
+            color: #555;
+        }
+        
+        .template-feature::before {
+            content: '✓';
+            color: var(--accent-color);
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+        
+        .template-card-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .template-search {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .template-search input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            color: var(--white);
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 3px;
+            transition: background 0.3s ease;
+        }
+        
+        .close-modal:hover {
+            background: rgba(255,255,255,0.1);
+        }
+        
         .form-columns {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -415,6 +580,7 @@
                 <button id="newTemplateBtn" class="btn btn-primary">+ New Template</button>
             </div>
             <div class="nav-right">
+                <button id="templateLibraryBtn" class="btn btn-success">📚 Professional Templates</button>
                 <a href="/dashboard.html" class="btn btn-secondary">Dashboard</a>
             </div>
         </div>
@@ -463,13 +629,62 @@
             </div>
         </div>
     </main>
+<div id="loadingOverlay" class="loading-overlay">
+    <div class="loading-content">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+</div>
 
-    <div id="loadingOverlay" class="loading-overlay">
-        <div class="loading-content">
-            <div class="spinner"></div>
-            <p>Loading...</p>
+<!-- Template Library Modal -->
+<div id="templateLibraryModal" class="template-library-modal">
+    <div class="template-library-content">
+        <div class="template-library-header">
+            <h2>📚 Professional Template Library</h2>
+            <button class="close-modal" id="closeTemplateLibrary">&times;</button>
+        </div>
+        <div class="template-library-body">
+            <div class="template-categories">
+                <div class="template-search">
+                    <input type="text" id="templateSearchInput" placeholder="Search templates..." />
+                </div>
+                <div class="template-category active" data-category="all">
+                    <strong>🌟 All Templates</strong>
+                </div>
+                <div class="template-category" data-category="healthcare">
+                    <strong>🏥 Healthcare</strong>
+                </div>
+                <div class="template-category" data-category="hr">
+                    <strong>👥 Human Resources</strong>
+                </div>
+                <div class="template-category" data-category="education">
+                    <strong>🎓 Education</strong>
+                </div>
+                <div class="template-category" data-category="business">
+                    <strong>💼 Business</strong>
+                </div>
+                <div class="template-category" data-category="research">
+                    <strong>🔬 Research</strong>
+                </div>
+                <div class="template-category" data-category="customer">
+                    <strong>🛒 Customer Feedback</strong>
+                </div>
+                <div class="template-category" data-category="events">
+                    <strong>🎪 Events</strong>
+                </div>
+            </div>
+            <div class="template-grid">
+                <div class="templates-container" id="templatesContainer">
+                    <!-- Templates will be populated by JavaScript -->
+                </div>
+            </div>
         </div>
     </div>
+</div>
+    </div>
+
+    <!-- Template Library -->
+    <script src="/assets/js/template-library.js"></script>
 
     <script type="module">
         // SurveyJS Creator will be available as global SurveyCreatorCore after script tags load
@@ -1132,6 +1347,21 @@
             }
         });
         
+        // Template Library button event listener
+        const templateLibraryBtn = document.getElementById('templateLibraryBtn');
+        if (templateLibraryBtn) {
+            templateLibraryBtn.addEventListener('click', () => {
+                const modal = document.getElementById('templateLibraryModal');
+                if (modal) {
+                    modal.style.display = 'flex';
+                    // Initialize template library if not already done
+                    if (typeof initializeTemplateLibrary === 'function') {
+                        initializeTemplateLibrary();
+                    }
+                }
+            });
+        }
+
         // Initialize app when page loads
         document.addEventListener('DOMContentLoaded', initializeApp);
     </script>
