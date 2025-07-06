@@ -155,13 +155,8 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="/clinician-dashboard.html">
+                        <a class="nav-link" href="/form-dashboard.html">
                             <i class="fas fa-arrow-left"></i> Back to Dashboard
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-danger" href="#" id="logoutBtn">
-                            <i class="fas fa-sign-out-alt"></i> Logout
                         </a>
                     </li>
                 </ul>
@@ -229,17 +224,9 @@
         // Load templates on page load
         async function loadTemplates() {
             try {
-                const response = await fetch('/api/forms/templates', {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                    }
-                });
+                const response = await fetch('/api/forms/templates');
 
                 if (!response.ok) {
-                    if (response.status === 401) {
-                        window.location.href = '/login.html';
-                        return;
-                    }
                     throw new Error('Failed to load templates');
                 }
 
@@ -247,11 +234,18 @@
                 displayTemplates(templates);
             } catch (error) {
                 console.error('Error loading templates:', error);
-                document.getElementById('templatesContainer').innerHTML = `
-                    <div class="alert alert-danger">
-                        <i class="fas fa-exclamation-circle"></i> Failed to load forms. Please try again.
-                    </div>
-                `;
+                // Try to load from localStorage if API fails
+                const savedTemplates = localStorage.getItem('formTemplates');
+                if (savedTemplates) {
+                    templates = JSON.parse(savedTemplates);
+                    displayTemplates(templates);
+                } else {
+                    document.getElementById('templatesContainer').innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle"></i> Failed to load forms. Please try again.
+                        </div>
+                    `;
+                }
             }
         }
 
@@ -317,14 +311,13 @@
                 const response = await fetch('/api/forms/templates', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         name: `${template.name} (Copy)`,
                         description: template.description,
                         sections: template.sections,
-                        createdBy: 'Current User' // This will be replaced with actual user info
+                        createdBy: 'Current User'
                     })
                 });
 
@@ -356,10 +349,7 @@
 
             try {
                 const response = await fetch(`/api/forms/templates/${deleteTemplateId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                    }
+                    method: 'DELETE'
                 });
 
                 if (!response.ok) {
@@ -413,19 +403,6 @@
             div.textContent = text;
             return div.innerHTML;
         }
-
-        // Logout
-        document.getElementById('logoutBtn').addEventListener('click', async (e) => {
-            e.preventDefault();
-            await fetch('/api/auth/logout', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-                }
-            });
-            localStorage.removeItem('auth_token');
-            window.location.href = '/login.html';
-        });
 
         // Initialize
         loadTemplates();

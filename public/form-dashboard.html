@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Dashboard - IPLC ArticEval</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/survey-core/defaultV2.min.css">
+    <style>
+        :root {
+            --iplc-primary: #0047AB;
+            --iplc-secondary: #1E88E5;
+            --iplc-accent: #FFC107;
+            --iplc-success: #4CAF50;
+            --iplc-warning: #FF9800;
+            --iplc-danger: #f44336;
+            --iplc-dark: #212121;
+            --iplc-light: #F5F5F5;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8f9fa;
+            overflow-x: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 280px;
+            background-color: #1a1a1a;
+            color: #fff;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            background-color: rgba(0, 71, 171, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .sidebar-header img {
+            height: 40px;
+            width: auto;
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.25rem;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .sidebar-nav {
+            padding: 1.5rem 0;
+        }
+
+        .nav-item {
+            margin-bottom: 0.25rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+            gap: 0.75rem;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+
+        .nav-link.active {
+            background-color: rgba(0, 71, 171, 0.2);
+            color: var(--iplc-accent);
+            border-left-color: var(--iplc-accent);
+        }
+
+        .nav-link i {
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            min-height: 100vh;
+            background-color: #f8f9fa;
+        }
+
+        .top-bar {
+            background-color: #fff;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .content-area {
+            padding: 2rem;
+        }
+
+        /* Cards */
+        .dashboard-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 2rem 1rem;
+        }
+
+        .stat-card .stat-icon {
+            font-size: 3rem;
+            color: var(--iplc-primary);
+            margin-bottom: 1rem;
+        }
+
+        .stat-card .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--iplc-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .stat-label {
+            color: #666;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Charts */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 1rem;
+        }
+
+        /* Tables */
+        .data-table {
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .data-table table {
+            width: 100%;
+            margin: 0;
+        }
+
+        .data-table th {
+            background-color: var(--iplc-primary);
+            color: #fff;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.875rem;
+            letter-spacing: 0.5px;
+            padding: 1rem;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background-color: var(--iplc-primary);
+            border-color: var(--iplc-primary);
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            background-color: #003380;
+            border-color: #003380;
+            transform: translateY(-1px);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 1.5rem;
+            background: #fff;
+            border-radius: 8px;
+            text-align: center;
+            text-decoration: none;
+            color: var(--iplc-dark);
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            text-decoration: none;
+            color: var(--iplc-primary);
+        }
+
+        .action-btn i {
+            font-size: 2.5rem;
+            color: var(--iplc-primary);
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .action-btn h5 {
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .action-btn p {
+            margin: 0;
+            color: #666;
+            font-size: 0.875rem;
+        }
+
+        /* Mobile Responsive */
+        .mobile-menu-toggle {
+            display: none;
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1001;
+            background: var(--iplc-primary);
+            color: #fff;
+            border: none;
+            padding: 0.5rem;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .mobile-menu-toggle {
+                display: block;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #999;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Recent Activity List */
+        .activity-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .activity-item {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--iplc-light);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--iplc-primary);
+        }
+
+        .activity-details {
+            flex: 1;
+        }
+
+        .activity-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .activity-time {
+            font-size: 0.875rem;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <img src="/assets/images/iplc-logo.png" alt="IPLC Logo">
+            <h2>Form Dashboard</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#" onclick="showSection('overview')">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Overview</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="showSection('fillable-forms')">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Use a Fillable Form</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="showSection('form-builder')">
+                        <i class="fas fa-hammer"></i>
+                        <span>Form Builder</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="showSection('saved-forms')">
+                        <i class="fas fa-save"></i>
+                        <span>Saved Forms</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="showSection('submissions')">
+                        <i class="fas fa-inbox"></i>
+                        <span>Submissions</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="showSection('analytics')">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Analytics</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" onclick="showSection('reports')">
+                        <i class="fas fa-file-pdf"></i>
+                        <span>Reports</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <h3 id="section-title">Overview</h3>
+            <div class="user-info">
+                <span>Welcome to IPLC ArticEval</span>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="content-area" id="content-area">
+            <!-- Overview Section -->
+            <section id="overview-section" class="content-section">
+                <div class="action-buttons">
+                    <a href="#" class="action-btn" onclick="showSection('fillable-forms')">
+                        <i class="fas fa-file-alt"></i>
+                        <h5>Use a Fillable Form</h5>
+                        <p>Select and fill out evaluation forms with clients</p>
+                    </a>
+                    <a href="/builder.html" class="action-btn">
+                        <i class="fas fa-hammer"></i>
+                        <h5>Create New Form</h5>
+                        <p>Build custom evaluation forms</p>
+                    </a>
+                    <a href="#" class="action-btn" onclick="showSection('analytics')">
+                        <i class="fas fa-chart-bar"></i>
+                        <h5>View Analytics</h5>
+                        <p>Insights from all evaluations</p>
+                    </a>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="dashboard-card stat-card">
+                            <i class="fas fa-file-alt stat-icon"></i>
+                            <div class="stat-value" id="total-forms">0</div>
+                            <div class="stat-label">Total Forms</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="dashboard-card stat-card">
+                            <i class="fas fa-users stat-icon"></i>
+                            <div class="stat-value" id="total-evaluations">0</div>
+                            <div class="stat-label">Evaluations</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="dashboard-card stat-card">
+                            <i class="fas fa-clock stat-icon"></i>
+                            <div class="stat-value" id="avg-completion">0</div>
+                            <div class="stat-label">Avg. Completion (min)</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="dashboard-card stat-card">
+                            <i class="fas fa-percentage stat-icon"></i>
+                            <div class="stat-value" id="completion-rate">0%</div>
+                            <div class="stat-label">Completion Rate</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-md-8">
+                        <div class="dashboard-card">
+                            <h4>Evaluation Trends</h4>
+                            <div class="chart-container">
+                                <canvas id="trendsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="dashboard-card">
+                            <h4>Recent Activity</h4>
+                            <ul class="activity-list" id="activity-list">
+                                <li class="empty-state">
+                                    <i class="fas fa-inbox"></i>
+                                    <p>No recent activity</p>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Fillable Forms Section -->
+            <section id="fillable-forms-section" class="content-section" style="display: none;">
+                <div class="dashboard-card">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4>Select a Form to Fill Out</h4>
+                        <input type="text" class="form-control" style="max-width: 300px;" placeholder="Search forms..." id="form-search">
+                    </div>
+                    <div id="forms-grid" class="row">
+                        <div class="col-12 text-center py-5">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Form Builder Section -->
+            <section id="form-builder-section" class="content-section" style="display: none;">
+                <div class="dashboard-card">
+                    <h4>Form Builder</h4>
+                    <p>Create and customize evaluation forms for your practice.</p>
+                    <a href="/builder.html" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Create New Form
+                    </a>
+                </div>
+            </section>
+
+            <!-- Saved Forms Section -->
+            <section id="saved-forms-section" class="content-section" style="display: none;">
+                <div class="dashboard-card">
+                    <h4>Saved Forms</h4>
+                    <div class="data-table">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Form Name</th>
+                                    <th>Type</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="saved-forms-table">
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">
+                                        No saved forms yet
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Submissions Section -->
+            <section id="submissions-section" class="content-section" style="display: none;">
+                <div class="dashboard-card">
+                    <h4>Form Submissions</h4>
+                    <div class="data-table">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Client</th>
+                                    <th>Form</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="submissions-table">
+                                <tr>
+                                    <td colspan="5" class="text-center py-4 text-muted">
+                                        No submissions yet
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Analytics Section -->
+            <section id="analytics-section" class="content-section" style="display: none;">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="dashboard-card">
+                            <h4>Form Usage</h4>
+                            <div class="chart-container">
+                                <canvas id="usageChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="dashboard-card">
+                            <h4>Completion Times</h4>
+                            <div class="chart-container">
+                                <canvas id="completionChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="dashboard-card mt-4">
+                    <h4>Performance Metrics</h4>
+                    <div class="row mt-3">
+                        <div class="col-md-4">
+                            <div class="metric-box">
+                                <h5>Most Used Form</h5>
+                                <p class="lead" id="most-used-form">-</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="metric-box">
+                                <h5>Average Score</h5>
+                                <p class="lead" id="avg-score">-</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="metric-box">
+                                <h5>This Month</h5>
+                                <p class="lead" id="month-evaluations">0</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Reports Section -->
+            <section id="reports-section" class="content-section" style="display: none;">
+                <div class="dashboard-card">
+                    <h4>Generated Reports</h4>
+                    <div class="data-table">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Report Name</th>
+                                    <th>Client</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reports-table">
+                                <tr>
+                                    <td colspan="4" class="text-center py-4 text-muted">
+                                        No reports generated yet
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/survey-core/survey.core.min.js"></script>
+    <script src="https://unpkg.com/survey-js-ui/defaultV2.min.js"></script>
+    <script>
+        // Global variables
+        let currentSection = 'overview';
+        let templates = [];
+        let submissions = [];
+        let analytics = {};
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboardData();
+            initializeCharts();
+            loadTemplates();
+        });
+
+        // Section Navigation
+        function showSection(section) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(sec => {
+                sec.style.display = 'none';
+            });
+
+            // Show selected section
+            document.getElementById(`${section}-section`).style.display = 'block';
+
+            // Update navigation
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            event.target.closest('.nav-link').classList.add('active');
+
+            // Update title
+            const titles = {
+                'overview': 'Overview',
+                'fillable-forms': 'Use a Fillable Form',
+                'form-builder': 'Form Builder',
+                'saved-forms': 'Saved Forms',
+                'submissions': 'Form Submissions',
+                'analytics': 'Analytics',
+                'reports': 'Reports'
+            };
+            document.getElementById('section-title').textContent = titles[section];
+
+            currentSection = section;
+
+            // Load section-specific data
+            if (section === 'fillable-forms') {
+                loadTemplates();
+            } else if (section === 'saved-forms') {
+                loadSavedForms();
+            } else if (section === 'submissions') {
+                loadSubmissions();
+            } else if (section === 'analytics') {
+                updateAnalytics();
+            } else if (section === 'reports') {
+                loadReports();
+            }
+        }
+
+        // Toggle mobile sidebar
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+
+        // Load dashboard data
+        async function loadDashboardData() {
+            try {
+                // Load analytics
+                const analyticsResponse = await fetch('/api/forms/analytics');
+                if (analyticsResponse.ok) {
+                    const result = await analyticsResponse.json();
+                    if (result.success) {
+                        analytics = result.data;
+                        updateDashboardStats();
+                    }
+                }
+
+                // Load recent activity
+                loadRecentActivity();
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            }
+        }
+
+        // Update dashboard statistics
+        function updateDashboardStats() {
+            document.getElementById('total-forms').textContent = analytics.totalForms || 0;
+            document.getElementById('total-evaluations').textContent = analytics.totalEvaluations || 0;
+            document.getElementById('avg-completion').textContent = analytics.avgCompletionTime || 0;
+            document.getElementById('completion-rate').textContent = `${analytics.completionRate || 0}%`;
+        }
+
+        // Load templates for fillable forms
+        async function loadTemplates() {
+            try {
+                const response = await fetch('/api/forms/templates');
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        templates = result.data || [];
+                        displayTemplates(templates);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading templates:', error);
+                displayTemplates([]);
+            }
+        }
+
+        // Display templates grid
+        function displayTemplates(templateList) {
+            const grid = document.getElementById('forms-grid');
+            
+            if (templateList.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-12 text-center py-5">
+                        <i class="fas fa-folder-open fa-4x text-muted mb-3"></i>
+                        <p class="text-muted">No forms available yet.</p>
+                        <a href="/builder.html" class="btn btn-primary">Create Your First Form</a>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = templateList.map(template => `
+                <div class="col-md-4 mb-4">
+                    <div class="dashboard-card h-100" style="cursor: pointer;" onclick="selectTemplate('${template.id}')">
+                        <h5>${template.name}</h5>
+                        <p class="text-muted">${template.description || 'Clinical evaluation form'}</p>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <span class="badge bg-primary">${template.category || 'General'}</span>
+                            <span class="text-muted small">${template.questionCount || 0} questions</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Select a template
+        function selectTemplate(templateId) {
+            window.location.href = `/evaluation.html?template=${templateId}`;
+        }
+
+        // Search forms
+        document.getElementById('form-search')?.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const filtered = templates.filter(t => 
+                t.name.toLowerCase().includes(searchTerm) ||
+                (t.description && t.description.toLowerCase().includes(searchTerm))
+            );
+            displayTemplates(filtered);
+        });
+
+        // Load saved forms
+        function loadSavedForms() {
+            // This would load from local storage or API
+            const savedForms = JSON.parse(localStorage.getItem('savedForms') || '[]');
+            const tableBody = document.getElementById('saved-forms-table');
+            
+            if (savedForms.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="text-center py-4 text-muted">
+                            No saved forms yet
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tableBody.innerHTML = savedForms.map(form => `
+                <tr>
+                    <td>${form.name}</td>
+                    <td>${form.type}</td>
+                    <td>${new Date(form.created).toLocaleDateString()}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="editForm('${form.id}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteForm('${form.id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Load submissions
+        async function loadSubmissions() {
+            try {
+                const response = await fetch('/api/forms/submissions');
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.success) {
+                        submissions = result.data || [];
+                        displaySubmissions();
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading submissions:', error);
+            }
+        }
+
+        // Display submissions
+        function displaySubmissions() {
+            const tableBody = document.getElementById('submissions-table');
+            
+            if (submissions.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">
+                            No submissions yet
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tableBody.innerHTML = submissions.map(sub => `
+                <tr>
+                    <td>${sub.clientName || 'Anonymous'}</td>
+                    <td>${sub.formName}</td>
+                    <td>${new Date(sub.createdAt).toLocaleDateString()}</td>
+                    <td>
+                        <span class="badge bg-${sub.status === 'completed' ? 'success' : 'warning'}">
+                            ${sub.status}
+                        </span>
+                    </td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="viewSubmission('${sub.id}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-info" onclick="generateReport('${sub.id}')">
+                            <i class="fas fa-file-pdf"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Load recent activity
+        function loadRecentActivity() {
+            // This would load from API or local storage
+            const activities = [
+                // Mock data for demonstration
+            ];
+
+            const activityList = document.getElementById('activity-list');
+            if (activities.length === 0) {
+                return; // Keep the empty state
+            }
+
+            activityList.innerHTML = activities.map(activity => `
+                <li class="activity-item">
+                    <div class="activity-icon">
+                        <i class="fas ${activity.icon}"></i>
+                    </div>
+                    <div class="activity-details">
+                        <div class="activity-title">${activity.title}</div>
+                        <div class="activity-time">${activity.time}</div>
+                    </div>
+                </li>
+            `).join('');
+        }
+
+        // Initialize charts
+        function initializeCharts() {
+            // Trends Chart
+            const trendsCtx = document.getElementById('trendsChart')?.getContext('2d');
+            if (trendsCtx) {
+                new Chart(trendsCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                        datasets: [{
+                            label: 'Evaluations',
+                            data: [12, 19, 15, 25, 22, 30],
+                            borderColor: '#0047AB',
+                            backgroundColor: 'rgba(0, 71, 171, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Usage Chart
+            const usageCtx = document.getElementById('usageChart')?.getContext('2d');
+            if (usageCtx) {
+                new Chart(usageCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Speech', 'Language', 'Cognitive', 'Other'],
+                        datasets: [{
+                            data: [30, 25, 20, 25],
+                            backgroundColor: [
+                                '#0047AB',
+                                '#1E88E5',
+                                '#FFC107',
+                                '#4CAF50'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Completion Chart
+            const completionCtx = document.getElementById('completionChart')?.getContext('2d');
+            if (completionCtx) {
+                new Chart(completionCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['0-15 min', '15-30 min', '30-45 min', '45+ min'],
+                        datasets: [{
+                            label: 'Forms',
+                            data: [8, 15, 12, 5],
+                            backgroundColor: '#1E88E5'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Update analytics
+        function updateAnalytics() {
+            document.getElementById('most-used-form').textContent = analytics.mostUsedForm || 'N/A';
+            document.getElementById('avg-score').textContent = analytics.avgScore || 'N/A';
+            document.getElementById('month-evaluations').textContent = analytics.monthlyEvaluations || 0;
+        }
+
+        // Load reports
+        function loadReports() {
+            // This would load from API or local storage
+            const reports = JSON.parse(localStorage.getItem('generatedReports') || '[]');
+            const tableBody = document.getElementById('reports-table');
+            
+            if (reports.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="text-center py-4 text-muted">
+                            No reports generated yet
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tableBody.innerHTML = reports.map(report => `
+                <tr>
+                    <td>${report.name}</td>
+                    <td>${report.clientName}</td>
+                    <td>${new Date(report.date).toLocaleDateString()}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" onclick="viewReport('${report.id}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-info" onclick="downloadReport('${report.id}')">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Helper functions
+        function editForm(formId) {
+            window.location.href = `/edit-forms.html?id=${formId}`;
+        }
+
+        function deleteForm(formId) {
+            if (confirm('Are you sure you want to delete this form?')) {
+                // Delete logic here
+                loadSavedForms();
+            }
+        }
+
+        function viewSubmission(submissionId) {
+            window.location.href = `/evaluation-report.html?submission=${submissionId}`;
+        }
+
+        function generateReport(submissionId) {
+            window.location.href = `/evaluation-report.html?submission=${submissionId}&generate=true`;
+        }
+
+        function viewReport(reportId) {
+            window.location.href = `/evaluation-report.html?report=${reportId}`;
+        }
+
+        function downloadReport(reportId) {
+            // Download logic here
+            console.log('Downloading report:', reportId);
+        }
+    </script>
+</body>
+</html>
