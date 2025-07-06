@@ -798,11 +798,11 @@
                 };
                 
                 // Create SurveyJS Creator instance with proper constructor
-                if (typeof SurveyCreator === 'undefined' || !SurveyCreator.SurveyCreator) {
-                    throw new Error('SurveyCreator library not loaded properly');
+                if (typeof SurveyCreatorCore === 'undefined' || !SurveyCreatorCore.SurveyCreatorModel) {
+                    throw new Error('SurveyCreatorCore library not loaded properly');
                 }
                 
-                surveyCreator = new SurveyCreator.SurveyCreator(creatorOptions);
+                surveyCreator = new SurveyCreatorCore.SurveyCreatorModel(creatorOptions);
                 console.log('SurveyJS Creator initialized successfully');
                 
                 // Set the survey JSON
