@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Evaluation Template - IPLC ArticEval</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --iplc-primary: #0047AB;
+            --iplc-secondary: #1E88E5;
+            --iplc-accent: #FFC107;
+            --iplc-success: #4CAF50;
+            --iplc-warning: #FF9800;
+            --iplc-danger: #f44336;
+            --iplc-dark: #212121;
+            --iplc-light: #F5F5F5;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background-color: var(--iplc-primary);
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+        }
+
+        .navbar-brand {
+            color: white !important;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .navbar-brand img {
+            height: 32px;
+        }
+
+        .container-main {
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .page-header {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            color: var(--iplc-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .template-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            border: 2px solid transparent;
+        }
+
+        .template-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            border-color: var(--iplc-primary);
+        }
+
+        .template-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--iplc-primary);
+            color: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .template-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--iplc-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .template-description {
+            color: #666;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .template-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.875rem;
+            color: #999;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+
+        .template-badge {
+            background: var(--iplc-accent);
+            color: var(--iplc-dark);
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .ai-enabled {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #999;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            color: var(--iplc-primary);
+        }
+
+        .search-bar {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .search-input {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 0.75rem 1rem;
+            width: 100%;
+            font-size: 1rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--iplc-primary);
+            box-shadow: 0 0 0 0.2rem rgba(0, 71, 171, 0.25);
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.875rem;
+        }
+
+        .filter-btn:hover {
+            background: #f8f9fa;
+        }
+
+        .filter-btn.active {
+            background: var(--iplc-primary);
+            color: white;
+            border-color: var(--iplc-primary);
+        }
+
+        .btn-back {
+            background: transparent;
+            color: var(--iplc-primary);
+            border: 1px solid var(--iplc-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-back:hover {
+            background: var(--iplc-primary);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/clinician-dashboard.html">
+                <img src="/assets/images/iplc-logo.png" alt="IPLC Logo">
+                IPLC ArticEval
+            </a>
+            <div class="d-flex align-items-center">
+                <span class="text-white me-3" id="userInfo">Loading...</span>
+                <a href="/api/auth/logout" class="btn btn-outline-light btn-sm">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container container-main">
+        <!-- Page Header -->
+        <div class="page-header">
+            <a href="/clinician-dashboard.html" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+            <h1 class="mt-3">Select Evaluation Template</h1>
+            <p class="text-muted mb-0">Choose a template to begin your patient evaluation</p>
+        </div>
+
+        <!-- Search and Filter -->
+        <div class="search-bar">
+            <input type="text" class="search-input" placeholder="Search templates..." id="searchInput">
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">All Templates</button>
+                <button class="filter-btn" data-filter="articulation">Articulation</button>
+                <button class="filter-btn" data-filter="language">Language</button>
+                <button class="filter-btn" data-filter="fluency">Fluency</button>
+                <button class="filter-btn" data-filter="voice">Voice</button>
+                <button class="filter-btn" data-filter="cognitive">Cognitive</button>
+                <button class="filter-btn" data-filter="ai-enabled">AI Enabled</button>
+            </div>
+        </div>
+
+        <!-- Templates Grid -->
+        <div id="templatesContainer">
+            <div class="loading-spinner">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let templates = [];
+        let currentFilter = 'all';
+
+        // Check authentication on load
+        document.addEventListener('DOMContentLoaded', async function() {
+            await checkAuth();
+            await loadTemplates();
+            initializeFilters();
+            initializeSearch();
+        });
+
+        async function checkAuth() {
+            try {
+                const response = await fetch('/api/auth/me');
+                const result = await response.json();
+                
+                if (!result.success || !['clinician', 'admin'].includes(result.data.role)) {
+                    window.location.href = '/login.html';
+                    return;
+                }
+                
+                const userInfo = document.getElementById('userInfo');
+                userInfo.textContent = `${result.data.firstName || ''} ${result.data.lastName || ''}`.trim() || result.data.email;
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                window.location.href = '/login.html';
+            }
+        }
+
+        async function loadTemplates() {
+            try {
+                const response = await fetch('/api/forms/templates');
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    templates = result.data;
+                    renderTemplates(templates);
+                } else {
+                    showEmptyState();
+                }
+            } catch (error) {
+                console.error('Error loading templates:', error);
+                showErrorState();
+            }
+        }
+
+        function renderTemplates(templatesToRender) {
+            const container = document.getElementById('templatesContainer');
+            
+            if (templatesToRender.length === 0) {
+                showEmptyState();
+                return;
+            }
+            
+            container.innerHTML = `
+                <div class="template-grid">
+                    ${templatesToRender.map(template => `
+                        <div class="template-card" onclick="selectTemplate('${template.id}')">
+                            ${template.aiEnabled ? '<span class="template-badge ai-enabled">AI Enabled</span>' : ''}
+                            <div class="template-icon">
+                                ${getTemplateIcon(template.category)}
+                            </div>
+                            <h3 class="template-title">${template.name}</h3>
+                            <p class="template-description">
+                                ${template.description || 'Professional evaluation template for clinical assessment.'}
+                            </p>
+                            <div class="template-meta">
+                                <span><i class="fas fa-list"></i> ${template.questionCount || 0} questions</span>
+                                <span><i class="fas fa-clock"></i> ~${estimateTime(template.questionCount)} min</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function getTemplateIcon(category) {
+            const icons = {
+                'articulation': '🗣️',
+                'language': '💬',
+                'fluency': '⚡',
+                'voice': '🎵',
+                'cognitive': '🧠',
+                'swallowing': '🥤',
+                'hearing': '👂',
+                'general': '📋',
+                'screening': '🔍'
+            };
+            return icons[category?.toLowerCase()] || '📋';
+        }
+
+        function estimateTime(questionCount) {
+            return Math.ceil((questionCount || 10) * 1.5);
+        }
+
+        function showEmptyState() {
+            document.getElementById('templatesContainer').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-folder-open"></i>
+                    <h3>No Templates Found</h3>
+                    <p>No evaluation templates match your current filter.</p>
+                    <button class="btn btn-primary mt-3" onclick="clearFilters()">
+                        Clear Filters
+                    </button>
+                </div>
+            `;
+        }
+
+        function showErrorState() {
+            document.getElementById('templatesContainer').innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h3>Error Loading Templates</h3>
+                    <p>Unable to load evaluation templates. Please try again.</p>
+                    <button class="btn btn-primary mt-3" onclick="loadTemplates()">
+                        Retry
+                    </button>
+                </div>
+            `;
+        }
+
+        function initializeFilters() {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Update active state
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Apply filter
+                    currentFilter = this.dataset.filter;
+                    applyFilters();
+                });
+            });
+        }
+
+        function initializeSearch() {
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', debounce(applyFilters, 300));
+        }
+
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            let filtered = templates.filter(template => {
+                // Apply category filter
+                if (currentFilter !== 'all') {
+                    if (currentFilter === 'ai-enabled' && !template.aiEnabled) return false;
+                    if (currentFilter !== 'ai-enabled' && template.category?.toLowerCase() !== currentFilter) return false;
+                }
+                
+                // Apply search filter
+                if (searchTerm) {
+                    const searchableText = `${template.name} ${template.description} ${template.category}`.toLowerCase();
+                    if (!searchableText.includes(searchTerm)) return false;
+                }
+                
+                return true;
+            });
+            
+            renderTemplates(filtered);
+        }
+
+        function clearFilters() {
+            currentFilter = 'all';
+            document.getElementById('searchInput').value = '';
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('[data-filter="all"]').classList.add('active');
+            renderTemplates(templates);
+        }
+
+        function selectTemplate(templateId) {
+            // Redirect to evaluation page with selected template
+            window.location.href = `/evaluation.html?template=${templateId}`;
+        }
+
+        // Utility function for debouncing
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+    </script>
+</body>
+</html>

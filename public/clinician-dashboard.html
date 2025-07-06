@@ -469,8 +469,11 @@
                     <i>📊</i> AI Reports
                 </button>
                 <hr style="margin: 1rem 0; border-color: #34495e;">
-                <a href="/builder.html" class="nav-item">
-                    <i>⚙️</i> Template Builder
+                <a href="/form-builder.html" class="nav-item">
+                    <i>🛠️</i> Form Builder
+                </a>
+                <a href="/edit-forms.html" class="nav-item">
+                    <i>✏️</i> Edit Forms
                 </a>
                 <a href="/api/auth/logout" class="nav-item">
                     <i>🚪</i> Logout
@@ -509,11 +512,14 @@
                 <div class="quick-actions">
                     <h3>Quick Actions</h3>
                     <div class="action-buttons">
-                        <button class="btn btn-primary" onclick="showTemplates()">
+                        <button class="btn btn-primary" onclick="startNewEvaluation()">
                             Start New Evaluation
                         </button>
                         <button class="btn btn-secondary" onclick="showEvaluations()">
                             View My Evaluations
+                        </button>
+                        <button class="btn btn-secondary" onclick="window.location.href='/edit-forms.html'">
+                            Edit Forms
                         </button>
                         <button class="btn btn-secondary" onclick="showReports()">
                             View AI Reports
@@ -737,7 +743,7 @@
                         <div class="empty-state">
                             <div class="empty-state-icon">📝</div>
                             <p>No recent evaluations found</p>
-                            <button class="btn btn-primary" onclick="showTemplates()">
+                            <button class="btn btn-primary" onclick="startNewEvaluation()">
                                 Start Your First Evaluation
                             </button>
                         </div>
@@ -782,7 +788,7 @@
                                 <span>${template.questionCount || 0} questions</span>
                             </div>
                             <div class="template-actions">
-                                <button class="btn btn-primary" onclick="startEvaluation('${template.id}')">
+                                <button class="btn btn-primary" onclick="window.location.href='/template-selection.html'">
                                     Start Evaluation
                                 </button>
                                 <button class="btn btn-secondary" onclick="previewTemplate('${template.id}')">
@@ -879,7 +885,7 @@
                             <div class="empty-state-icon">📝</div>
                             <h3>No Evaluations Yet</h3>
                             <p>Start your first evaluation using one of the available templates.</p>
-                            <button class="btn btn-primary" onclick="showTemplates()">
+                            <button class="btn btn-primary" onclick="startNewEvaluation()">
                                 Browse Templates
                             </button>
                         </div>
@@ -958,7 +964,7 @@
                             <div class="empty-state-icon">🤖</div>
                             <h3>No AI Reports Available</h3>
                             <p>Complete evaluations to generate AI-powered clinical summaries.</p>
-                            <button class="btn btn-primary" onclick="showTemplates()">
+                            <button class="btn btn-primary" onclick="startNewEvaluation()">
                                 Start New Evaluation
                             </button>
                         </div>
@@ -1005,6 +1011,11 @@
         }
 
         // Evaluation workflow functions
+        function startNewEvaluation() {
+            // Redirect to template selection page
+            window.location.href = '/template-selection.html';
+        }
+
         function startEvaluation(templateId) {
             const template = availableTemplates.find(t => t.id === templateId);
             if (template) {
