@@ -109230,8 +109230,12 @@ if (typeof window !== "undefined") {
 }
 
 // public/assets/js/main.js
-window.SurveyCreatorCore = {
-  SurveyCreatorModel
+function initSurveyCreator(options) {
+  const creator = new SurveyCreatorModel(options);
+  return creator;
+}
+export {
+  initSurveyCreator
 };
 /*! Bundled license information:
 

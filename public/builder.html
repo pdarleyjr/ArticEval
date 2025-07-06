@@ -4,52 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Form Builder - IPLC ArticEval</title>
-    <link rel="stylesheet" href="/assets/css/styles.css">
-    <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon">
-    
-    <!-- SurveyJS CSS is now included via the JS bundle -->
+    <!-- The IIFE bundle includes its own CSS -->
+    <script src="https://unpkg.com/survey-creator-knockout@1.9.143/survey-creator-knockout.min.js"></script>
+    <link href="https://unpkg.com/survey-core@1.9.143/survey.min.css" type="text/css" rel="stylesheet">
+    <link href="https://unpkg.com/survey-creator-core@1.9.143/survey-creator-core.min.css" type="text/css" rel="stylesheet">
 </head>
 <body>
-    <header class="logo-header">
-        <img src="/assets/images/400dpiLogo.PNG" alt="IPLC Logo" />
-    </header>
-
-    <!-- This will be replaced by the SurveyJS Creator UI -->
-    <div id="surveyCreator" style="height: calc(100vh - 80px);"></div>
+    <div id="surveyCreator" style="height: 100vh;"></div>
     
-    <!-- The bundle contains SurveyJS libraries and their initialization -->
-    <script type="module" src="/bundle.js"></script>
-    
-    <!-- The script to render the component -->
-    <script type="module">
-        // The `SurveyCreatorModel` class is augmented by the `survey-creator-js` import
-        // inside of `main.js`, which is part of the bundle.
-        // `main.js` also attaches `SurveyCreatorCore` to the window object.
-        
+    <script type="text/javascript">
         try {
-            if (typeof SurveyCreatorCore === "undefined" || typeof SurveyCreatorCore.SurveyCreatorModel === "undefined") {
-              throw new Error("SurveyCreatorCore or SurveyCreatorModel not found on the window object. Check bundle.js.");
-            }
-        
             const creatorOptions = {
                 showLogicTab: true,
                 isAutoSave: true
             };
             
-            // Instantiate the creator
-            const creator = new SurveyCreatorCore.SurveyCreatorModel(creatorOptions);
+            // The IIFE distribution attaches the SurveyCreator object to the window.
+            const creator = new SurveyCreator.SurveyCreator(creatorOptions);
             
-            // The `render` method should exist if `survey-creator-js` is imported correctly.
-            if (typeof creator.render !== "function") {
-                throw new Error("creator.render is not a function. Check that 'survey-creator-js' is being imported and is attaching the method to the SurveyCreatorModel prototype.");
-            }
-            
-            // Render the creator in the container
+            // The render method is guaranteed to exist in this distribution.
             creator.render(document.getElementById("surveyCreator"));
             
         } catch (error) {
-            console.error(error);
-            document.getElementById("surveyCreator").innerText = 'Error: ' + error.message;
+            console.error('Error during SurveyJS initialization:', error);
+            document.getElementById("surveyCreator").innerText = 'Failed to load Survey Creator: ' + error.message;
         }
     </script>
 </body>

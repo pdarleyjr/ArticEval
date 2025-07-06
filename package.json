@@ -6,7 +6,7 @@
   "scripts": {
     "start": "npx serve -s public -l 3000",
     "dev": "npx serve . -l 3000",
-    "build": "esbuild public/assets/js/main.js --bundle --outfile=public/bundle.js --format=esm",
+    "build": "echo \"No build required\"",
     "test-articulation": "npx serve . -l 3001",
     "test-articulation-node": "node test-articulation-info.js",
     "db:init": "wrangler d1 execute iplc-eval-db --env production --remote --file=schema.sql",
@@ -14,10 +14,7 @@
   },
   "dependencies": {
     "jspdf": "^3.0.0",
-    "serve": "^14.2.1",
-    "survey-core": "^2.2.3",
-    "survey-creator-core": "^2.2.3",
-    "survey-creator-js": "^2.2.3"
+    "serve": "^14.2.1"
   },
   "serve": {
     "headers": [
