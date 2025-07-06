@@ -1,4 +1,4 @@
-import { createResponse, handleCORS } from '../../auth/utils.js';
+import { createResponse, handleCORS } from '../../utils/api-utils.js';
 
 export async function onRequest(context) {
   const { request, env } = context;

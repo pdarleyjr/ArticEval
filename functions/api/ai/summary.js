@@ -1,5 +1,4 @@
-import { createResponse, handleCORS } from '../../auth/utils.js';
-import { authenticateUser } from '../../auth/middleware.js';
+import { createResponse, handleCORS } from '../../utils/api-utils.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -10,39 +9,31 @@ export async function onRequest(context) {
   }
   
   try {
-    // Authenticate user for all operations
-    const authResult = await authenticateUser(request, env);
-    if (!authResult.success) {
-      return createResponse(false, authResult.message, null, 401);
-    }
-    
-    const { user } = authResult;
-    
     switch (request.method) {
       case 'POST':
-        return await handleGenerateSummary(request, env, user);
+        return await handleGenerateSummary(request, env);
       case 'PUT':
-        return await handleRefineeSummary(request, env, user);
+        return await handleRefineeSummary(request, env);
       default:
-        return createResponse(false, 'Method not allowed', null, 405);
+        return createResponse({ success: false, message: 'Method not allowed' }, 405);
     }
   } catch (error) {
     console.error('AI Summary API error:', error);
-    return createResponse(false, 'Internal server error', null, 500);
+    return createResponse({ success: false, message: 'Internal server error' }, 500);
   }
 }
 
 /**
  * Handle POST requests - generate AI-powered clinical summary
  */
-async function handleGenerateSummary(request, env, user) {
+async function handleGenerateSummary(request, env) {
   try {
     const data = await request.json();
     const { formData, templateId, summaryType = 'comprehensive' } = data;
     
     // Validate required fields
     if (!formData) {
-      return createResponse(false, 'Form data is required', null, 400);
+      return createResponse({ success: false, message: 'Form data is required' }, 400);
     }
     
     // Extract clinical data for AI processing
@@ -55,7 +46,7 @@ async function handleGenerateSummary(request, env, user) {
     const aiResponse = await generateAISummary(env, prompt, clinicalContext);
     
     if (!aiResponse.success) {
-      return createResponse(false, aiResponse.error, null, 500);
+      return createResponse({ success: false, message: aiResponse.error }, 500);
     }
     
     // Structure the AI response into clinical sections
@@ -63,7 +54,7 @@ async function handleGenerateSummary(request, env, user) {
     
     // Store AI summary in database for future reference and refinement
     const summaryId = await storeAISummary(env, {
-      userId: user.id,
+      userId: 'anonymous', // Default user ID since auth is removed
       templateId,
       formData: JSON.stringify(formData),
       aiPrompt: prompt,
@@ -73,41 +64,45 @@ async function handleGenerateSummary(request, env, user) {
       timestamp: new Date().toISOString()
     });
     
-    return createResponse(true, 'AI summary generated successfully', {
-      summaryId,
-      summary: structuredSummary,
-      metadata: {
-        model: aiResponse.model,
-        tokenCount: aiResponse.tokenCount,
-        processingTime: aiResponse.processingTime
+    return createResponse({
+      success: true,
+      message: 'AI summary generated successfully',
+      data: {
+        summaryId,
+        summary: structuredSummary,
+        metadata: {
+          model: aiResponse.model,
+          tokenCount: aiResponse.tokenCount,
+          processingTime: aiResponse.processingTime
+        }
       }
     });
     
   } catch (error) {
     console.error('Generate AI summary error:', error);
-    return createResponse(false, 'Failed to generate AI summary', null, 500);
+    return createResponse({ success: false, message: 'Failed to generate AI summary' }, 500);
   }
 }
 
 /**
  * Handle PUT requests - refine existing AI summary based on clinician feedback
  */
-async function handleRefineeSummary(request, env, user) {
+async function handleRefineeSummary(request, env) {
   try {
     const data = await request.json();
     const { summaryId, feedback, refinementType = 'correction' } = data;
     
     if (!summaryId || !feedback) {
-      return createResponse(false, 'Summary ID and feedback are required', null, 400);
+      return createResponse({ success: false, message: 'Summary ID and feedback are required' }, 400);
     }
     
-    // Get original summary
+    // Get original summary (removed user_id check since auth is removed)
     const originalSummary = await env.DB.prepare(`
-      SELECT * FROM ai_summaries WHERE id = ? AND user_id = ?
-    `).bind(summaryId, user.id).first();
+      SELECT * FROM ai_summaries WHERE id = ?
+    `).bind(summaryId).first();
     
     if (!originalSummary) {
-      return createResponse(false, 'Summary not found', null, 404);
+      return createResponse({ success: false, message: 'Summary not found' }, 404);
     }
     
     // Parse original data
@@ -126,7 +121,7 @@ async function handleRefineeSummary(request, env, user) {
     const aiResponse = await generateAISummary(env, refinementPrompt, clinicalContext);
     
     if (!aiResponse.success) {
-      return createResponse(false, aiResponse.error, null, 500);
+      return createResponse({ success: false, message: aiResponse.error }, 500);
     }
     
     // Structure refined response
@@ -147,27 +142,31 @@ async function handleRefineeSummary(request, env, user) {
     // Store feedback for learning
     await storeClinicalFeedback(env, {
       summaryId,
-      userId: user.id,
+      userId: 'anonymous', // Default user ID since auth is removed
       feedback,
       refinementType,
       originalResponse: originalSummary.ai_response,
       refinedResponse: aiResponse.summary
     });
     
-    return createResponse(true, 'AI summary refined successfully', {
-      summaryId,
-      summary: refinedSummary,
-      metadata: {
-        model: aiResponse.model,
-        tokenCount: aiResponse.tokenCount,
-        processingTime: aiResponse.processingTime,
-        refinementType
+    return createResponse({
+      success: true,
+      message: 'AI summary refined successfully',
+      data: {
+        summaryId,
+        summary: refinedSummary,
+        metadata: {
+          model: aiResponse.model,
+          tokenCount: aiResponse.tokenCount,
+          processingTime: aiResponse.processingTime,
+          refinementType
+        }
       }
     });
     
   } catch (error) {
     console.error('Refine AI summary error:', error);
-    return createResponse(false, 'Failed to refine AI summary', null, 500);
+    return createResponse({ success: false, message: 'Failed to refine AI summary' }, 500);
   }
 }
 

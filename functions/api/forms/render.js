@@ -1,5 +1,4 @@
-import { createResponse, handleCORS } from '../../auth/utils.js';
-import { authenticateUser } from '../../auth/middleware.js';
+import { createResponse, handleCORS } from '../../utils/api-utils.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -10,13 +9,7 @@ export async function onRequest(context) {
   }
   
   try {
-    // Authentication is optional for rendering - some forms may be public
-    const authResult = await authenticateUser(request, env);
-    let user = null;
-    if (authResult.success) {
-      user = authResult.user;
-    }
-    
+    // No authentication required - forms are public
     const url = new URL(request.url);
     const templateId = url.searchParams.get('template_id');
     const format = url.searchParams.get('format') || 'html'; // html, json, config
@@ -24,15 +17,15 @@ export async function onRequest(context) {
     
     switch (request.method) {
       case 'GET':
-        return await handleRenderForm(env, user, templateId, format, theme);
+        return await handleRenderForm(env, null, templateId, format, theme);
       case 'POST':
-        return await handleValidateForm(request, env, user);
+        return await handleValidateForm(request, env, null);
       default:
-        return createResponse(false, 'Method not allowed', null, 405);
+        return createResponse({ success: false, message: 'Method not allowed' }, 405);
     }
   } catch (error) {
     console.error('Form render API error:', error);
-    return createResponse(false, 'Internal server error', null, 500);
+    return createResponse({ success: false, message: 'Internal server error' }, 500);
   }
 }
 
@@ -41,7 +34,7 @@ export async function onRequest(context) {
  */
 async function handleRenderForm(env, user, templateId, format, theme) {
   if (!templateId) {
-    return createResponse(false, 'Template ID is required', null, 400);
+    return createResponse({ success: false, message: 'Template ID is required' }, 400);
   }
   
   try {
@@ -53,7 +46,7 @@ async function handleRenderForm(env, user, templateId, format, theme) {
     `).bind(templateId).first();
     
     if (!template) {
-      return createResponse(false, 'Template not found or inactive', null, 404);
+      return createResponse({ success: false, message: 'Template not found or inactive' }, 404);
     }
     
     // Check access permissions
@@ -66,7 +59,9 @@ async function handleRenderForm(env, user, templateId, format, theme) {
       case 'json':
         return await renderFormAsJSON(template, templateConfig);
       case 'config':
-        return createResponse(true, 'Template configuration retrieved', {
+        return createResponse({
+          success: true,
+          message: 'Template configuration retrieved',
           template: {
             id: template.id,
             name: template.name,
@@ -78,11 +73,12 @@ async function handleRenderForm(env, user, templateId, format, theme) {
             updated_at: template.updated_at
           }
         });
-        return createResponse(false, 'Invalid format specified', null, 400);
+      default:
+        return createResponse({ success: false, message: 'Invalid format specified' }, 400);
     }
   } catch (error) {
     console.error('Render form error:', error);
-    return createResponse(false, 'Failed to render form', null, 500);
+    return createResponse({ success: false, message: 'Failed to render form' }, 500);
   }
 }
 
@@ -95,7 +91,7 @@ async function handleValidateForm(request, env, user) {
     const { template_id, data: formData } = data;
     
     if (!template_id || !formData) {
-      return createResponse(false, 'Template ID and form data are required', null, 400);
+      return createResponse({ success: false, message: 'Template ID and form data are required' }, 400);
     }
     
     // Get template
@@ -104,20 +100,22 @@ async function handleValidateForm(request, env, user) {
     `).bind(template_id).first();
     
     if (!template) {
-      return createResponse(false, 'Template not found', null, 404);
+      return createResponse({ success: false, message: 'Template not found' }, 404);
     }
     
     const templateConfig = JSON.parse(template.sections);
     const validation = validateFormData(formData, templateConfig);
     
-    return createResponse(true, 'Form validation completed', {
+    return createResponse({
+      success: true,
+      message: 'Form validation completed',
       isValid: validation.isValid,
       errors: validation.errors,
       warnings: validation.warnings
     });
   } catch (error) {
     console.error('Validate form error:', error);
-    return createResponse(false, 'Failed to validate form', null, 500);
+    return createResponse({ success: false, message: 'Failed to validate form' }, 500);
   }
 }
 
@@ -201,7 +199,11 @@ async function renderFormAsJSON(template, templateConfig) {
     settings: templateConfig.settings || {}
   };
   
-  return createResponse(true, 'Form structure retrieved', { form: formStructure });
+  return createResponse({
+    success: true,
+    message: 'Form structure retrieved',
+    form: formStructure
+  });
 }
 
 /**
