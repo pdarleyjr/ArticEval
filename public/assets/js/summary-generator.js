@@ -82,22 +82,14 @@ export async function generateSummary(formData, useAI = true) {
 // AI-powered summary generation function
 async function generateAISummary(formData) {
     try {
-        // Get authentication token
-        const token = getAuthToken();
-        if (!token) {
-            console.warn('No authentication token found for AI summary generation');
-            return { success: false, error: 'Authentication required' };
-        }
-
         // Prepare clinical data for AI processing
         const clinicalData = prepareClinicalData(formData);
         
-        // Call AI endpoint
+        // Call AI endpoint (no authentication required)
         const response = await fetch('/api/ai/summary', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 formData: clinicalData,
@@ -135,29 +127,6 @@ async function generateAISummary(formData) {
             error: error.message
         };
     }
-}
-
-// Multi-source authentication token retrieval
-function getAuthToken() {
-    // Try multiple sources for the token
-    let token = localStorage.getItem('authToken') ||
-                localStorage.getItem('token') ||
-                sessionStorage.getItem('authToken') ||
-                sessionStorage.getItem('token');
-    
-    // Try to get from cookies as fallback
-    if (!token) {
-        const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
-            const [name, value] = cookie.trim().split('=');
-            if (name === 'authToken' || name === 'token') {
-                token = value;
-                break;
-            }
-        }
-    }
-    
-    return token;
 }
 
 // Prepare clinical data for AI processing
@@ -273,16 +242,10 @@ function extractPhonologicalProcesses(speechSoundData) {
 // Function to refine AI summary based on clinician feedback
 export async function refineAISummary(summaryId, feedback, refinementRequest) {
     try {
-        const token = getAuthToken();
-        if (!token) {
-            throw new Error('Authentication required for summary refinement');
-        }
-
         const response = await fetch('/api/ai/summary', {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 summaryId,

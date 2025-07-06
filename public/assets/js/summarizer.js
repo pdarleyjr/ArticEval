@@ -256,19 +256,11 @@ async function generateEvaluationSummary(formData, useAI = true) {
 // Generate AI-powered clinical summary using Cloudflare Workers AI
 async function generateAISummary(formData) {
     try {
-        // Get authentication token
-        const token = getAuthToken();
-        if (!token) {
-            console.warn('No authentication token available for AI summary');
-            return { success: false, error: 'No authentication token' };
-        }
-
-        // Prepare the request
+        // Prepare the request (no authentication required)
         const response = await fetch('/api/ai/summary', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 formData: formData,
@@ -311,44 +303,13 @@ async function generateAISummary(formData) {
     }
 }
 
-// Get authentication token from localStorage or session storage
-function getAuthToken() {
-    // Try localStorage first
-    let token = localStorage.getItem('authToken') || localStorage.getItem('token');
-    
-    // Try sessionStorage as backup
-    if (!token) {
-        token = sessionStorage.getItem('authToken') || sessionStorage.getItem('token');
-    }
-    
-    // Try cookies as last resort
-    if (!token) {
-        const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
-            const [name, value] = cookie.trim().split('=');
-            if (name === 'authToken' || name === 'token') {
-                token = value;
-                break;
-            }
-        }
-    }
-    
-    return token;
-}
-
 // Refine AI summary based on clinician feedback
 async function refineAISummary(summaryId, feedback, refinementRequest) {
     try {
-        const token = getAuthToken();
-        if (!token) {
-            throw new Error('No authentication token available');
-        }
-
         const response = await fetch('/api/ai/summary', {
             method: 'PUT',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 summaryId: summaryId,
