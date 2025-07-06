@@ -1411,8 +1411,15 @@ class IPLCFormBuilder {
 
         // Initialize SurveyJS with the form data
         try {
+            // Ensure the preview container is in the DOM before rendering
+            const previewElement = document.getElementById("surveyPreview");
+            if (!previewElement) {
+                throw new Error("Preview container not found in DOM");
+            }
+            
             const survey = new Survey.Model(this.formData);
-            survey.render("surveyPreview");
+            // Pass the DOM element, not just the ID string
+            survey.render(previewElement);
         } catch (error) {
             console.error('Error creating preview:', error);
             document.getElementById('surveyPreview').innerHTML = `
