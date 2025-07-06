@@ -82,11 +82,39 @@
         
         /* Element Library */
         .element-library {
-            width: 250px;
+            width: 240px;
+            flex-shrink: 0;
             background-color: #fff;
             border-right: 1px solid #e0e0e0;
             padding: 1rem;
             overflow-y: auto;
+        }
+        
+        .creator-field {
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .creator-field label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        
+        .creator-field input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 0.875rem;
+        }
+        
+        .creator-field input:focus {
+            outline: none;
+            border-color: #0047AB;
         }
         
         .element-category {
@@ -123,10 +151,11 @@
         
         /* Form Design Area */
         .form-designer {
-            flex: 1;
+            flex: 2;
             display: flex;
             flex-direction: column;
             background-color: #fafafa;
+            min-width: 0;
         }
         
         .page-tabs {
@@ -230,7 +259,8 @@
         
         /* Properties Panel */
         .properties-panel {
-            width: 300px;
+            width: 280px;
+            flex-shrink: 0;
             background-color: #fff;
             border-left: 1px solid #e0e0e0;
             padding: 1rem;
@@ -390,8 +420,16 @@
 <body>
     <!-- Header -->
     <div class="header">
-        <h1>IPLC Form Builder</h1>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <button class="btn btn-secondary" onclick="exitBuilder()" style="padding: 0.5rem;">
+                ← Back
+            </button>
+            <h1>IPLC Form Builder</h1>
+        </div>
         <div class="header-actions">
+            <div id="autoSaveIndicator" style="display: none; color: #28a745; font-size: 0.875rem; margin-right: 1rem; align-self: center;">
+                ✓ Draft saved
+            </div>
             <button class="btn btn-secondary" onclick="previewForm()">
                 Preview
             </button>
@@ -424,6 +462,16 @@
         // Initialize the form builder
         let formBuilder;
         
+        // Exit builder with confirmation
+        function exitBuilder() {
+            if (formBuilder && formBuilder.hasUnsavedChanges) {
+                if (!confirm('You have unsaved changes. Are you sure you want to leave?')) {
+                    return;
+                }
+            }
+            window.location.href = '/dashboard.html';
+        }
+        
         window.addEventListener('DOMContentLoaded', () => {
             try {
                 formBuilder = new IPLCFormBuilder('builder-container');
@@ -435,6 +483,7 @@
                 if (templateId) {
                     loadTemplate(templateId);
                 }
+                
             } catch (error) {
                 console.error('Error initializing form builder:', error);
                 document.getElementById('builder-container').innerHTML = `
@@ -489,52 +538,12 @@
         async function saveForm() {
             if (!formBuilder) return;
             
-            const formData = formBuilder.getFormData();
+            // Use the form builder's save method which handles everything
+            const success = await formBuilder.save();
             
-            // Prompt for template name if not provided
-            if (!formData.title) {
-                formData.title = prompt('Enter a name for this template:');
-                if (!formData.title) return;
-            }
-            
-            try {
-                const urlParams = new URLSearchParams(window.location.search);
-                const templateId = urlParams.get('id');
-                
-                let response;
-                if (templateId) {
-                    // Update existing template
-                    response = await fetch(`/api/forms/templates/${templateId}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(formData)
-                    });
-                } else {
-                    // Create new template
-                    response = await fetch('/api/forms/templates', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(formData)
-                    });
-                }
-                
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to save template');
-                }
-                
-                const result = await response.json();
-                alert('Template saved successfully!');
-                
-                // Redirect to dashboard
+            if (success) {
+                // Redirect to dashboard after successful save
                 window.location.href = '/dashboard.html';
-            } catch (error) {
-                console.error('Error saving template:', error);
-                alert('Error saving template: ' + error.message);
             }
         }
     </script>

@@ -6,6 +6,7 @@ class IPLCFormBuilder {
     constructor(containerId, options = {}) {
         this.container = document.getElementById(containerId);
         this.options = options;
+        this.templateId = null;
         this.formData = {
             title: '',
             description: '',
@@ -21,8 +22,10 @@ class IPLCFormBuilder {
     }
 
     init() {
+        this.checkForEditMode();
         this.render();
         this.attachEventListeners();
+        this.setupAutoSave();
     }
 
     render() {
@@ -43,6 +46,10 @@ class IPLCFormBuilder {
                 <div class="builder-main">
                     <!-- Left Panel: Toolbox -->
                     <div class="builder-toolbox">
+                        <div class="creator-field">
+                            <label for="creatorName">Created by</label>
+                            <input type="text" id="creatorName" placeholder="Your name" />
+                        </div>
                         <h3>Form Elements</h3>
                         <div class="element-categories">
                             ${this.renderToolboxCategories()}
@@ -112,6 +119,7 @@ class IPLCFormBuilder {
             {
                 name: 'Clinical Header/Info',
                 elements: [
+                    { type: 'iplc-logo', icon: '🏥', label: 'IPLC Logo', custom: true },
                     { type: 'iplc-header', icon: '🏥', label: 'IPLC Header', custom: true },
                     { type: 'patient-info', icon: '👤', label: 'Patient Demographics', custom: true },
                     { type: 'referral-info', icon: '📋', label: 'Referral Information', custom: true }
@@ -447,18 +455,36 @@ class IPLCFormBuilder {
     }
 
     attachEventListeners() {
+        // Track unsaved changes
+        this.hasUnsavedChanges = false;
+        
         document.getElementById('formTitle').addEventListener('input', (e) => {
             this.formData.title = e.target.value;
+            this.hasUnsavedChanges = true;
+            this.debouncedSave();
         });
 
         document.getElementById('formDescription').addEventListener('input', (e) => {
             this.formData.description = e.target.value;
+            this.hasUnsavedChanges = true;
+            this.debouncedSave();
         });
 
         document.getElementById('pageTitle').addEventListener('input', (e) => {
             this.formData.pages[this.currentPageIndex].title = e.target.value;
             this.renderPageTabs();
+            this.hasUnsavedChanges = true;
+            this.debouncedSave();
         });
+
+        // Track creator name changes
+        const creatorInput = document.getElementById('creatorName');
+        if (creatorInput) {
+            creatorInput.addEventListener('input', (e) => {
+                this.hasUnsavedChanges = true;
+                this.debouncedSave();
+            });
+        }
 
         this.setupDragAndDrop();
     }
@@ -512,6 +538,8 @@ class IPLCFormBuilder {
         currentPage.elements.push(element);
         this.renderFormElements();
         this.selectElement(currentPage.elements.length - 1);
+        this.hasUnsavedChanges = true;
+        this.debouncedSave();
     }
 
     createDefaultElement(type) {
@@ -542,6 +570,16 @@ class IPLCFormBuilder {
 
     createCustomElement(type) {
         const customElements = {
+            'iplc-logo': {
+                type: 'html',
+                name: 'iplc_logo',
+                html: `<div style="text-align: center; margin-bottom: 2rem;">
+                    <div style="display: inline-block; padding: 2rem; background-color: #0047AB; color: white; border-radius: 8px;">
+                        <h1 style="margin: 0; font-size: 3rem; font-weight: bold;">IPLC</h1>
+                        <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem;">ASSOCIATES, INC.</p>
+                    </div>
+                </div>`
+            },
             'iplc-header': {
                 type: 'html',
                 name: 'iplc_header',
@@ -745,6 +783,8 @@ class IPLCFormBuilder {
         const element = this.formData.pages[this.currentPageIndex].elements[this.selectedElement];
         element[property] = value;
         this.renderFormElements();
+        this.hasUnsavedChanges = true;
+        this.debouncedSave();
     }
 
     updateChoice(index, value) {
@@ -844,6 +884,19 @@ class IPLCFormBuilder {
         survey.render("surveyPreview");
     }
 
+    getFormData() {
+        // Get creator name from input field (will be added to UI later)
+        const creatorInput = document.getElementById('creatorName');
+        const createdBy = creatorInput ? creatorInput.value : '';
+        
+        return {
+            title: this.formData.title,
+            description: this.formData.description,
+            pages: this.formData.pages,
+            createdBy: createdBy
+        };
+    }
+
     async save() {
         try {
             if (!this.formData.title) {
@@ -851,10 +904,12 @@ class IPLCFormBuilder {
                 return;
             }
 
+            const formData = this.getFormData();
             const templateData = {
-                name: this.formData.title,
-                description: this.formData.description || '',
-                sections: this.formData.pages
+                name: formData.title,
+                description: formData.description || '',
+                sections: formData.pages,
+                createdBy: formData.createdBy || 'Unknown'
             };
 
             const method = this.options.templateId ? 'PUT' : 'POST';
@@ -875,6 +930,11 @@ class IPLCFormBuilder {
             }
 
             const result = await response.json();
+            
+            // Clear auto-save data after successful save
+            this.clearAutoSave();
+            this.hasUnsavedChanges = false;
+            
             alert('Form saved successfully!');
             
             // Redirect to dashboard
@@ -883,6 +943,243 @@ class IPLCFormBuilder {
             console.error('Error saving form:', error);
             alert('Error saving form: ' + error.message);
         }
+    }
+
+    // Auto-save functionality
+    setupAutoSave() {
+        // Check for saved draft on load
+        this.checkForSavedDraft();
+        
+        // Save every 30 seconds
+        this.autoSaveInterval = setInterval(() => {
+            if (this.hasUnsavedChanges) {
+                this.saveToLocalStorage();
+            }
+        }, 30000);
+        
+        // Save on input with debounce
+        this.debouncedSave = this.debounce(() => {
+            this.saveToLocalStorage();
+        }, 2000);
+        
+        // Save before page unload
+        window.addEventListener('beforeunload', (e) => {
+            if (this.hasUnsavedChanges) {
+                this.saveToLocalStorage();
+                e.preventDefault();
+                e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+            }
+        });
+    }
+    
+    saveToLocalStorage() {
+        const saveData = {
+            formData: this.formData,
+            timestamp: new Date().toISOString(),
+            templateId: this.options.templateId || null
+        };
+        
+        localStorage.setItem('iplc_form_draft', JSON.stringify(saveData));
+        this.showAutoSaveIndicator();
+    }
+    
+    showAutoSaveIndicator() {
+        // Show auto-save indicator (will be added to UI later)
+        const indicator = document.getElementById('autoSaveIndicator');
+        if (indicator) {
+            indicator.textContent = 'Draft saved';
+            indicator.style.display = 'block';
+            setTimeout(() => {
+                indicator.style.display = 'none';
+            }, 3000);
+        }
+    }
+    
+    checkForSavedDraft() {
+        const savedDraft = localStorage.getItem('iplc_form_draft');
+        if (savedDraft) {
+            try {
+                const draft = JSON.parse(savedDraft);
+                const draftDate = new Date(draft.timestamp);
+                const now = new Date();
+                const hoursSinceSave = (now - draftDate) / (1000 * 60 * 60);
+                
+                // Only offer to restore if draft is less than 24 hours old
+                if (hoursSinceSave < 24) {
+                    const restore = confirm(
+                        `A draft was found from ${draftDate.toLocaleString()}. Would you like to restore it?`
+                    );
+                    
+                    if (restore) {
+                        this.formData = draft.formData;
+                        this.render();
+                        this.hasUnsavedChanges = true;
+                    } else {
+                        this.clearAutoSave();
+                    }
+                } else {
+                    // Clear old drafts
+                    this.clearAutoSave();
+                }
+            } catch (error) {
+                console.error('Error restoring draft:', error);
+                this.clearAutoSave();
+            }
+        }
+    }
+    
+    clearAutoSave() {
+        localStorage.removeItem('iplc_form_draft');
+        if (this.autoSaveInterval) {
+            clearInterval(this.autoSaveInterval);
+        }
+    }
+    debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+
+    async checkForEditMode() {
+        // Check if we're in edit mode by looking for template ID in URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const templateId = urlParams.get('id');
+        
+        if (templateId) {
+            this.templateId = templateId;
+            this.options.mode = 'edit';
+            this.options.templateId = templateId;
+            
+            // Load the template data
+            await this.loadTemplate(templateId);
+        }
+    }
+
+    async loadTemplate(templateId) {
+        try {
+            const response = await fetch(`/api/forms/templates/${templateId}`);
+            if (!response.ok) {
+                throw new Error('Failed to load template');
+            }
+            
+            const template = await response.json();
+            
+            // Check if template uses legacy format
+            if (template.sections && Array.isArray(template.sections) &&
+                !template.pages && template.sections[0]?.fields) {
+                // Convert legacy format to SurveyJS format
+                this.formData = this.convertLegacyFormat(template);
+            } else {
+                // Use SurveyJS format directly
+                this.formData = {
+                    title: template.name || '',
+                    description: template.description || '',
+                    pages: template.sections || [{
+                        name: 'page1',
+                        title: 'Page 1',
+                        elements: []
+                    }]
+                };
+            }
+            
+            // Set creator name if available
+            if (template.created_by) {
+                const creatorInput = document.getElementById('creatorName');
+                if (creatorInput) {
+                    creatorInput.value = template.created_by;
+                }
+            }
+        } catch (error) {
+            console.error('Error loading template:', error);
+            alert('Error loading template: ' + error.message);
+        }
+    }
+
+    convertLegacyFormat(template) {
+        // Convert legacy format { sections: [{ fields }] } to SurveyJS format { pages: [{ elements }] }
+        const formData = {
+            title: template.name || '',
+            description: template.description || '',
+            pages: []
+        };
+        
+        // Convert each section to a page
+        if (template.sections && Array.isArray(template.sections)) {
+            template.sections.forEach((section, index) => {
+                const page = {
+                    name: section.id || `page${index + 1}`,
+                    title: section.title || `Page ${index + 1}`,
+                    elements: []
+                };
+                
+                // Convert fields to elements
+                if (section.fields && Array.isArray(section.fields)) {
+                    section.fields.forEach(field => {
+                        const element = {
+                            type: this.mapLegacyFieldType(field.type),
+                            name: field.name || field.id,
+                            title: field.label || field.title || field.name
+                        };
+                        
+                        // Add field-specific properties
+                        if (field.required) {
+                            element.isRequired = true;
+                        }
+                        
+                        if (field.options) {
+                            element.choices = field.options;
+                        }
+                        
+                        if (field.placeholder) {
+                            element.placeHolder = field.placeholder;
+                        }
+                        
+                        page.elements.push(element);
+                    });
+                }
+                
+                formData.pages.push(page);
+            });
+        }
+        
+        // If no sections, create a default page
+        if (formData.pages.length === 0) {
+            formData.pages.push({
+                name: 'page1',
+                title: 'Page 1',
+                elements: []
+            });
+        }
+        
+        return formData;
+    }
+
+    mapLegacyFieldType(legacyType) {
+        // Map legacy field types to SurveyJS types
+        const typeMap = {
+            'text': 'text',
+            'textarea': 'comment',
+            'number': 'text',
+            'email': 'text',
+            'tel': 'text',
+            'date': 'text',
+            'select': 'dropdown',
+            'radio': 'radiogroup',
+            'checkbox': 'checkbox',
+            'file': 'file',
+            'html': 'html',
+            'section': 'panel',
+            'rating': 'rating',
+            'boolean': 'boolean'
+        };
+        
+        return typeMap[legacyType] || 'text';
     }
 }
 
