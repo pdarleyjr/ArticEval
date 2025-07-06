@@ -6,16 +6,16 @@
     <title>Form Builder - IPLC ArticEval</title>
     <link rel="stylesheet" href="/assets/css/styles.css">
     <link rel="icon" href="/assets/images/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="https://unpkg.com/survey-creator-core@2.2.3/survey-creator-core.min.css">
-    <!-- SurveyJS Core JS (FIXED VERSION COMPATIBILITY) -->
-    <script src="https://unpkg.com/survey-core@2.2.3/survey.core.min.js"></script>
+    <!-- SurveyJS Creator CSS - Using reliable jsdelivr CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/survey-core@1.9.128/defaultV2.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/survey-creator-core@1.9.128/survey-creator-core.min.css" rel="stylesheet"/>
     
-    <!-- SurveyJS Creator Core JS -->
-    <script src="https://unpkg.com/survey-creator-core@2.2.3/survey-creator-core.min.js"></script>
-    
-    <!-- SurveyJS Form Library for enhanced rendering -->
-    <script src="https://unpkg.com/survey-js-ui@2.2.3/survey.min.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/survey-js-ui@2.2.3/modern.min.css">
+    <!-- SurveyJS Libraries - Using reliable jsdelivr CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/knockout@3.5.1/build/output/knockout-latest.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/survey-core@1.9.128/survey.core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/survey-ko-ui@1.9.128/survey-ko-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/survey-creator-core@1.9.128/survey-creator-core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/survey-creator-knockout@1.9.128/survey-creator-knockout.min.js"></script>
     <style>
         .builder-container {
             max-width: 1200px;
@@ -765,25 +765,85 @@
         function initializeSurveyCreator() {
             if (!currentTemplate) return;
             
-            // Convert sections to SurveyJS format
-            const surveyJSON = convertSectionsToSurveyJS(currentTemplate.sections || []);
-            
-            // Create SurveyJS Creator instance
-            surveyCreator = new SurveyCreatorCore({
-                showLogicTab: true,
-                showTranslationTab: true,
-                showJSONEditorTab: false,
-                showTestSurveyTab: true,
-                showEmbedSurveyTab: false
-            });
-            
-            // Set the survey JSON
-            surveyCreator.JSON = surveyJSON;
-            
-            // Render creator in container
-            const creatorContainer = document.getElementById('surveyCreatorContainer');
-            if (creatorContainer) {
+            try {
+                // Clean up existing creator instance
+                if (surveyCreator) {
+                    try {
+                        surveyCreator.dispose();
+                    } catch (e) {
+                        console.warn('Error disposing previous creator:', e);
+                    }
+                    surveyCreator = null;
+                }
+                
+                // Convert sections to SurveyJS format
+                const surveyJSON = convertSectionsToSurveyJS(currentTemplate.sections || []);
+                console.log('Initializing SurveyJS Creator with JSON:', surveyJSON);
+                
+                // Comprehensive creator options with all question types
+                const creatorOptions = {
+                    showLogicTab: true,
+                    showTranslationTab: true,
+                    showJSONEditorTab: false,
+                    showTestSurveyTab: true,
+                    showEmbedSurveyTab: false,
+                    questionTypes: [
+                        "text", "comment", "dropdown", "radiogroup", "checkbox",
+                        "boolean", "file", "html", "expression", "image",
+                        "imagepicker", "matrix", "matrixdropdown", "matrixdynamic",
+                        "multipletext", "panel", "paneldynamic", "rating"
+                    ]
+                };
+                
+                // Create SurveyJS Creator instance with proper constructor
+                if (typeof SurveyCreator === 'undefined' || !SurveyCreator.SurveyCreator) {
+                    throw new Error('SurveyCreator library not loaded properly');
+                }
+                
+                surveyCreator = new SurveyCreator.SurveyCreator(creatorOptions);
+                console.log('SurveyJS Creator initialized successfully');
+                
+                // Set the survey JSON
+                surveyCreator.JSON = surveyJSON;
+                
+                // Add auto-sync event listener for real-time template updates
+                surveyCreator.onModified.add(function (sender) {
+                    console.log('Survey modified, syncing to template');
+                    if (currentTemplate) {
+                        currentTemplate.sections = convertSurveyJSToSections(sender.JSON);
+                        console.log('Template sections updated:', currentTemplate.sections);
+                    }
+                });
+                
+                // Render creator in container
+                const creatorContainer = document.getElementById('surveyCreatorContainer');
+                if (!creatorContainer) {
+                    throw new Error('Survey creator container not found');
+                }
+                
+                // Clear container before rendering
+                creatorContainer.innerHTML = '';
                 surveyCreator.render(creatorContainer);
+                console.log('SurveyJS Creator rendered successfully');
+                
+            } catch (error) {
+                console.error('Failed to initialize SurveyJS Creator:', error);
+                showAlert(`Visual editor failed to load: ${error.message}. Falling back to JSON mode.`, 'error');
+                
+                // Fallback to JSON mode
+                switchBuilderMode('json');
+                
+                // Show fallback message in creator container
+                const creatorContainer = document.getElementById('surveyCreatorContainer');
+                if (creatorContainer) {
+                    creatorContainer.innerHTML = `
+                        <div style="padding: 2rem; text-align: center; color: #666; background: #f8f9fa; border-radius: 5px;">
+                            <h3>Visual Editor Unavailable</h3>
+                            <p>The visual form builder could not be loaded. Please use the JSON editor instead.</p>
+                            <p><small>Error: ${error.message}</small></p>
+                        </div>
+                    `;
+                }
             }
         }
         
