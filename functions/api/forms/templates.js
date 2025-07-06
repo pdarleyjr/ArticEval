@@ -199,7 +199,7 @@ async function handleCreateTemplate(request, env) {
   try {
     const data = await request.json();
     console.log('Request data:', JSON.stringify(data, null, 2));
-    const { name, description, sections } = data;
+    const { name, description, sections, createdBy } = data;
     
     // Validate required fields - only name is required for initial creation
     if (!name) {
@@ -218,7 +218,7 @@ async function handleCreateTemplate(request, env) {
     }
     
     const now = new Date().toISOString();
-    console.log('Creating template with name:', name, 'description:', description);
+    console.log('Creating template with name:', name, 'description:', description, 'createdBy:', createdBy);
     
     // Insert new template
     const result = await env.DB.prepare(`
@@ -228,7 +228,7 @@ async function handleCreateTemplate(request, env) {
       name,
       description || null,
       JSON.stringify(templateSections),
-      null, // No user tracking in open access mode
+      createdBy || 'Anonymous', // Store creator name
       now,
       now
     ).run();
@@ -283,7 +283,7 @@ async function handleUpdateTemplate(request, env, templateId) {
     }
     
     const data = await request.json();
-    const { name, description, sections } = data;
+    const { name, description, sections, createdBy } = data;
     
     // Validate sections if provided
     if (sections && !isValidTemplateSections(sections)) {
@@ -292,18 +292,20 @@ async function handleUpdateTemplate(request, env, templateId) {
     
     const now = new Date().toISOString();
     
-    // Update template
+    // Update template (including createdBy if provided)
     const result = await env.DB.prepare(`
       UPDATE form_templates
       SET name = COALESCE(?, name),
           description = COALESCE(?, description),
           sections = COALESCE(?, sections),
+          created_by = COALESCE(?, created_by),
           updated_at = ?
       WHERE id = ?
     `).bind(
       name || null,
       description !== undefined ? description : null,
       sections ? JSON.stringify(sections) : null,
+      createdBy || null,
       now,
       templateId
     ).run();
@@ -371,7 +373,8 @@ async function handleDeleteTemplate(env, templateId) {
 
 /**
  * Validate template sections structure
- * @param {array} sections - Template sections
+ * Supports both SurveyJS format (pages with elements) and legacy format (sections with fields)
+ * @param {array} sections - Template sections or pages
  * @returns {boolean} True if valid
  */
 function isValidTemplateSections(sections) {
@@ -387,60 +390,117 @@ function isValidTemplateSections(sections) {
   
   console.log('Sections array length:', sections.length);
   
-  // Validate each section
-  for (let i = 0; i < sections.length; i++) {
-    const section = sections[i];
-    console.log(`=== VALIDATING SECTION ${i + 1} ===`);
-    console.log(`Section ${i + 1} data:`, JSON.stringify(section, null, 2));
-    
-    // Check section structure
-    console.log(`Section ${i + 1} has id:`, !!section.id, 'Value:', section.id);
-    console.log(`Section ${i + 1} has title:`, !!section.title, 'Value:', section.title);
-    console.log(`Section ${i + 1} has fields:`, !!section.fields, 'Type:', typeof section.fields);
-    console.log(`Section ${i + 1} fields is array:`, Array.isArray(section.fields));
-    
-    if (!section.id || !section.title || !section.fields || !Array.isArray(section.fields)) {
-      console.log(`VALIDATION FAILED: Section ${i + 1} missing required properties`);
-      console.log(`Missing - id: ${!section.id}, title: ${!section.title}, fields: ${!section.fields}, fields array: ${!Array.isArray(section.fields)}`);
-      return false;
-    }
-    
-    console.log(`Section ${i + 1} fields array length:`, section.fields.length);
-    
-    // Validate each field
-    for (let j = 0; j < section.fields.length; j++) {
-      const field = section.fields[j];
-      console.log(`=== VALIDATING SECTION ${i + 1} FIELD ${j + 1} ===`);
-      console.log(`Field ${j + 1} data:`, JSON.stringify(field, null, 2));
+  // Check if this is SurveyJS format (pages with elements)
+  const isSurveyJSFormat = sections.length > 0 && sections[0].elements !== undefined;
+  console.log('Format detected:', isSurveyJSFormat ? 'SurveyJS' : 'Legacy');
+  
+  if (isSurveyJSFormat) {
+    // Validate SurveyJS format (pages with elements)
+    for (let i = 0; i < sections.length; i++) {
+      const page = sections[i];
+      console.log(`=== VALIDATING PAGE ${i + 1} ===`);
+      console.log(`Page ${i + 1} data:`, JSON.stringify(page, null, 2));
       
-      console.log(`Field ${j + 1} has name:`, !!field.name, 'Value:', field.name);
-      console.log(`Field ${j + 1} has type:`, !!field.type, 'Value:', field.type);
-      console.log(`Field ${j + 1} has label:`, !!field.label, 'Value:', field.label);
+      // Check page structure
+      console.log(`Page ${i + 1} has name:`, !!page.name, 'Value:', page.name);
+      console.log(`Page ${i + 1} has elements:`, !!page.elements, 'Type:', typeof page.elements);
+      console.log(`Page ${i + 1} elements is array:`, Array.isArray(page.elements));
       
-      if (!field.name || !field.type || !field.label) {
-        console.log(`VALIDATION FAILED: Section ${i + 1} Field ${j + 1} missing required properties`);
-        console.log(`Missing - name: ${!field.name}, type: ${!field.type}, label: ${!field.label}`);
+      if (!page.name || !page.elements || !Array.isArray(page.elements)) {
+        console.log(`VALIDATION FAILED: Page ${i + 1} missing required properties`);
         return false;
       }
       
-      // Check valid field types
-      const validTypes = [
-        'text', 'textarea', 'number', 'email', 'tel', 'url', 'date', 'time',
-        'select', 'radio', 'checkbox', 'file', 'rating', 'slider', 'textarea-rich'
-      ];
+      // Validate each element
+      for (let j = 0; j < page.elements.length; j++) {
+        const element = page.elements[j];
+        console.log(`=== VALIDATING PAGE ${i + 1} ELEMENT ${j + 1} ===`);
+        console.log(`Element ${j + 1} data:`, JSON.stringify(element, null, 2));
+        
+        console.log(`Element ${j + 1} has type:`, !!element.type, 'Value:', element.type);
+        console.log(`Element ${j + 1} has name:`, !!element.name, 'Value:', element.name);
+        
+        if (!element.type || !element.name) {
+          console.log(`VALIDATION FAILED: Page ${i + 1} Element ${j + 1} missing required properties`);
+          return false;
+        }
+        
+        // Check valid element types (SurveyJS types)
+        const validSurveyJSTypes = [
+          'text', 'comment', 'dropdown', 'radiogroup', 'checkbox', 'boolean',
+          'rating', 'matrix', 'matrixdropdown', 'matrixdynamic', 'multipletext',
+          'html', 'signaturepad', 'expression', 'file', 'imagepicker',
+          'panel', 'paneldynamic'
+        ];
+        
+        console.log(`Element ${j + 1} type validation:`, element.type, 'Valid:', validSurveyJSTypes.includes(element.type));
+        
+        if (!validSurveyJSTypes.includes(element.type)) {
+          console.log(`VALIDATION WARNING: Page ${i + 1} Element ${j + 1} has unrecognized type: ${element.type}`);
+          // Don't fail validation for unrecognized types (might be custom)
+        }
+        
+        console.log(`Element ${j + 1} validation PASSED`);
+      }
       
-      console.log(`Field ${j + 1} type validation:`, field.type, 'Valid:', validTypes.includes(field.type));
+      console.log(`Page ${i + 1} validation PASSED`);
+    }
+  } else {
+    // Validate legacy format (sections with fields)
+    for (let i = 0; i < sections.length; i++) {
+      const section = sections[i];
+      console.log(`=== VALIDATING SECTION ${i + 1} ===`);
+      console.log(`Section ${i + 1} data:`, JSON.stringify(section, null, 2));
       
-      if (!validTypes.includes(field.type)) {
-        console.log(`VALIDATION FAILED: Section ${i + 1} Field ${j + 1} has invalid type: ${field.type}`);
-        console.log('Valid types:', validTypes);
+      // Check section structure
+      console.log(`Section ${i + 1} has id:`, !!section.id, 'Value:', section.id);
+      console.log(`Section ${i + 1} has title:`, !!section.title, 'Value:', section.title);
+      console.log(`Section ${i + 1} has fields:`, !!section.fields, 'Type:', typeof section.fields);
+      console.log(`Section ${i + 1} fields is array:`, Array.isArray(section.fields));
+      
+      if (!section.id || !section.title || !section.fields || !Array.isArray(section.fields)) {
+        console.log(`VALIDATION FAILED: Section ${i + 1} missing required properties`);
+        console.log(`Missing - id: ${!section.id}, title: ${!section.title}, fields: ${!section.fields}, fields array: ${!Array.isArray(section.fields)}`);
         return false;
       }
       
-      console.log(`Field ${j + 1} validation PASSED`);
+      console.log(`Section ${i + 1} fields array length:`, section.fields.length);
+      
+      // Validate each field
+      for (let j = 0; j < section.fields.length; j++) {
+        const field = section.fields[j];
+        console.log(`=== VALIDATING SECTION ${i + 1} FIELD ${j + 1} ===`);
+        console.log(`Field ${j + 1} data:`, JSON.stringify(field, null, 2));
+        
+        console.log(`Field ${j + 1} has name:`, !!field.name, 'Value:', field.name);
+        console.log(`Field ${j + 1} has type:`, !!field.type, 'Value:', field.type);
+        console.log(`Field ${j + 1} has label:`, !!field.label, 'Value:', field.label);
+        
+        if (!field.name || !field.type || !field.label) {
+          console.log(`VALIDATION FAILED: Section ${i + 1} Field ${j + 1} missing required properties`);
+          console.log(`Missing - name: ${!field.name}, type: ${!field.type}, label: ${!field.label}`);
+          return false;
+        }
+        
+        // Check valid field types
+        const validTypes = [
+          'text', 'textarea', 'number', 'email', 'tel', 'url', 'date', 'time',
+          'select', 'radio', 'checkbox', 'file', 'rating', 'slider', 'textarea-rich'
+        ];
+        
+        console.log(`Field ${j + 1} type validation:`, field.type, 'Valid:', validTypes.includes(field.type));
+        
+        if (!validTypes.includes(field.type)) {
+          console.log(`VALIDATION FAILED: Section ${i + 1} Field ${j + 1} has invalid type: ${field.type}`);
+          console.log('Valid types:', validTypes);
+          return false;
+        }
+        
+        console.log(`Field ${j + 1} validation PASSED`);
+      }
+      
+      console.log(`Section ${i + 1} validation PASSED`);
     }
-    
-    console.log(`Section ${i + 1} validation PASSED`);
   }
   
   console.log('=== ALL SECTIONS VALIDATION PASSED ===');
