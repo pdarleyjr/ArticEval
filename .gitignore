@@ -34,3 +34,7 @@ ai-project-documentation.json
 *-ai-documentation.json
 ai-analysis-*.json
 IPLC GitHub Eval.code-workspace
+
+# Generated log files from scripts
+scripts/loading-log.json
+scripts/chat-verification-report.json
