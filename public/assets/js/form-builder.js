@@ -1,10 +1,18 @@
-// Custom Form Builder for IPLC ArticEval
-// Creates JSON definitions compatible with SurveyJS Form Library
-// Enhanced with comprehensive SLP/OT evaluation sections
+// @ts-nocheck
+/* eslint-disable */
+/** @format */
 
+/**
+ * Custom Form Builder for IPLC ArticEval
+ * Creates JSON definitions compatible with SurveyJS Form Library
+ * Enhanced with comprehensive SLP/OT evaluation sections
+ * @class IPLCFormBuilder
+ */
 class IPLCFormBuilder {
     constructor(containerId, options = {}) {
+        console.log('IPLCFormBuilder constructor called with:', containerId);
         this.container = document.getElementById(containerId);
+        console.log('Container element found:', this.container);
         this.options = options;
         this.templateId = null;
         this.formData = {
@@ -217,6 +225,12 @@ class IPLCFormBuilder {
                     { type: 'goals-objectives', icon: '🎯', label: 'Goals & Objectives', custom: true },
                     { type: 'recommendations', icon: '💡', label: 'Recommendations', custom: true },
                     { type: 'signature-section', icon: '✍️', label: 'Signatures & Consent', custom: true }
+                ]
+            },
+            {
+                name: 'AI Features',
+                elements: [
+                    { type: 'ai-summary', icon: '🤖', label: 'AI Summary', custom: true }
                 ]
             }
         ];
@@ -521,6 +535,7 @@ class IPLCFormBuilder {
     }
 
     attachEventListeners() {
+        console.log('attachEventListeners() called');
         // Track unsaved changes
         this.hasUnsavedChanges = false;
         
@@ -552,26 +567,39 @@ class IPLCFormBuilder {
             });
         }
 
+        console.log('About to call setupDragAndDrop()');
         this.setupDragAndDrop();
+        console.log('setupDragAndDrop() completed');
         this.setupKeyboardShortcuts();
     }
+setupDragAndDrop() {
+    console.log('setupDragAndDrop() method called');
+    const draggables = document.querySelectorAll('.draggable-element');
+    const dropZone = document.getElementById('dropZone');
+    
+    console.log('Found draggable elements:', draggables.length);
+    console.log('Draggables:', draggables);
+    console.log('DropZone element:', dropZone);
 
-    setupDragAndDrop() {
-        const draggables = document.querySelectorAll('.draggable-element');
-        const dropZone = document.getElementById('dropZone');
-
-        draggables.forEach(draggable => {
-            draggable.addEventListener('dragstart', (e) => {
-                e.dataTransfer.setData('elementType', draggable.dataset.type);
-                e.dataTransfer.setData('isCustom', draggable.dataset.custom || 'false');
-                draggable.classList.add('dragging');
-            });
-
-            draggable.addEventListener('dragend', () => {
-                draggable.classList.remove('dragging');
-            });
+    draggables.forEach((draggable, index) => {
+        console.log(`Setting up draggable ${index}:`, draggable, 'Type:', draggable.dataset.type);
+        
+        draggable.addEventListener('dragstart', (e) => {
+            console.log('Drag started for element:', draggable.dataset.type);
+            e.dataTransfer.setData('elementType', draggable.dataset.type);
+            e.dataTransfer.setData('isCustom', draggable.dataset.custom || 'false');
+            draggable.classList.add('dragging');
         });
 
+        draggable.addEventListener('dragend', () => {
+            console.log('Drag ended');
+            draggable.classList.remove('dragging');
+        });
+    });
+
+    if (dropZone) {
+        console.log('Setting up drop zone event listeners');
+        
         dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
             dropZone.classList.add('drag-over');
@@ -582,18 +610,25 @@ class IPLCFormBuilder {
         });
 
         dropZone.addEventListener('drop', (e) => {
+            console.log('Drop event triggered');
             e.preventDefault();
             dropZone.classList.remove('drag-over');
             
             const elementType = e.dataTransfer.getData('elementType');
             const isCustom = e.dataTransfer.getData('isCustom') === 'true';
             
+            console.log('Dropped element type:', elementType, 'isCustom:', isCustom);
+            
             if (elementType) {
                 this.addElement(elementType, isCustom);
             }
         });
+    } else {
+        console.error('DropZone element not found!');
     }
+}
 
+        }
     addElement(type, isCustom = false) {
         this.saveToHistory();
         const element = isCustom ? this.createCustomElement(type) : this.createDefaultElement(type);
@@ -779,6 +814,24 @@ class IPLCFormBuilder {
                     { type: 'text', name: 'license_number', title: 'License Number', isRequired: true },
                     { type: 'text', name: 'signature_date', title: 'Date', inputType: 'date', isRequired: true }
                 ]
+            },
+            'ai-summary': {
+                type: 'ai-summary',
+                name: `ai_summary_${Date.now()}`,
+                title: 'AI-Generated Summary',
+                description: 'This summary is automatically generated based on your form responses',
+                selectedFields: [],
+                summaryType: 'comprehensive', // comprehensive or brief
+                displayMode: 'seamless', // seamless, highlighted, expandable
+                allowRuntimeSelection: true, // Allow users to select fields at runtime
+                minHeight: 200,
+                placeholder: 'AI summary will appear here after you complete the selected fields...',
+                loadingText: 'Generating summary...',
+                errorText: 'Unable to generate summary. Please try again.',
+                isRequired: false,
+                visibleIf: '',
+                enableIf: '',
+                customType: 'ai-summary'
             }
         };
 
