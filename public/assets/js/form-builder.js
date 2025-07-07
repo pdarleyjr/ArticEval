@@ -54,14 +54,56 @@ class IPLCFormBuilder {
     init() {
         console.log('FormBuilder: init() called');
         this.checkForEditMode();
+        this.initializeBuilder();
+    }
+    
+    // Reusable builder initialization method - can be called to reset builder state
+    initializeBuilder() {
+        console.log('FormBuilder: initializeBuilder() called');
+        
+        // Clear any existing state that might cause read-only issues
+        this.selectedElement = null;
+        this.copiedElement = null;
+        
+        // Ensure form is not accidentally locked
+        if (!this.formData.isFormLocked) {
+            // Reset UI to editable state
+            const draggables = document.querySelectorAll('.draggable-element');
+            draggables.forEach(el => {
+                el.setAttribute('draggable', 'true');
+                el.style.opacity = '1';
+                el.style.cursor = 'move';
+            });
+        }
+        
+        // Render the builder interface
         this.render();
+        
+        // Re-attach all event listeners
         this.attachEventListeners();
+        
+        // Setup auto-save functionality
         this.setupAutoSave();
+        
+        // Register custom question types with SurveyJS
         this.registerCustomQuestionTypes();
+        
+        // Add complex editor styles
         this.addComplexEditorStyles();
+        
+        // Restore panel state from localStorage
         this.restorePanelState();
+        
+        // Setup touch gestures for mobile
         this.setupTouchGestures();
+        
+        // Initialize auto-pagination
         this.initializeAutoPagination();
+        
+        // Ensure builder is in correct state
+        this.updateLockUI();
+        
+        console.log('FormBuilder: Builder initialization complete');
     }
     
     // Restore properties panel state from localStorage
@@ -5166,8 +5208,8 @@ class IPLCFormBuilder {
             const surveyData = this.getFormDataWithLogo();
             const survey = new Survey.Model(surveyData);
             
-            // CRITICAL: Set the survey to display mode to hide all editing controls
-            survey.mode = "display";
+            // CRITICAL: Set the survey to read-only to hide all editing controls
+            survey.readOnly = false; // Keep interactive for preview
             
             // Ensure no design-time features are enabled
             survey.showNavigationButtons = true;
@@ -5218,6 +5260,23 @@ class IPLCFormBuilder {
                 </div>
             `;
         }
+    }
+    
+    // Close preview and reinitialize builder to prevent read-only state
+    closePreview() {
+        console.log('FormBuilder: Closing preview and reinitializing builder');
+        
+        // Remove the preview modal
+        const modal = document.querySelector('.preview-modal');
+        if (modal) {
+            modal.remove();
+        }
+        
+        // Reinitialize the builder to ensure it's not in read-only state
+        setTimeout(() => {
+            this.initializeBuilder();
+            this.showNotification('Preview closed - builder ready for editing');
+        }, 100);
     }
 
     getFormData() {

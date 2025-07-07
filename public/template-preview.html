@@ -5,6 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Template Preview - IPLC ArticEval</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- SurveyJS Form Library resources -->
+    <link href="https://unpkg.com/survey-core/survey-core.min.css" type="text/css" rel="stylesheet">
+    <script src="https://unpkg.com/survey-core/survey.core.min.js"></script>
+    <script src="https://unpkg.com/survey-js-ui/survey-js-ui.min.js"></script>
+    
+    <!-- SurveyJS Widgets for interactive elements -->
+    <script src="https://unpkg.com/surveyjs-widgets/surveyjs-widgets.min.js"></script>
+    
+    <!-- Required libraries for widgets -->
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    
     <style>
         * {
             margin: 0;
@@ -501,6 +513,11 @@
         const templateId = urlParams.get('id');
 
         document.addEventListener('DOMContentLoaded', async function() {
+            // Initialize SurveyJS widgets for interactive elements
+            if (window.SurveyJS && window.SurveyJS.widgets && window.SurveyJS.widgets.signaturepad) {
+                window.SurveyJS.widgets.signaturepad(Survey);
+            }
+            
             if (!templateId) {
                 showError('No template ID provided. Redirecting to dashboard...');
                 setTimeout(() => {

@@ -76870,7 +76870,7 @@ var PropertyGridModel = class {
   createSurveyValue() {
     const json2 = this.getSurveyJSON();
     if (this.options.readOnly) {
-      json2.mode = "display";
+      json2.readOnly = true;
     }
     this.surveyValue = this.createSurvey(json2, (survey) => {
       this.onCreateSurvey(survey);
@@ -77340,7 +77340,7 @@ var PropertyGridEditor = class {
     if (!surveyPropertyEditor || !settings.showDialog)
       return;
     if (question.isReadOnly) {
-      surveyPropertyEditor.editSurvey.mode = "display";
+      surveyPropertyEditor.editSurvey.readOnly = true;
     }
     const prevCurrentLocale = surveyLocalization.currentLocale;
     const locale = editorLocalization.currentLocale;
@@ -88270,7 +88270,7 @@ var ThemeTabPlugin = class {
     this.propertyGrid.showOneCategoryInPropertyGrid = this.showOneCategoryInPropertyGrid;
     this.propertyGrid.survey.onOpenFileChooser.clear();
     this.propertyGrid.obj = this.themeModel;
-    this.propertyGrid.survey.mode = "edit";
+    this.propertyGrid.survey.readOnly = false;
     this.propertyGrid.survey.getAllQuestions().forEach((q2) => q2.readOnly = false);
     this.onAvailableThemesChanged(this.availableThemes);
     this.updateAllowModifyTheme();
