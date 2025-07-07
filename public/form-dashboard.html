@@ -956,8 +956,8 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://unpkg.com/survey-core/survey.core.min.js"></script>
-    <script src="https://unpkg.com/survey-js-ui/defaultV2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/survey-core@1.9.131/survey.core.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/survey-js-ui@1.9.131/defaultV2.min.js"></script>
     <script>
         // Global variables
         let currentSection = 'overview';
@@ -1389,11 +1389,40 @@
         // AI Chat Functionality
         let conversationId = null;
         let isTyping = false;
+        let chatInitialized = false;
 
         // Initialize chat
-        function initializeChat() {
+        async function initializeChat() {
             // Generate a unique conversation ID
             conversationId = 'conv_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            
+            // Check if the chat API is available
+            try {
+                const healthResponse = await fetch('/api/ai/chat/health', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (healthResponse.ok) {
+                    const health = await healthResponse.json();
+                    console.log('AI Chat health check:', health);
+                    chatInitialized = true;
+                    
+                    // Update status indicator
+                    const statusIndicator = document.querySelector('.chat-status');
+                    if (statusIndicator) {
+                        statusIndicator.style.background = '#4CAF50';
+                    }
+                } else {
+                    console.error('AI Chat health check failed:', healthResponse.status);
+                    showChatError('AI Chat service is currently unavailable. Please try again later.');
+                }
+            } catch (error) {
+                console.error('Failed to connect to AI Chat service:', error);
+                showChatError('Unable to connect to AI Chat service. Please check your connection.');
+            }
             
             // Load previous messages from localStorage if available
             const savedMessages = localStorage.getItem('chatHistory');
@@ -1408,9 +1437,26 @@
             }
         }
 
+        // Show chat error
+        function showChatError(message) {
+            const chatBody = document.getElementById('chat-messages');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'alert alert-warning m-3';
+            errorDiv.innerHTML = `
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                ${message}
+            `;
+            chatBody.appendChild(errorDiv);
+        }
+
         // Send chat message
         async function sendChatMessage(event) {
             event.preventDefault();
+            
+            if (!chatInitialized) {
+                showChatError('Chat service is not available. Please refresh the page and try again.');
+                return;
+            }
             
             const input = document.getElementById('chat-input');
             const message = input.value.trim();
@@ -1420,11 +1466,11 @@
             // Clear input
             input.value = '';
             
-            // Remove welcome message if it exists
+            // Remove welcome message and errors if they exist
             const welcome = document.querySelector('.chat-welcome');
-            if (welcome) {
-                welcome.remove();
-            }
+            const errors = document.querySelectorAll('.alert-warning');
+            if (welcome) welcome.remove();
+            errors.forEach(err => err.remove());
             
             // Add user message
             appendMessage('user', message);
@@ -1436,10 +1482,13 @@
             setInputState(true);
             
             try {
+                console.log('Sending message to AI Chat:', { message, conversationId });
+                
                 const response = await fetch('/api/ai/chat/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
+                        'Accept': 'application/json'
                     },
                     body: JSON.stringify({
                         message: message,
@@ -1447,11 +1496,25 @@
                     })
                 });
                 
+                const responseText = await response.text();
+                console.log('AI Chat response:', response.status, responseText);
+                
                 if (!response.ok) {
-                    throw new Error('Failed to get response');
+                    let errorMessage = 'Failed to get response from AI';
+                    try {
+                        const errorData = JSON.parse(responseText);
+                        errorMessage = errorData.error || errorData.message || errorMessage;
+                    } catch (e) {
+                        errorMessage = `Server error: ${response.status} ${response.statusText}`;
+                    }
+                    throw new Error(errorMessage);
                 }
                 
-                const data = await response.json();
+                const data = JSON.parse(responseText);
+                
+                if (!data.response) {
+                    throw new Error('Invalid response from server');
+                }
                 
                 // Hide typing indicator
                 hideTypingIndicator();
@@ -1465,7 +1528,17 @@
             } catch (error) {
                 console.error('Chat error:', error);
                 hideTypingIndicator();
-                appendMessage('assistant', 'I apologize, but I encountered an error processing your request. Please try again later.');
+                
+                let errorMessage = 'I apologize, but I encountered an error processing your request.';
+                if (error.message.includes('vector')) {
+                    errorMessage += ' The knowledge base may not be loaded yet. Please contact support.';
+                } else if (error.message.includes('network')) {
+                    errorMessage += ' Please check your internet connection and try again.';
+                } else {
+                    errorMessage += ` Error: ${error.message}`;
+                }
+                
+                appendMessage('assistant', errorMessage);
             } finally {
                 setInputState(false);
             }

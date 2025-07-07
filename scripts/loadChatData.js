@@ -17,7 +17,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Configuration
-const API_ENDPOINT = process.env.CHAT_API_ENDPOINT || 'https://fbd5cde3.articeval.pages.dev/api/ai/chat/load'; // Update for production
+const API_ENDPOINT = process.env.CHAT_API_ENDPOINT || 'https://articeval.pages.dev/api/ai/chat/load'; // Production endpoint
 const API_KEY = process.env.CHAT_API_KEY || ''; // Optional API key for authentication
 const CHUNKS_FILE_PATH = path.join(__dirname, '..', 'IPLC_SOP_Chunks.json');
 const BATCH_SIZE = 50; // Process 50 documents at a time (BGE model supports up to 100)
