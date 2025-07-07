@@ -59,6 +59,21 @@ class IPLCFormBuilder {
         this.setupAutoSave();
         this.registerCustomQuestionTypes();
         this.addComplexEditorStyles();
+        this.restorePanelState();
+    }
+    
+    // Restore properties panel state from localStorage
+    restorePanelState() {
+        const isCollapsed = localStorage.getItem('propertiesPanel_collapsed') === 'true';
+        const propertiesPanel = document.getElementById('builderProperties');
+        const toggleIcon = document.getElementById('toggleIcon');
+        
+        if (isCollapsed && propertiesPanel) {
+            propertiesPanel.classList.add('collapsed');
+            if (toggleIcon) {
+                toggleIcon.textContent = '▶';
+            }
+        }
     }
 
     render() {
@@ -269,6 +284,34 @@ class IPLCFormBuilder {
                 `).join('')}
             </div>
         `).join('');
+    }
+
+    // Toggle properties panel visibility
+    togglePropertiesPanel() {
+        const propertiesPanel = document.getElementById('builderProperties');
+        const toggleIcon = document.getElementById('toggleIcon');
+        const isCollapsed = propertiesPanel.classList.contains('collapsed');
+        
+        if (isCollapsed) {
+            // Expand panel
+            propertiesPanel.classList.remove('collapsed');
+            toggleIcon.textContent = '◀';
+            localStorage.setItem('propertiesPanel_collapsed', 'false');
+            
+            // Show notification
+            this.showNotification('Properties panel expanded');
+        } else {
+            // Collapse panel
+            propertiesPanel.classList.add('collapsed');
+            toggleIcon.textContent = '▶';
+            localStorage.setItem('propertiesPanel_collapsed', 'true');
+            
+            // Show notification
+            this.showNotification('Properties panel collapsed');
+        }
+        
+        // Trigger window resize event for any components that need to recalculate
+        window.dispatchEvent(new Event('resize'));
     }
 
     addStyles() {
@@ -822,7 +865,54 @@ class IPLCFormBuilder {
         this.setupDragAndDrop();
         console.log('setupDragAndDrop() completed');
         this.setupKeyboardShortcuts();
+        this.setupTouchGestures();
+        
+        // Add keyboard navigation for properties panel
+        document.addEventListener('keydown', (e) => {
+            // Escape key collapses properties panel
+            if (e.key === 'Escape') {
+                const propertiesPanel = document.getElementById('builderProperties');
+                if (propertiesPanel && !propertiesPanel.classList.contains('collapsed')) {
+                    this.togglePropertiesPanel();
+                }
+            }
+        });
     }
+    // Setup touch gestures for mobile devices
+    setupTouchGestures() {
+        const propertiesPanel = document.getElementById('builderProperties');
+        if (!propertiesPanel) return;
+        
+        let startX = 0;
+        let currentX = 0;
+        let isDragging = false;
+        
+        // Touch start
+        propertiesPanel.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            isDragging = true;
+        }, { passive: true });
+        
+        // Touch move
+        propertiesPanel.addEventListener('touchmove', (e) => {
+            if (!isDragging) return;
+            
+            currentX = e.touches[0].clientX;
+            const deltaX = currentX - startX;
+            
+            // If swiped right more than 50px, collapse panel
+            if (deltaX > 50 && !propertiesPanel.classList.contains('collapsed')) {
+                this.togglePropertiesPanel();
+                isDragging = false;
+            }
+        }, { passive: true });
+        
+        // Touch end
+        propertiesPanel.addEventListener('touchend', () => {
+            isDragging = false;
+        }, { passive: true });
+    }
+    
     setupDragAndDrop() {
         console.log('FormBuilder: setupDragAndDrop() called');
         const draggables = document.querySelectorAll('.draggable-element');
