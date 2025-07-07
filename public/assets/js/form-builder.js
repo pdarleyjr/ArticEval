@@ -5088,8 +5088,49 @@ class IPLCFormBuilder {
             const surveyData = this.getFormDataWithLogo();
             const survey = new Survey.Model(surveyData);
             
+            // CRITICAL: Set the survey to display mode to hide all editing controls
+            survey.mode = "display";
+            
+            // Ensure no design-time features are enabled
+            survey.showNavigationButtons = true;
+            survey.showProgressBar = "top";
+            survey.showCompletedPage = false;
+            
+            // Disable any editing capabilities
+            if (survey.onAfterRenderPage) {
+                survey.onAfterRenderPage.add((sender, options) => {
+                    // Remove any design-time elements that might have been rendered
+                    const designElements = options.htmlElement.querySelectorAll(
+                        '.sv-action-bar, .sv-designer-button, .sd-element__add-button, ' +
+                        '.sd-page__add-button, .sv-action-bar-item, .sv-add-new-page-btn, ' +
+                        '[class*="designer"], [class*="add-new"], [class*="add-button"]'
+                    );
+                    designElements.forEach(el => el.remove());
+                });
+            }
+            
             // Pass the DOM element, not just the ID string
             survey.render(previewElement);
+            
+            // Additional cleanup after render
+            setTimeout(() => {
+                // Remove any remaining design/edit elements
+                const container = document.getElementById('surveyPreview');
+                if (container) {
+                    // Remove any "Add Page" buttons or similar editing controls
+                    const editControls = container.querySelectorAll(
+                        'button:contains("Add"), button:contains("add"), ' +
+                        '[title*="Add"], [title*="add"], .add-page-btn, ' +
+                        '.sv-action-bar, .sd-action-bar'
+                    );
+                    editControls.forEach(el => {
+                        if (el.textContent && (el.textContent.includes('Add') || el.textContent.includes('add'))) {
+                            el.remove();
+                        }
+                    });
+                }
+            }, 100);
+            
         } catch (error) {
             console.error('Error creating preview:', error);
             document.getElementById('surveyPreview').innerHTML = `
