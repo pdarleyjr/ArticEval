@@ -23,154 +23,180 @@
         isFit: function(question) {
             return question.getType() === 'ai-summary';
         },
-        htmlTemplate: `
-            <div class="ai-summary-widget">
-                <div class="ai-summary-controls" data-bind="visible: question.allowRuntimeSelection">
-                    <button class="btn btn-sm btn-secondary" data-bind="click: selectFields">
-                        <span class="icon">📋</span> Select Fields
-                    </button>
-                    <button class="btn btn-sm btn-primary" data-bind="click: generateSummary, disable: isGenerating">
-                        <span class="icon">🤖</span>
-                        <span data-bind="text: isGenerating() ? question.loadingText : 'Generate Summary'"></span>
-                    </button>
-                </div>
-                <div class="ai-summary-content" data-bind="css: { 
-                    'seamless': question.displayMode === 'seamless',
-                    'highlighted': question.displayMode === 'highlighted',
-                    'expandable': question.displayMode === 'expandable',
-                    'collapsed': isCollapsed() && question.displayMode === 'expandable'
-                }">
-                    <div class="ai-summary-header" data-bind="visible: question.displayMode === 'expandable', click: toggleCollapse">
-                        <span class="icon" data-bind="text: isCollapsed() ? '▶' : '▼'"></span>
-                        <span>AI Summary</span>
-                    </div>
-                    <div class="ai-summary-body" data-bind="style: { minHeight: question.minHeight + 'px' }">
-                        <div class="ai-summary-placeholder" data-bind="visible: !summaryText() && !error() && !isGenerating()">
-                            <span data-bind="text: question.placeholder"></span>
-                        </div>
-                        <div class="ai-summary-loading" data-bind="visible: isGenerating">
-                            <div class="spinner"></div>
-                            <span data-bind="text: question.loadingText"></span>
-                        </div>
-                        <div class="ai-summary-error" data-bind="visible: error">
-                            <span class="icon">⚠️</span>
-                            <span data-bind="text: error() || question.errorText"></span>
-                            <button class="btn btn-sm btn-link" data-bind="click: generateSummary">Retry</button>
-                        </div>
-                        <div class="ai-summary-text" data-bind="visible: summaryText() && !isGenerating(), html: summaryText"></div>
-                    </div>
-                </div>
-                <!-- Hidden input to store the summary value -->
-                <input type="hidden" data-bind="value: question.value" />
-            </div>
-        `,
+        htmlTemplate: `<div class="ai-summary-widget"></div>`,
         afterRender: function(question, el) {
-            const model = {
-                question: question,
-                summaryText: ko.observable(''),
-                isGenerating: ko.observable(false),
-                error: ko.observable(''),
-                isCollapsed: ko.observable(false),
-                selectedFields: ko.observableArray(question.selectedFields || []),
+            // Create state variables without Knockout dependency
+            let summaryText = '';
+            let isGenerating = false;
+            let error = '';
+            let isCollapsed = false;
+            let selectedFields = question.selectedFields || [];
+            let generateTimeout = null;
+            
+            // Update UI function
+            function updateUI() {
+                // Update controls visibility
+                const controls = el.querySelector('.ai-summary-controls');
+                if (controls) {
+                    controls.style.display = question.allowRuntimeSelection ? 'flex' : 'none';
+                }
                 
-                selectFields: function() {
-                    // Show field selection modal
-                    showFieldSelectionModal();
-                },
+                // Update generate button state
+                const generateBtn = el.querySelector('button[data-action="generate"]');
+                if (generateBtn) {
+                    generateBtn.disabled = isGenerating;
+                    generateBtn.querySelector('span:last-child').textContent =
+                        isGenerating ? question.loadingText : 'Generate Summary';
+                }
                 
-                generateSummary: async function() {
-                    model.isGenerating(true);
-                    model.error('');
-                    
-                    try {
-                        // Get the survey data
-                        const survey = question.survey;
-                        const formData = {};
-                        
-                        // Collect data from selected fields
-                        model.selectedFields().forEach(fieldName => {
-                            const value = survey.getValue(fieldName);
-                            if (value !== undefined && value !== null && value !== '') {
-                                formData[fieldName] = value;
-                            }
-                        });
-                        
-                        // Check if we have any data to summarize
-                        if (Object.keys(formData).length === 0) {
-                            throw new Error('Please complete the selected fields before generating a summary');
-                        }
-                        
-                        // Call the AI summary API
-                        const response = await fetch('/api/ai/summary', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                formData: formData,
-                                templateId: survey.templateId || 'default',
-                                summaryType: question.summaryType || 'comprehensive'
-                            })
-                        });
-                        
-                        if (!response.ok) {
-                            const errorData = await response.json();
-                            throw new Error(errorData.error || 'Failed to generate summary');
-                        }
-                        
-                        const data = await response.json();
-                        model.summaryText(data.summary);
-                        question.value = data.summary;
-                        
-                    } catch (error) {
-                        console.error('Error generating summary:', error);
-                        model.error(error.message);
-                    } finally {
-                        model.isGenerating(false);
+                // Update content classes
+                const content = el.querySelector('.ai-summary-content');
+                if (content) {
+                    content.className = 'ai-summary-content';
+                    if (question.displayMode === 'seamless') content.classList.add('seamless');
+                    if (question.displayMode === 'highlighted') content.classList.add('highlighted');
+                    if (question.displayMode === 'expandable') {
+                        content.classList.add('expandable');
+                        if (isCollapsed) content.classList.add('collapsed');
                     }
-                },
+                }
                 
-                toggleCollapse: function() {
-                    model.isCollapsed(!model.isCollapsed());
-                },
+                // Update header visibility
+                const header = el.querySelector('.ai-summary-header');
+                if (header) {
+                    header.style.display = question.displayMode === 'expandable' ? 'flex' : 'none';
+                    const icon = header.querySelector('.icon');
+                    if (icon) icon.textContent = isCollapsed ? '▶' : '▼';
+                }
                 
-                showFieldSelectionModal: function() {
-                    // Create modal for field selection
-                    const modal = document.createElement('div');
-                    modal.className = 'ai-summary-field-modal';
-                    modal.innerHTML = `
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h3>Select Fields for AI Summary</h3>
-                                <button class="close-button" onclick="this.closest('.ai-summary-field-modal').remove()">×</button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="field-selection-list">
-                                    ${getAllAvailableFields().map(field => `
-                                        <label class="field-checkbox">
-                                            <input type="checkbox" 
-                                                   value="${field.name}"
-                                                   ${model.selectedFields().includes(field.name) ? 'checked' : ''}>
-                                            ${field.title || field.name}
-                                        </label>
-                                    `).join('')}
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button class="btn btn-secondary" onclick="this.closest('.ai-summary-field-modal').remove()">
-                                    Cancel
-                                </button>
-                                <button class="btn btn-primary" onclick="updateSelectedFields(this)">
-                                    Save Selection
-                                </button>
+                // Update body content
+                const placeholder = el.querySelector('.ai-summary-placeholder');
+                const loading = el.querySelector('.ai-summary-loading');
+                const errorDiv = el.querySelector('.ai-summary-error');
+                const textDiv = el.querySelector('.ai-summary-text');
+                
+                if (placeholder) placeholder.style.display = (!summaryText && !error && !isGenerating) ? 'block' : 'none';
+                if (loading) loading.style.display = isGenerating ? 'flex' : 'none';
+                if (errorDiv) {
+                    errorDiv.style.display = error ? 'flex' : 'none';
+                    if (error) errorDiv.querySelector('span:nth-child(2)').textContent = error || question.errorText;
+                }
+                if (textDiv) {
+                    textDiv.style.display = (summaryText && !isGenerating) ? 'block' : 'none';
+                    textDiv.innerHTML = summaryText;
+                }
+                
+                // Update hidden input
+                const hiddenInput = el.querySelector('input[type="hidden"]');
+                if (hiddenInput) {
+                    hiddenInput.value = question.value || summaryText;
+                }
+            }
+            
+            // Generate summary function
+            async function generateSummary() {
+                isGenerating = true;
+                error = '';
+                updateUI();
+                
+                try {
+                    const survey = question.survey;
+                    const formData = {};
+                    
+                    // Collect data from selected fields
+                    selectedFields.forEach(fieldName => {
+                        const value = survey.getValue(fieldName);
+                        if (value !== undefined && value !== null && value !== '') {
+                            formData[fieldName] = value;
+                        }
+                    });
+                    
+                    // Check if we have any data to summarize
+                    if (Object.keys(formData).length === 0) {
+                        throw new Error('Please complete the selected fields before generating a summary');
+                    }
+                    
+                    // Call the AI summary API
+                    const response = await fetch('/api/ai/summary', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            formData: formData,
+                            templateId: survey.templateId || 'default',
+                            summaryType: question.summaryType || 'comprehensive'
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Failed to generate summary');
+                    }
+                    
+                    const data = await response.json();
+                    summaryText = data.summary;
+                    question.value = data.summary;
+                    
+                } catch (err) {
+                    console.error('Error generating summary:', err);
+                    error = err.message;
+                } finally {
+                    isGenerating = false;
+                    updateUI();
+                }
+            }
+            
+            // Toggle collapse function
+            function toggleCollapse() {
+                isCollapsed = !isCollapsed;
+                updateUI();
+            }
+            
+            // Show field selection modal
+            function showFieldSelectionModal() {
+                const modal = document.createElement('div');
+                modal.className = 'ai-summary-field-modal';
+                modal.innerHTML = `
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>Select Fields for AI Summary</h3>
+                            <button class="close-button" onclick="this.closest('.ai-summary-field-modal').remove()">×</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="field-selection-list">
+                                ${getAllAvailableFields().map(field => `
+                                    <label class="field-checkbox">
+                                        <input type="checkbox"
+                                               value="${field.name}"
+                                               ${selectedFields.includes(field.name) ? 'checked' : ''}>
+                                        ${field.title || field.name}
+                                    </label>
+                                `).join('')}
                             </div>
                         </div>
-                    `;
-                    
-                    document.body.appendChild(modal);
-                    modal.style.display = 'block';
-                }
-            };
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" onclick="this.closest('.ai-summary-field-modal').remove()">
+                                Cancel
+                            </button>
+                            <button class="btn btn-primary" data-action="save-fields">
+                                Save Selection
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                // Add save handler
+                modal.querySelector('[data-action="save-fields"]').onclick = function() {
+                    const checkboxes = modal.querySelectorAll('input[type="checkbox"]:checked');
+                    selectedFields = Array.from(checkboxes).map(cb => cb.value);
+                    question.selectedFields = selectedFields;
+                    modal.remove();
+                };
+                
+                document.body.appendChild(modal);
+                modal.style.display = 'block';
+            }
             
             // Helper function to get all available fields
             function getAllAvailableFields() {
@@ -191,19 +217,51 @@
                 return fields;
             }
             
-            // Helper function to update selected fields
-            window.updateSelectedFields = function(button) {
-                const modal = button.closest('.ai-summary-field-modal');
-                const checkboxes = modal.querySelectorAll('input[type="checkbox"]:checked');
-                const selectedNames = Array.from(checkboxes).map(cb => cb.value);
-                
-                model.selectedFields(selectedNames);
-                question.selectedFields = selectedNames;
-                modal.remove();
-            };
+            // Replace Knockout template with plain HTML
+            el.innerHTML = `
+                <div class="ai-summary-widget">
+                    <div class="ai-summary-controls">
+                        <button class="btn btn-sm btn-secondary" data-action="select-fields">
+                            <span class="icon">📋</span> Select Fields
+                        </button>
+                        <button class="btn btn-sm btn-primary" data-action="generate">
+                            <span class="icon">🤖</span>
+                            <span>Generate Summary</span>
+                        </button>
+                    </div>
+                    <div class="ai-summary-content">
+                        <div class="ai-summary-header">
+                            <span class="icon">▼</span>
+                            <span>AI Summary</span>
+                        </div>
+                        <div class="ai-summary-body" style="min-height: ${question.minHeight || 100}px">
+                            <div class="ai-summary-placeholder">
+                                <span>${question.placeholder || 'Click "Generate Summary" to create an AI summary'}</span>
+                            </div>
+                            <div class="ai-summary-loading" style="display: none;">
+                                <div class="spinner"></div>
+                                <span>${question.loadingText || 'Generating summary...'}</span>
+                            </div>
+                            <div class="ai-summary-error" style="display: none;">
+                                <span class="icon">⚠️</span>
+                                <span></span>
+                                <button class="btn btn-sm btn-link" data-action="retry">Retry</button>
+                            </div>
+                            <div class="ai-summary-text" style="display: none;"></div>
+                        </div>
+                    </div>
+                    <input type="hidden" value="${question.value || ''}" />
+                </div>
+            `;
             
-            // Apply knockout bindings
-            ko.applyBindings(model, el);
+            // Attach event listeners
+            el.querySelector('[data-action="select-fields"]')?.addEventListener('click', showFieldSelectionModal);
+            el.querySelector('[data-action="generate"]')?.addEventListener('click', generateSummary);
+            el.querySelector('[data-action="retry"]')?.addEventListener('click', generateSummary);
+            el.querySelector('.ai-summary-header')?.addEventListener('click', toggleCollapse);
+            
+            // Initial UI update
+            updateUI();
             
             // Auto-generate summary if configured
             if (!question.allowRuntimeSelection && question.selectedFields && question.selectedFields.length > 0) {
@@ -213,10 +271,10 @@
                     if (fieldQuestion) {
                         fieldQuestion.valueChangedCallback = function() {
                             // Debounce the summary generation
-                            clearTimeout(model.generateTimeout);
-                            model.generateTimeout = setTimeout(() => {
-                                model.generateSummary();
-                            }, 1000);
+                            clearTimeout(generateTimeout);
+                            generateTimeout = setTimeout(() => {
+                                generateSummary();
+                            }, 3000); // 3 second delay as per requirements
                         };
                     }
                 });
