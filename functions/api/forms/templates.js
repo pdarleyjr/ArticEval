@@ -102,11 +102,12 @@ async function handleGetTemplates(env, templateId) {
       console.log('Executing templates list query...');
       const result = await env.DB.prepare(`
         SELECT ft.id, ft.name, ft.description, ft.sections, ft.created_by, ft.created_at, ft.updated_at,
+               ft.is_locked, ft.passcode,
                'Anonymous' as creator_name,
                COUNT(fs.id) as submission_count
         FROM form_templates ft
         LEFT JOIN form_submissions fs ON ft.id = fs.template_id
-        GROUP BY ft.id, ft.name, ft.description, ft.sections, ft.created_by, ft.created_at, ft.updated_at
+        GROUP BY ft.id, ft.name, ft.description, ft.sections, ft.created_by, ft.created_at, ft.updated_at, ft.is_locked, ft.passcode
         ORDER BY ft.updated_at DESC
       `).all();
       
@@ -193,45 +194,47 @@ async function handleGetTemplates(env, templateId) {
 
 /**
  * Handle POST requests - create new template
- */
-async function handleCreateTemplate(request, env) {
-  console.log('=== STARTING handleCreateTemplate ===');
-  try {
-    const data = await request.json();
-    console.log('Request data:', JSON.stringify(data, null, 2));
-    const { name, description, sections, createdBy } = data;
-    
-    // Validate required fields - only name is required for initial creation
-    if (!name) {
-      console.log('Validation failed: name is required');
-      return createResponse(false, 'Template name is required', null, 400);
-    }
-    
-    // Use empty sections array if not provided (for initial template creation)
-    const templateSections = sections || [];
-    console.log('Template sections:', JSON.stringify(templateSections, null, 2));
-    
-    // Validate sections structure only if sections are provided
-    if (templateSections.length > 0 && !isValidTemplateSections(templateSections)) {
-      console.log('Validation failed: invalid template sections');
-      return createResponse(false, 'Invalid template sections', null, 400);
-    }
-    
-    const now = new Date().toISOString();
-    console.log('Creating template with name:', name, 'description:', description, 'createdBy:', createdBy);
-    
-    // Insert new template
-    const result = await env.DB.prepare(`
-      INSERT INTO form_templates (name, description, sections, created_by, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `).bind(
-      name,
-      description || null,
-      JSON.stringify(templateSections),
-      createdBy || 'Anonymous', // Store creator name
-      now,
-      now
-    ).run();
+ async function handleCreateTemplate(request, env) {
+   console.log('=== STARTING handleCreateTemplate ===');
+   try {
+     const data = await request.json();
+     console.log('Request data:', JSON.stringify(data, null, 2));
+     const { name, description, sections, createdBy, isLocked, passcode } = data;
+     
+     // Validate required fields - only name is required for initial creation
+     if (!name) {
+       console.log('Validation failed: name is required');
+       return createResponse(false, 'Template name is required', null, 400);
+     }
+     
+     // Use empty sections array if not provided (for initial template creation)
+     const templateSections = sections || [];
+     console.log('Template sections:', JSON.stringify(templateSections, null, 2));
+     
+     // Validate sections structure only if sections are provided
+     if (templateSections.length > 0 && !isValidTemplateSections(templateSections)) {
+       console.log('Validation failed: invalid template sections');
+       return createResponse(false, 'Invalid template sections', null, 400);
+     }
+     
+     const now = new Date().toISOString();
+     console.log('Creating template with name:', name, 'description:', description, 'createdBy:', createdBy);
+     console.log('Lock status:', isLocked, 'Passcode provided:', !!passcode);
+     
+     // Insert new template with lock status
+     const result = await env.DB.prepare(`
+       INSERT INTO form_templates (name, description, sections, created_by, created_at, updated_at, is_locked, passcode)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+     `).bind(
+       name,
+       description || null,
+       JSON.stringify(templateSections),
+       createdBy || 'Anonymous', // Store creator name
+       now,
+       now,
+       isLocked ? 1 : 0,
+       passcode || null
+     ).run();
     
     console.log('Database insert result:', JSON.stringify(result, null, 2));
     
@@ -283,7 +286,7 @@ async function handleUpdateTemplate(request, env, templateId) {
     }
     
     const data = await request.json();
-    const { name, description, sections, createdBy } = data;
+    const { name, description, sections, createdBy, isLocked, passcode } = data;
     
     // Validate sections if provided
     if (sections && !isValidTemplateSections(sections)) {
@@ -292,13 +295,15 @@ async function handleUpdateTemplate(request, env, templateId) {
     
     const now = new Date().toISOString();
     
-    // Update template (including createdBy if provided)
+    // Update template (including createdBy and lock status if provided)
     const result = await env.DB.prepare(`
       UPDATE form_templates
       SET name = COALESCE(?, name),
           description = COALESCE(?, description),
           sections = COALESCE(?, sections),
           created_by = COALESCE(?, created_by),
+          is_locked = COALESCE(?, is_locked),
+          passcode = CASE WHEN ? IS NOT NULL THEN ? ELSE passcode END,
           updated_at = ?
       WHERE id = ?
     `).bind(
@@ -306,6 +311,9 @@ async function handleUpdateTemplate(request, env, templateId) {
       description !== undefined ? description : null,
       sections ? JSON.stringify(sections) : null,
       createdBy || null,
+      isLocked !== undefined ? (isLocked ? 1 : 0) : null,
+      isLocked !== undefined ? 1 : null,
+      passcode || null,
       now,
       templateId
     ).run();

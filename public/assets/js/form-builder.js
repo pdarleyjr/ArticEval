@@ -22,7 +22,9 @@ class IPLCFormBuilder {
                 name: 'page1',
                 title: 'Page 1',
                 elements: []
-            }]
+            }],
+            isFormLocked: false,
+            formPasscode: ''
         };
         this.currentPageIndex = 0;
         this.selectedElement = null;
@@ -80,6 +82,9 @@ class IPLCFormBuilder {
                         <span style="width: 1px; height: 24px; background: #ddd; margin: 0 0.5rem;"></span>
                         <button class="btn btn-secondary" onclick="formBuilder.preview()">
                             <span class="icon">👁️</span> Preview
+                        </button>
+                        <button class="btn btn-warning" onclick="formBuilder.toggleFormLock()" title="Lock/Unlock Form">
+                            <span class="icon" id="lockIcon">🔓</span> <span id="lockText">Lock Form</span>
                         </button>
                         <button class="btn btn-primary" onclick="formBuilder.save()">
                             <span class="icon">💾</span> Save Form
@@ -703,6 +708,11 @@ class IPLCFormBuilder {
     }
 
     addElement(type, isCustom = false) {
+        // Check if form is locked
+        if (this.checkFormLocked()) {
+            return;
+        }
+        
         this.saveToHistory();
         const element = isCustom ? this.createCustomElement(type) : this.createDefaultElement(type);
         const currentPage = this.formData.pages[this.currentPageIndex];
@@ -1499,6 +1509,11 @@ class IPLCFormBuilder {
     }
 
     deleteElement(index) {
+        // Check if form is locked
+        if (this.checkFormLocked()) {
+            return;
+        }
+        
         this.saveToHistory();
         this.formData.pages[this.currentPageIndex].elements.splice(index, 1);
         this.selectedElement = null;
@@ -1509,6 +1524,11 @@ class IPLCFormBuilder {
     }
 
     duplicateElement(index) {
+        // Check if form is locked
+        if (this.checkFormLocked()) {
+            return;
+        }
+        
         const element = this.formData.pages[this.currentPageIndex].elements[index];
         const duplicate = JSON.parse(JSON.stringify(element));
         duplicate.name = `${duplicate.name}_copy_${Date.now()}`;
@@ -1626,7 +1646,10 @@ class IPLCFormBuilder {
                 sections: formData.pages,
                 createdBy: formData.createdBy || 'Unknown',
                 // Include showLogo setting if it exists
-                ...(formData.showLogo !== undefined && { showLogo: formData.showLogo })
+                ...(formData.showLogo !== undefined && { showLogo: formData.showLogo }),
+                // Include lock state
+                isLocked: formData.isFormLocked || false,
+                passcode: formData.formPasscode || ''
             };
 
             const method = this.options.templateId ? 'PUT' : 'POST';
@@ -1828,7 +1851,10 @@ class IPLCFormBuilder {
                         elements: []
                     }],
                     // Preserve showLogo setting if it exists
-                    ...(template.showLogo !== undefined && { showLogo: template.showLogo })
+                    ...(template.showLogo !== undefined && { showLogo: template.showLogo }),
+                    // Restore lock state if it exists
+                    isFormLocked: template.isLocked || false,
+                    formPasscode: template.passcode || ''
                 };
             }
             
@@ -1838,6 +1864,17 @@ class IPLCFormBuilder {
                 if (creatorInput) {
                     creatorInput.value = template.created_by;
                 }
+            }
+            
+            // Re-initialize drag and drop after template is loaded
+            // Use setTimeout to ensure DOM is fully updated
+            setTimeout(() => {
+                this.setupDragAndDrop();
+            }, 100);
+            
+            // Update lock UI if form is locked
+            if (this.formData.isFormLocked) {
+                this.updateLockUI();
             }
         } catch (error) {
             console.error('Error loading template:', error);
@@ -2276,6 +2313,95 @@ class IPLCFormBuilder {
         
         this.hasUnsavedChanges = true;
         this.debouncedSave();
+    }
+
+    // Toggle form lock/unlock
+    toggleFormLock() {
+        if (this.formData.isFormLocked) {
+            // Unlock the form
+            const passcode = prompt('Enter passcode to unlock form:');
+            if (passcode === this.formData.formPasscode) {
+                this.formData.isFormLocked = false;
+                this.updateLockUI();
+                this.showNotification('Form unlocked successfully', 'success');
+                this.hasUnsavedChanges = true;
+                this.debouncedSave();
+            } else if (passcode !== null) { // User didn't cancel
+                this.showNotification('Incorrect passcode', 'error');
+            }
+        } else {
+            // Lock the form
+            const passcode = prompt('Enter a passcode to lock this form:');
+            if (passcode && passcode.trim() !== '') {
+                const confirmPasscode = prompt('Confirm passcode:');
+                if (passcode === confirmPasscode) {
+                    this.formData.isFormLocked = true;
+                    this.formData.formPasscode = passcode;
+                    this.updateLockUI();
+                    this.showNotification('Form locked successfully', 'success');
+                    this.hasUnsavedChanges = true;
+                    this.debouncedSave();
+                } else if (confirmPasscode !== null) { // User didn't cancel
+                    this.showNotification('Passcodes do not match', 'error');
+                }
+            }
+        }
+    }
+
+    // Update lock UI
+    updateLockUI() {
+        const lockIcon = document.getElementById('lockIcon');
+        const lockText = document.getElementById('lockText');
+        const lockButton = document.querySelector('[onclick="formBuilder.toggleFormLock()"]');
+        
+        if (this.formData.isFormLocked) {
+            if (lockIcon) lockIcon.textContent = '🔒';
+            if (lockText) lockText.textContent = 'Unlock Form';
+            if (lockButton) lockButton.classList.add('locked');
+            
+            // Disable editing controls
+            const draggables = document.querySelectorAll('.draggable-element');
+            draggables.forEach(el => {
+                el.setAttribute('draggable', 'false');
+                el.style.opacity = '0.6';
+                el.style.cursor = 'not-allowed';
+            });
+            
+            // Show lock indicator on form elements
+            const formElements = document.querySelectorAll('.form-element');
+            formElements.forEach(el => {
+                el.style.opacity = '0.8';
+                el.style.pointerEvents = 'none';
+            });
+        } else {
+            if (lockIcon) lockIcon.textContent = '🔓';
+            if (lockText) lockText.textContent = 'Lock Form';
+            if (lockButton) lockButton.classList.remove('locked');
+            
+            // Enable editing controls
+            const draggables = document.querySelectorAll('.draggable-element');
+            draggables.forEach(el => {
+                el.setAttribute('draggable', 'true');
+                el.style.opacity = '1';
+                el.style.cursor = 'move';
+            });
+            
+            // Enable form elements
+            const formElements = document.querySelectorAll('.form-element');
+            formElements.forEach(el => {
+                el.style.opacity = '1';
+                el.style.pointerEvents = 'auto';
+            });
+        }
+    }
+
+    // Check if form is locked before allowing edits
+    checkFormLocked() {
+        if (this.formData.isFormLocked) {
+            this.showNotification('Form is locked. Unlock it to make changes.', 'warning');
+            return true;
+        }
+        return false;
     }
 
     // Register custom question types with Survey.js
