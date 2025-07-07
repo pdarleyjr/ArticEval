@@ -1486,12 +1486,14 @@ class IPLCFormBuilder {
                 return;
             }
 
-            const formData = this.getFormData();
+            const formData = this.getFormDataWithLogo();
             const templateData = {
                 name: formData.title,
                 description: formData.description || '',
                 sections: formData.pages,
-                createdBy: formData.createdBy || 'Unknown'
+                createdBy: formData.createdBy || 'Unknown',
+                // Include showLogo setting if it exists
+                ...(formData.showLogo !== undefined && { showLogo: formData.showLogo })
             };
 
             const method = this.options.templateId ? 'PUT' : 'POST';
@@ -1691,7 +1693,9 @@ class IPLCFormBuilder {
                         name: 'page1',
                         title: 'Page 1',
                         elements: []
-                    }]
+                    }],
+                    // Preserve showLogo setting if it exists
+                    ...(template.showLogo !== undefined && { showLogo: template.showLogo })
                 };
             }
             

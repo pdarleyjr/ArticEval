@@ -85,7 +85,7 @@ header {
 }
 
 .logo-header img {
-    width: 800px !important; /* IPLC logo size - 800px */
+    width: 300px !important; /* IPLC logo size */
     height: auto !important;
     display: block !important;
     margin: 0 0 20px 0 !important;
@@ -300,7 +300,7 @@ li {
 
     /* Logo specific print styling */
     .logo-header img {
-        width: 800px !important;
+        width: 300px !important;
         height: auto !important;
         display: block !important;
         margin: 0 0 20px 0 !important;
