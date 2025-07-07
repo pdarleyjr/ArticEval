@@ -256,8 +256,10 @@ class IPLCFormBuilder {
             <div class="category">
                 <h4>${category.name}</h4>
                 ${category.elements.map(el => `
-                    <div class="draggable-element" data-type="${el.type}" 
-                         ${el.custom ? 'data-custom="true"' : ''} draggable="true">
+                    <div class="draggable-element" data-type="${el.type}"
+                         ${el.custom ? 'data-custom="true"' : ''}
+                         ${el.category ? `data-category="${el.category}"` : ''}
+                         draggable="true">
                         <span class="icon">${el.icon}</span> ${el.label}
                     </div>
                 `).join('')}
