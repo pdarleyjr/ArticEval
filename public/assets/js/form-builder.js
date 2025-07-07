@@ -151,7 +151,7 @@ class IPLCFormBuilder {
                                     Show IPLC Logo
                                 </label>
                                 <small style="display: block; color: #666; margin-top: 0.25rem;">
-                                    Displays the IPLC logo at the top of the form (800px width)
+                                    Displays the IPLC logo at the top of the form
                                 </small>
                             </div>
                         </div>
@@ -1471,9 +1471,10 @@ class IPLCFormBuilder {
         if (formData.showLogo !== false) {
             // Apply default logo configuration
             formData.logo = "/assets/images/iplc-logo.png";
-            formData.logoWidth = "800px";
-            formData.logoHeight = "auto";
+            formData.logoWidth = "auto";  // Let Survey.js calculate based on height
+            formData.logoHeight = "60px";  // Reasonable height for form header
             formData.logoPosition = "left";
+            formData.logoFit = "contain";  // Ensure logo maintains aspect ratio
         }
         
         return formData;
