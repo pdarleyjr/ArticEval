@@ -7,6 +7,26 @@ import { Document } from '@langchain/core/documents';
 
 const app = new Hono();
 
+// Helper function for safe JSON parsing
+async function safeJson(req) {
+  try {
+    return await req.json();
+  } catch (error) {
+    console.error('[safeJson] JSON parsing error:', error);
+    throw new Error('Invalid JSON in request body');
+  }
+}
+
+// Helper function for safe JSON parsing from string
+function safeJsonParse(jsonString, defaultValue = null) {
+  try {
+    return JSON.parse(jsonString);
+  } catch (error) {
+    console.error('[safeJsonParse] JSON parsing error:', error);
+    return defaultValue;
+  }
+}
+
 // Helper function for exponential backoff retry
 async function retryWithBackoff(fn, maxRetries = 3, initialDelay = 1000) {
   let lastError;
@@ -103,26 +123,33 @@ app.get('/health', async (c) => {
 app.post('/load', async (c) => {
   console.log('Load endpoint called');
   try {
-    // Rate limiting check
-    if (c.env.RATE_LIMITER) {
-      // Use IP address as the rate limiting key
-      const clientIP = c.req.header('CF-Connecting-IP') || c.req.header('X-Forwarded-For') || 'unknown';
-      const rateLimitKey = `load:${clientIP}`;
+    // Rate limiting check using KV storage
+    const clientIP = c.req.header('CF-Connecting-IP') || c.req.header('X-Forwarded-For') || 'unknown';
+    const rateLimitKey = `rate_limit:load:${clientIP}`;
+    const rateLimitWindow = 60; // seconds
+    const rateLimitMax = 10; // requests per window
+    
+    try {
+      // Get current count from KV
+      const currentCount = await c.env.CHAT_METADATA.get(rateLimitKey);
+      const count = currentCount ? parseInt(currentCount) : 0;
       
-      try {
-        const { success } = await c.env.RATE_LIMITER.limit({ key: rateLimitKey });
-        if (!success) {
-          console.error(`[Load] Rate limit exceeded for IP: ${clientIP}`);
-          return c.json({
-            error: 'Rate limit exceeded',
-            message: 'Too many requests. Please try again later.',
-            retryAfter: 60 // seconds
-          }, 429);
-        }
-      } catch (rateLimitError) {
-        console.error('[Load] Rate limiting error:', rateLimitError);
-        // Continue without rate limiting if there's an error
+      if (count >= rateLimitMax) {
+        console.error(`[Load] Rate limit exceeded for IP: ${clientIP}`);
+        return c.json({
+          error: 'Rate limit exceeded',
+          message: 'Too many requests. Please try again later.',
+          retryAfter: rateLimitWindow
+        }, 429);
       }
+      
+      // Increment count and store with TTL
+      await c.env.CHAT_METADATA.put(rateLimitKey, String(count + 1), {
+        expirationTtl: rateLimitWindow
+      });
+    } catch (rateLimitError) {
+      console.error('[Load] Rate limiting error:', rateLimitError);
+      // Continue without rate limiting if there's an error
     }
     
     // Check bindings first
@@ -133,7 +160,7 @@ app.post('/load', async (c) => {
     
     let chunks;
     try {
-      const body = await c.req.json();
+      const body = await safeJson(c.req);
       chunks = body.chunks;
     } catch (jsonError) {
       console.error('Invalid JSON in request body:', jsonError);
@@ -216,26 +243,33 @@ app.post('/', async (c) => {
   console.log('[Main] Request headers:', Object.fromEntries(c.req.headers.entries()));
   
   try {
-    // Rate limiting check
-    if (c.env.RATE_LIMITER) {
-      // Use IP address as the rate limiting key
-      const clientIP = c.req.header('CF-Connecting-IP') || c.req.header('X-Forwarded-For') || 'unknown';
-      const rateLimitKey = `chat:${clientIP}`;
+    // Rate limiting check using KV storage
+    const clientIP = c.req.header('CF-Connecting-IP') || c.req.header('X-Forwarded-For') || 'unknown';
+    const rateLimitKey = `rate_limit:chat:${clientIP}`;
+    const rateLimitWindow = 60; // seconds
+    const rateLimitMax = 10; // requests per window
+    
+    try {
+      // Get current count from KV
+      const currentCount = await c.env.CHAT_METADATA.get(rateLimitKey);
+      const count = currentCount ? parseInt(currentCount) : 0;
       
-      try {
-        const { success } = await c.env.RATE_LIMITER.limit({ key: rateLimitKey });
-        if (!success) {
-          console.error(`[Main] Rate limit exceeded for IP: ${clientIP}`);
-          return c.json({
-            error: 'Rate limit exceeded',
-            message: 'Too many chat requests. Please wait a moment before trying again.',
-            retryAfter: 60 // seconds
-          }, 429);
-        }
-      } catch (rateLimitError) {
-        console.error('[Main] Rate limiting error:', rateLimitError);
-        // Continue without rate limiting if there's an error
+      if (count >= rateLimitMax) {
+        console.error(`[Main] Rate limit exceeded for IP: ${clientIP}`);
+        return c.json({
+          error: 'Rate limit exceeded',
+          message: 'Too many chat requests. Please wait a moment before trying again.',
+          retryAfter: rateLimitWindow
+        }, 429);
       }
+      
+      // Increment count and store with TTL
+      await c.env.CHAT_METADATA.put(rateLimitKey, String(count + 1), {
+        expirationTtl: rateLimitWindow
+      });
+    } catch (rateLimitError) {
+      console.error('[Main] Rate limiting error:', rateLimitError);
+      // Continue without rate limiting if there's an error
     }
     
     // Check bindings first
@@ -253,7 +287,7 @@ app.post('/', async (c) => {
     
     let message, conversationId;
     try {
-      const body = await c.req.json();
+      const body = await safeJson(c.req);
       message = body.message;
       conversationId = body.conversationId;
     } catch (jsonError) {
@@ -369,14 +403,14 @@ ${context}`;
         let conversation = { messages: [] };
         
         // Try to get existing conversation
-        try {
-          const existingConversation = await c.env.CHAT_METADATA.get(conversationKey);
-          if (existingConversation) {
-            conversation = JSON.parse(existingConversation);
+        const existingConversation = await c.env.CHAT_METADATA.get(conversationKey);
+        if (existingConversation) {
+          const parsedConversation = safeJsonParse(existingConversation, null);
+          if (parsedConversation && parsedConversation.messages) {
+            conversation = parsedConversation;
+          } else {
+            console.log('[Main] Invalid conversation data, starting fresh');
           }
-        } catch (parseError) {
-          console.log('[Main] No existing conversation found or error parsing:', parseError);
-          // Continue with empty conversation
         }
         
         // Add user message

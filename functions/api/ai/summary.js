@@ -1,5 +1,25 @@
 import { createResponse, handleCORS } from '../../utils/api-utils.js';
 
+// Helper function for safe JSON parsing
+async function safeJson(req) {
+  try {
+    return await req.json();
+  } catch (error) {
+    console.error('[safeJson] JSON parsing error:', error);
+    throw new Error('Invalid JSON in request body');
+  }
+}
+
+// Helper function for safe JSON parsing from string
+function safeJsonParse(jsonString, defaultValue = null) {
+  try {
+    return JSON.parse(jsonString);
+  } catch (error) {
+    console.error('[safeJsonParse] JSON parsing error:', error);
+    return defaultValue;
+  }
+}
+
 export async function onRequest(context) {
   const { request, env } = context;
   
@@ -28,7 +48,7 @@ export async function onRequest(context) {
  */
 async function handleGenerateSummary(request, env) {
   try {
-    const data = await request.json();
+    const data = await safeJson(request);
     const { formData, templateId, summaryType = 'comprehensive' } = data;
     
     // Validate required fields
@@ -89,7 +109,7 @@ async function handleGenerateSummary(request, env) {
  */
 async function handleRefineeSummary(request, env) {
   try {
-    const data = await request.json();
+    const data = await safeJson(request);
     const { summaryId, feedback, refinementType = 'correction' } = data;
     
     if (!summaryId || !feedback) {
@@ -106,7 +126,10 @@ async function handleRefineeSummary(request, env) {
     }
     
     // Parse original data
-    const originalData = JSON.parse(originalSummary.form_data);
+    const originalData = safeJsonParse(originalSummary.form_data, {});
+    if (!originalData || Object.keys(originalData).length === 0) {
+      return createResponse({ success: false, message: 'Invalid form data in original summary' }, 400);
+    }
     const clinicalContext = extractClinicalContext(originalData);
     
     // Generate refinement prompt
