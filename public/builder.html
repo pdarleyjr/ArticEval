@@ -708,7 +708,40 @@
             
             // Create survey preview
             const survey = new Survey.Model(formJson);
+            
+            // CRITICAL: Set survey to display mode to prevent any editing controls
+            survey.mode = "display";
+            survey.showNavigationButtons = true;
+            survey.showProgressBar = "top";
+            survey.showCompletedPage = false;
+            
+            // Remove any design-time elements after render
+            survey.onAfterRenderPage.add((sender, options) => {
+                // Clean up any design/edit controls that shouldn't be in preview
+                const designElements = options.htmlElement.querySelectorAll(
+                    '.sv-action-bar, .sv-designer-button, .sd-element__add-button, ' +
+                    '.sd-page__add-button, .sv-action-bar-item, .sv-add-new-page-btn, ' +
+                    '[class*="designer"], [class*="add-new"], [class*="add-button"]'
+                );
+                designElements.forEach(el => el.remove());
+            });
+            
             survey.render(surveyContainer);
+            
+            // Additional cleanup after render
+            setTimeout(() => {
+                // Remove any remaining "Add" buttons or editing controls
+                const editControls = surveyContainer.querySelectorAll(
+                    'button, [role="button"]'
+                );
+                editControls.forEach(el => {
+                    const text = el.textContent || el.innerText || '';
+                    if (text.toLowerCase().includes('add') ||
+                        el.classList.toString().toLowerCase().includes('add')) {
+                        el.remove();
+                    }
+                });
+            }, 100);
         }
         
         // Close preview

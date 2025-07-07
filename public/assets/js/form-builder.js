@@ -966,6 +966,84 @@ class IPLCFormBuilder {
                     transform: rotate(360deg);
                 }
             }
+            
+            /* Hide all design-time elements in preview mode */
+            .preview-modal .sv-action-bar,
+            #surveyPreview .sv-action-bar,
+            #preview-survey .sv-action-bar {
+                display: none !important;
+                visibility: hidden !important;
+            }
+            
+            .preview-modal .sv-designer-button,
+            #surveyPreview .sv-designer-button,
+            #preview-survey .sv-designer-button {
+                display: none !important;
+                visibility: hidden !important;
+            }
+            
+            .preview-modal .sd-element__add-button,
+            #surveyPreview .sd-element__add-button,
+            #preview-survey .sd-element__add-button {
+                display: none !important;
+                visibility: hidden !important;
+            }
+            
+            .preview-modal .sd-page__add-button,
+            #surveyPreview .sd-page__add-button,
+            #preview-survey .sd-page__add-button {
+                display: none !important;
+                visibility: hidden !important;
+            }
+            
+            .preview-modal .sv-action-bar-item,
+            #surveyPreview .sv-action-bar-item,
+            #preview-survey .sv-action-bar-item {
+                display: none !important;
+                visibility: hidden !important;
+            }
+            
+            .preview-modal .sv-add-new-page-btn,
+            #surveyPreview .sv-add-new-page-btn,
+            #preview-survey .sv-add-new-page-btn {
+                display: none !important;
+                visibility: hidden !important;
+            }
+            
+            .preview-modal [class*="designer"],
+            #surveyPreview [class*="designer"],
+            #preview-survey [class*="designer"] {
+                display: none !important;
+                visibility: hidden !important;
+            }
+            
+            .preview-modal [class*="add-new"],
+            #surveyPreview [class*="add-new"],
+            #preview-survey [class*="add-new"] {
+                display: none !important;
+                visibility: hidden !important;
+            }
+            
+            .preview-modal [class*="add-button"],
+            #surveyPreview [class*="add-button"],
+            #preview-survey [class*="add-button"] {
+                display: none !important;
+                visibility: hidden !important;
+            }
+            
+            .preview-modal .add-page-btn,
+            #surveyPreview .add-page-btn,
+            #preview-survey .add-page-btn {
+                display: none !important;
+                visibility: hidden !important;
+            }
+            
+            .preview-modal button[title*="Add"],
+            #surveyPreview button[title*="Add"],
+            #preview-survey button[title*="Add"] {
+                display: none !important;
+                visibility: hidden !important;
+            }
         `;
         document.head.appendChild(styles);
     }
