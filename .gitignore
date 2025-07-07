@@ -38,3 +38,8 @@ IPLC GitHub Eval.code-workspace
 # Generated log files from scripts
 scripts/loading-log.json
 scripts/chat-verification-report.json
+
+# Playwright test artifacts
+test-results/
+playwright-report/
+playwright/.cache/
