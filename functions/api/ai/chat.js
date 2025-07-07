@@ -1,5 +1,3 @@
-/// <reference types="@cloudflare/workers-types" />
-
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { CloudflareVectorizeStore } from '@langchain/cloudflare';
@@ -7,26 +5,7 @@ import { CloudflareWorkersAIEmbeddings } from '@langchain/cloudflare';
 import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
 import { Document } from '@langchain/core/documents';
 
-interface Env {
-  VECTORIZE: VectorizeIndex;
-  CHAT_METADATA: KVNamespace;
-  AI: Ai;
-}
-
-interface LoadRequest {
-  chunks: Array<{
-    id: string;
-    text: string;
-    metadata?: Record<string, any>;
-  }>;
-}
-
-interface ChatRequest {
-  message: string;
-  conversationId?: string;
-}
-
-const app = new Hono<{ Bindings: Env }>();
+const app = new Hono();
 
 // Apply CORS to all routes
 app.use('/*', cors({
@@ -71,7 +50,7 @@ app.post('/load', async (c) => {
     console.log('VECTORIZE binding available:', !!c.env.VECTORIZE);
     console.log('CHAT_METADATA binding available:', !!c.env.CHAT_METADATA);
     
-    const { chunks } = await c.req.json<LoadRequest>();
+    const { chunks } = await c.req.json();
     console.log(`Received ${chunks?.length || 0} chunks to load`);
     
     if (!chunks || !Array.isArray(chunks)) {
@@ -81,7 +60,7 @@ app.post('/load', async (c) => {
     console.log('Creating embeddings instance...');
     // Create embeddings for data loading
     const embeddings = new CloudflareWorkersAIEmbeddings({
-      binding: c.env.AI as any, // Type casting to handle conflicting Response types
+      binding: c.env.AI,
       modelName: '@cf/baai/bge-base-en-v1.5',
     });
 
@@ -145,7 +124,7 @@ app.post('/', async (c) => {
     console.log('VECTORIZE binding available:', !!c.env.VECTORIZE);
     console.log('CHAT_METADATA binding available:', !!c.env.CHAT_METADATA);
     
-    const { message, conversationId } = await c.req.json<ChatRequest>();
+    const { message, conversationId } = await c.req.json();
     console.log(`Received message: "${message}", conversationId: ${conversationId}`);
     
     if (!message) {
@@ -155,7 +134,7 @@ app.post('/', async (c) => {
     console.log('Creating embeddings instance...');
     // Initialize embeddings with BGE model
     const embeddings = new CloudflareWorkersAIEmbeddings({
-      binding: c.env.AI as any, // Type casting to handle conflicting Response types
+      binding: c.env.AI,
       modelName: '@cf/baai/bge-base-en-v1.5',
     });
 
@@ -192,7 +171,7 @@ ${context}`;
       ],
       temperature: 0.7,
       max_tokens: 500
-    }) as any;
+    });
     
     console.log('AI response generated successfully');
     console.log('AI response type:', typeof aiResponse);
