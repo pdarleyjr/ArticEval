@@ -709,8 +709,7 @@
             // Create survey preview
             const survey = new Survey.Model(formJson);
             
-            // CRITICAL: Set survey to display mode to prevent any editing controls
-            survey.mode = "display";
+            // Keep survey interactive - DO NOT set to display mode
             survey.showNavigationButtons = true;
             survey.showProgressBar = "top";
             survey.showCompletedPage = false;
