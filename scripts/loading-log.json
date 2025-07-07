@@ -1,0 +1,134 @@
+[
+  {
+    "timestamp": "2025-07-07T17:21:26.821Z",
+    "chunksLoaded": 0,
+    "chunksFailed": 164,
+    "totalDocuments": 164,
+    "success": false,
+    "source": "C:\\Users\\Peter Darley\\Desktop\\IPLC GitHub Eval\\IPLC_SOP_Chunks.json",
+    "batchSize": 50,
+    "errors": [
+      {
+        "batch": 1,
+        "error": "fetch failed"
+      },
+      {
+        "batch": 2,
+        "error": "fetch failed"
+      },
+      {
+        "batch": 3,
+        "error": "fetch failed"
+      },
+      {
+        "batch": 4,
+        "error": "fetch failed"
+      }
+    ]
+  },
+  {
+    "timestamp": "2025-07-07T17:21:26.830Z",
+    "error": "Failed to load 164 documents. Check logs for details.",
+    "success": false,
+    "source": "C:\\Users\\Peter Darley\\Desktop\\IPLC GitHub Eval\\IPLC_SOP_Chunks.json"
+  },
+  {
+    "timestamp": "2025-07-07T17:25:43.525Z",
+    "chunksLoaded": 0,
+    "chunksFailed": 164,
+    "totalDocuments": 164,
+    "success": false,
+    "source": "C:\\Users\\Peter Darley\\Desktop\\IPLC GitHub Eval\\IPLC_SOP_Chunks.json",
+    "batchSize": 50,
+    "errors": [
+      {
+        "batch": 1,
+        "error": "API request failed: 404 - Not found"
+      },
+      {
+        "batch": 2,
+        "error": "API request failed: 404 - Not found"
+      },
+      {
+        "batch": 3,
+        "error": "API request failed: 404 - Not found"
+      },
+      {
+        "batch": 4,
+        "error": "API request failed: 404 - Not found"
+      }
+    ]
+  },
+  {
+    "timestamp": "2025-07-07T17:25:43.528Z",
+    "error": "Failed to load 164 documents. Check logs for details.",
+    "success": false,
+    "source": "C:\\Users\\Peter Darley\\Desktop\\IPLC GitHub Eval\\IPLC_SOP_Chunks.json"
+  },
+  {
+    "timestamp": "2025-07-07T17:48:23.091Z",
+    "chunksLoaded": 0,
+    "chunksFailed": 164,
+    "totalDocuments": 164,
+    "success": false,
+    "source": "C:\\Users\\Peter Darley\\Desktop\\IPLC GitHub Eval\\IPLC_SOP_Chunks.json",
+    "batchSize": 50,
+    "errors": [
+      {
+        "batch": 1,
+        "error": "API request failed: 405 - "
+      },
+      {
+        "batch": 2,
+        "error": "API request failed: 405 - "
+      },
+      {
+        "batch": 3,
+        "error": "API request failed: 405 - "
+      },
+      {
+        "batch": 4,
+        "error": "API request failed: 405 - "
+      }
+    ]
+  },
+  {
+    "timestamp": "2025-07-07T17:48:23.095Z",
+    "error": "Failed to load 164 documents. Check logs for details.",
+    "success": false,
+    "source": "C:\\Users\\Peter Darley\\Desktop\\IPLC GitHub Eval\\IPLC_SOP_Chunks.json"
+  },
+  {
+    "timestamp": "2025-07-07T17:50:53.365Z",
+    "chunksLoaded": 0,
+    "chunksFailed": 164,
+    "totalDocuments": 164,
+    "success": false,
+    "source": "C:\\Users\\Peter Darley\\Desktop\\IPLC GitHub Eval\\IPLC_SOP_Chunks.json",
+    "batchSize": 50,
+    "errors": [
+      {
+        "batch": 1,
+        "error": "API request failed: 405 - "
+      },
+      {
+        "batch": 2,
+        "error": "API request failed: 405 - "
+      },
+      {
+        "batch": 3,
+        "error": "API request failed: 405 - "
+      },
+      {
+        "batch": 4,
+        "error": "API request failed: 405 - "
+      }
+    ]
+  },
+  {
+    "timestamp": "2025-07-07T17:50:53.369Z",
+    "error": "Failed to load 164 documents. Check logs for details.",
+    "success": false,
+    "source": "C:\\Users\\Peter Darley\\Desktop\\IPLC GitHub Eval\\IPLC_SOP_Chunks.json"
+  }
+]

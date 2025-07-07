@@ -16,8 +16,12 @@ index_name = "chat-knowledge-index"
 
 # KV namespace for chat metadata
 [[kv_namespaces]]
-binding = "chat_metadata"
+binding = "CHAT_METADATA"
 id = "29cc6219f29d48d1a5ddd38dcda1a0f0"
+
+# Workers AI binding for embeddings
+[ai]
+binding = "AI"
 
 # Production environment
 [env.production]
@@ -31,5 +35,8 @@ binding = "VECTORIZE"
 index_name = "chat-knowledge-index"
 
 [[env.production.kv_namespaces]]
-binding = "chat_metadata"
+binding = "CHAT_METADATA"
 id = "29cc6219f29d48d1a5ddd38dcda1a0f0"
+
+[env.production.ai]
+binding = "AI"

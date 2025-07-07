@@ -10,9 +10,15 @@
     "test-articulation": "npx serve . -l 3001",
     "test-articulation-node": "node test-articulation-info.js",
     "db:init": "wrangler d1 execute iplc-eval-db --env production --remote --file=schema.sql",
-    "db:reset": "wrangler d1 execute iplc-eval-db --env production --remote --command=\"DROP TABLE IF EXISTS users; DROP TABLE IF EXISTS form_templates; DROP TABLE IF EXISTS form_submissions; DROP TABLE IF EXISTS user_sessions; DROP TABLE IF EXISTS form_analytics; DROP TABLE IF EXISTS ai_summaries; DROP TABLE IF EXISTS ai_feedback;\" && npm run db:init"
+    "db:reset": "wrangler d1 execute iplc-eval-db --env production --remote --command=\"DROP TABLE IF EXISTS users; DROP TABLE IF EXISTS form_templates; DROP TABLE IF EXISTS form_submissions; DROP TABLE IF EXISTS user_sessions; DROP TABLE IF EXISTS form_analytics; DROP TABLE IF EXISTS ai_summaries; DROP TABLE IF EXISTS ai_feedback;\" && npm run db:init",
+    "chat:load": "node scripts/loadChatData.js",
+    "chat:load:prod": "API_ENDPOINT=https://articeval.iplc.legal/api/ai/chat/load node scripts/loadChatData.js"
   },
   "dependencies": {
+    "@langchain/cloudflare": "^0.1.0",
+    "@langchain/core": "^0.3.62",
+    "@langchain/textsplitters": "^0.1.0",
+    "hono": "^4.8.4",
     "jspdf": "^3.0.0",
     "serve": "^14.2.1"
   },
@@ -39,6 +45,7 @@
     ]
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250705.0",
     "esbuild": "^0.21.0",
     "wrangler": "^4.23.0"
   }

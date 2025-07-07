@@ -1,23 +1,22 @@
 {
   "compilerOptions": {
+    "target": "es2015",
+    "module": "commonjs",
     "checkJs": false,
     "allowJs": true,
-    "target": "es2020",
-    "module": "esnext",
-    "moduleResolution": "node",
-    "lib": ["es2020", "dom"],
+    "noEmit": true,
     "strict": false,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": false
+    "forceConsistentCasingInFileNames": true
   },
   "exclude": [
     "node_modules",
-    "dist",
-    "build",
-    "functions"
+    "**/node_modules/*",
+    "public/assets/js/form-builder.js"
   ],
   "include": [
-    "public/**/*"
+    "public/**/*",
+    "functions/**/*"
   ]
 }

@@ -61,6 +61,7 @@ class IPLCFormBuilder {
         this.addComplexEditorStyles();
         this.restorePanelState();
         this.setupTouchGestures();
+        this.initializeAutoPagination();
     }
     
     // Restore properties panel state from localStorage
@@ -485,12 +486,133 @@ class IPLCFormBuilder {
                 transition: all 0.2s ease;
                 position: relative;
             }
+            
+            .form-element.panel-element {
+                background: linear-gradient(to right, #f8f9fa 0%, white 10%);
+                border-left: 4px solid #3498db;
+            }
+            
+            .form-element.pre-configured {
+                border-left-color: #28a745;
+            }
+            
+            /* Enhanced panel-specific styling */
+            .panel-element {
+                position: relative;
+                padding-left: 20px !important;
+            }
+            
+            .panel-badge {
+                display: inline-block;
+                background: #3498db;
+                color: white;
+                font-size: 11px;
+                padding: 2px 8px;
+                border-radius: 12px;
+                margin-left: 8px;
+                font-weight: 500;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+            
+            .pre-configured .panel-badge {
+                background: #28a745;
+            }
+            
+            .panel-preview {
+                margin-top: 0.75rem;
+                padding: 0.75rem;
+                background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
+                border: 1px solid #e9ecef;
+                border-radius: 6px;
+                font-size: 0.85em;
+                color: #6c757d;
+                box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+            }
+            
+            .panel-preview > div:first-child {
+                margin-bottom: 0.5rem;
+                font-weight: 600;
+                color: #495057;
+                text-transform: uppercase;
+                font-size: 0.8em;
+                letter-spacing: 0.5px;
+            }
+            
+            .panel-preview > div[style*="margin-left"] {
+                position: relative;
+                padding-left: 12px;
+                margin-bottom: 4px;
+                line-height: 1.4;
+            }
+            
+            .panel-preview > div[style*="margin-left"]:before {
+                content: '•';
+                position: absolute;
+                left: 0;
+                color: #3498db;
+                font-weight: bold;
+            }
+            
+            .pre-configured .panel-preview > div[style*="margin-left"]:before {
+                color: #28a745;
+            }
+            
+            /* Panel element type badge styling */
+            .panel-element .element-type {
+                font-weight: 600;
+            }
+            
+            .panel-element .element-type-icon {
+                font-size: 1.2em;
+                filter: brightness(1.2);
+            }
+            
+            /* Sub-element indicator styling */
+            .sub-element-indicator {
+                background: rgba(52, 152, 219, 0.1);
+                padding: 2px 6px;
+                border-radius: 10px;
+                border: 1px solid rgba(52, 152, 219, 0.2);
+            }
+            
+            .pre-configured .sub-element-indicator {
+                background: rgba(40, 167, 69, 0.1);
+                border-color: rgba(40, 167, 69, 0.2);
+            }
+            
+            /* Enhanced pre-configured badge */
+            .pre-configured-badge {
+                animation: pulse 2s ease-in-out infinite;
+            }
+            
+            @keyframes pulse {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.8; }
+            }
+            
+            /* Panel edit button special styling */
+            .panel-edit {
+                background: rgba(52, 152, 219, 0.1);
+                border-radius: 4px;
+                padding: 4px 8px !important;
+                transition: all 0.2s ease;
+            }
+            
+            .panel-edit:hover {
+                background: rgba(52, 152, 219, 0.2);
+                transform: scale(1.1);
+            }
 
             .form-element:hover {
                 border-color: #3498db;
                 background-color: #f8f9fa;
                 transform: translateY(-1px);
                 box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            
+            .form-element.panel-element:hover {
+                background: linear-gradient(to right, #e9ecef 0%, #f8f9fa 10%);
             }
 
             .form-element.selected {
@@ -513,9 +635,29 @@ class IPLCFormBuilder {
                 transition: opacity 0.2s ease;
                 pointer-events: none;
             }
+            
+            .form-element.panel-element::after {
+                content: 'Double-click to edit panel & elements';
+                background: #6c757d;
+            }
+            
+            .form-element.pre-configured::after {
+                background: #28a745;
+            }
 
             .form-element:hover::after {
                 opacity: 1;
+            }
+            
+            /* Different tooltip for panel elements */
+            .form-element.panel-element:hover::after {
+                content: 'Double-click to edit panel & elements';
+                background: #6c757d;
+            }
+            
+            /* Special color for pre-configured panels */
+            .form-element.pre-configured:hover::after {
+                background: #28a745;
             }
 
             .form-element.selected::after {
@@ -812,23 +954,101 @@ class IPLCFormBuilder {
         const isPanelType = element.type === 'panel' || element.type === 'paneldynamic';
         const hasSubElements = isPanelType && element.elements && element.elements.length > 0;
         
+        // Add special styling for pre-configured panels
+        const isPreConfigured = element.name && (
+            element.name.includes('patient_demographics') ||
+            element.name.includes('oral_mechanism') ||
+            element.name.includes('language_assessment') ||
+            element.name.includes('medical_history') ||
+            element.name.includes('insurance_information') ||
+            element.name.includes('parent_caregiver') ||
+            element.name.includes('referral_information') ||
+            element.name.includes('articulation_assessment') ||
+            element.name.includes('fluency_voice') ||
+            element.name.includes('pragmatic_skills') ||
+            element.name.includes('feeding_swallowing') ||
+            element.name.includes('adl_assessment') ||
+            element.name.includes('sensory_processing') ||
+            element.name.includes('motor_skills') ||
+            element.name.includes('visual_perceptual') ||
+            element.name.includes('fine_motor') ||
+            element.name.includes('gross_motor') ||
+            element.name.includes('handwriting_assessment') ||
+            element.name.includes('background_history') ||
+            element.name.includes('behavioral_observations') ||
+            element.name.includes('clinical_impressions') ||
+            element.name.includes('recommendations_section') ||
+            element.name.includes('signatures')
+        );
+        
+        const elementTypeIcon = this.getElementTypeIcon(element.type);
+        
         return `
-            <div class="form-element ${this.selectedElement === index ? 'selected' : ''}"
+            <div class="form-element ${this.selectedElement === index ? 'selected' : ''} ${isPanelType ? 'panel-element' : ''} ${isPreConfigured ? 'pre-configured' : ''}"
                  data-index="${index}"
                  onclick="formBuilder.selectElement(${index})"
                  ondblclick="formBuilder.editElement(${index}); event.stopPropagation();"
-                 title="Double-click to edit">
+                 title="${isPanelType ? 'Double-click to edit panel and its elements' : 'Double-click to edit'}">
                 <div class="element-header">
-                    <span class="element-type">${element.title || element.name || 'Untitled'}</span>
-                    ${hasSubElements ? '<span class="sub-element-indicator" style="font-size: 0.8em; color: #666; margin-left: 0.5rem;">(Panel with ' + element.elements.length + ' elements)</span>' : ''}
+                    <div class="element-info">
+                        <span class="element-type-icon">${elementTypeIcon}</span>
+                        <span class="element-type">${element.title || element.name || 'Untitled'}</span>
+                        ${hasSubElements ? `<span class="sub-element-indicator" style="font-size: 0.8em; color: #666; margin-left: 0.5rem;">(${element.elements.length} fields)</span>` : ''}
+                        ${isPreConfigured ? '<span class="pre-configured-badge" style="font-size: 0.7em; background: #28a745; color: white; padding: 2px 6px; border-radius: 3px; margin-left: 0.5rem;">Pre-configured</span>' : ''}
+                    </div>
                     <div class="element-actions">
-                        <button onclick="formBuilder.editElement(${index}); event.stopPropagation();" title="Edit">✏️</button>
+                        <button onclick="formBuilder.editElement(${index}); event.stopPropagation();" title="${isPanelType ? 'Edit Panel & Elements' : 'Edit'}" class="edit-btn ${isPanelType ? 'panel-edit' : ''}">
+                            ${isPanelType ? '⚙️' : '✏️'}
+                        </button>
                         <button onclick="formBuilder.moveElement(${index}, -1); event.stopPropagation();" title="Move Up">↑</button>
                         <button onclick="formBuilder.moveElement(${index}, 1); event.stopPropagation();" title="Move Down">↓</button>
                         <button onclick="formBuilder.duplicateElement(${index}); event.stopPropagation();" title="Duplicate">📋</button>
                         <button onclick="formBuilder.deleteElement(${index}); event.stopPropagation();" title="Delete">🗑️</button>
                     </div>
                 </div>
+                ${hasSubElements ? this.renderPanelPreview(element) : ''}
+            </div>
+        `;
+    }
+    
+    // Get icon for element type
+    getElementTypeIcon(type) {
+        const icons = {
+            'text': '📝',
+            'comment': '📄',
+            'dropdown': '📋',
+            'radiogroup': '⭕',
+            'checkbox': '☑️',
+            'boolean': '✅',
+            'rating': '⭐',
+            'signaturepad': '✍️',
+            'panel': '📦',
+            'paneldynamic': '📦',
+            'matrix': '📊',
+            'matrixdynamic': '📊',
+            'html': '📄',
+            'ai-summary': '🤖'
+        };
+        return icons[type] || '📝';
+    }
+    
+    // Render a preview of panel contents
+    renderPanelPreview(panel) {
+        if (!panel.elements || panel.elements.length === 0) return '';
+        
+        const maxPreviewItems = 3;
+        const elements = panel.elements.slice(0, maxPreviewItems);
+        const moreCount = panel.elements.length - maxPreviewItems;
+        
+        return `
+            <div class="panel-preview" style="margin-top: 0.5rem; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; font-size: 0.85em; color: #6c757d;">
+                <div style="margin-bottom: 0.25rem; font-weight: 500;">Contains:</div>
+                ${elements.map(el => `
+                    <div style="margin-left: 1rem; padding: 2px 0;">
+                        • ${el.title || el.name || 'Untitled'} (${el.type})
+                    </div>
+                `).join('')}
+                ${moreCount > 0 ? `<div style="margin-left: 1rem; padding: 2px 0; font-style: italic;">... and ${moreCount} more</div>` : ''}
             </div>
         `;
     }
@@ -6160,6 +6380,312 @@ class IPLCFormBuilder {
         `;
 
         document.head.appendChild(styles);
+    }
+
+    // Initialize auto-pagination feature using Intersection Observer API
+    initializeAutoPagination() {
+        console.log('FormBuilder: Initializing auto-pagination');
+        
+        // Configuration for auto-pagination
+        this.paginationConfig = {
+            pageHeight: 11 * 96, // 11 inches at 96 DPI (standard letter size)
+            marginTop: 96, // 1 inch top margin
+            marginBottom: 96, // 1 inch bottom margin
+            elementSpacing: 24, // Space between elements
+            pageBreakThreshold: 0.8, // Break page when 80% full
+            enableSmartBreaks: true // Avoid breaking within sections
+        };
+        
+        // Initialize pagination state
+        this.paginationState = {
+            currentPageHeight: 0,
+            elementsPerPage: {},
+            pageBreakPoints: [],
+            isProcessing: false
+        };
+        
+        // Setup Intersection Observer for viewport-based pagination
+        this.setupViewportPagination();
+        
+        // Setup resize observer for dynamic content changes
+        this.setupResizeObserver();
+        
+        // Setup mutation observer for DOM changes
+        this.setupMutationObserver();
+    }
+    
+    // Setup viewport-based pagination using Intersection Observer
+    setupViewportPagination() {
+        // Create intersection observer options
+        const observerOptions = {
+            root: document.querySelector('.builder-canvas'),
+            rootMargin: '0px',
+            threshold: [0, 0.25, 0.5, 0.75, 1.0]
+        };
+        
+        // Create intersection observer
+        this.viewportObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting && entry.intersectionRatio === 0) {
+                    // Element is completely out of viewport
+                    this.checkForPageBreak(entry.target);
+                }
+            });
+        }, observerOptions);
+        
+        // Observe form elements
+        this.observeFormElements();
+    }
+    
+    // Setup resize observer for dynamic content
+    setupResizeObserver() {
+        if (!window.ResizeObserver) {
+            console.warn('ResizeObserver not supported, auto-pagination may be limited');
+            return;
+        }
+        
+        this.resizeObserver = new ResizeObserver(entries => {
+            if (this.paginationState.isProcessing) return;
+            
+            // Debounce resize handling
+            clearTimeout(this.resizeTimeout);
+            this.resizeTimeout = setTimeout(() => {
+                this.recalculatePagination();
+            }, 300);
+        });
+        
+        // Observe the drop zone
+        const dropZone = document.getElementById('dropZone');
+        if (dropZone) {
+            this.resizeObserver.observe(dropZone);
+        }
+    }
+    
+    // Setup mutation observer for DOM changes
+    setupMutationObserver() {
+        const targetNode = document.getElementById('dropZone');
+        if (!targetNode) return;
+        
+        const config = {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['style', 'class']
+        };
+        
+        this.mutationObserver = new MutationObserver((mutationsList) => {
+            // Check if elements were added or removed
+            const hasStructuralChanges = mutationsList.some(mutation =>
+                mutation.type === 'childList' &&
+                (mutation.addedNodes.length > 0 || mutation.removedNodes.length > 0)
+            );
+            
+            if (hasStructuralChanges && !this.paginationState.isProcessing) {
+                // Debounce pagination recalculation
+                clearTimeout(this.mutationTimeout);
+                this.mutationTimeout = setTimeout(() => {
+                    this.recalculatePagination();
+                }, 500);
+            }
+        });
+        
+        this.mutationObserver.observe(targetNode, config);
+    }
+    
+    // Observe form elements for pagination
+    observeFormElements() {
+        const formElements = document.querySelectorAll('.form-element');
+        formElements.forEach(element => {
+            if (this.viewportObserver) {
+                this.viewportObserver.observe(element);
+            }
+        });
+    }
+    
+    // Check if page break is needed
+    checkForPageBreak(element) {
+        const rect = element.getBoundingClientRect();
+        const dropZone = document.getElementById('dropZone');
+        const dropZoneRect = dropZone.getBoundingClientRect();
+        
+        // Calculate element's position relative to page
+        const elementTop = rect.top - dropZoneRect.top;
+        const elementBottom = rect.bottom - dropZoneRect.top;
+        const pageHeight = this.paginationConfig.pageHeight -
+                          this.paginationConfig.marginTop -
+                          this.paginationConfig.marginBottom;
+        
+        // Determine current page number
+        const currentPage = Math.floor(elementTop / pageHeight) + 1;
+        const elementPageEnd = Math.floor(elementBottom / pageHeight) + 1;
+        
+        // Check if element spans multiple pages
+        if (elementPageEnd > currentPage) {
+            this.handlePageBreak(element, currentPage);
+        }
+    }
+    
+    // Handle page break logic
+    handlePageBreak(element, currentPage) {
+        const elementIndex = parseInt(element.dataset.index);
+        const currentPageData = this.formData.pages[this.currentPageIndex];
+        
+        // Smart break detection for panels and sections
+        if (this.paginationConfig.enableSmartBreaks) {
+            const elementData = currentPageData.elements[elementIndex];
+            
+            // Don't break panels or sections with sub-elements
+            if (elementData.type === 'panel' && elementData.elements && elementData.elements.length > 0) {
+                // Move entire panel to next page if it doesn't fit
+                this.moveElementToNewPage(elementIndex);
+                return;
+            }
+        }
+        
+        // For regular elements, check if we need a new page
+        if (this.shouldCreateNewPage(element)) {
+            this.createAutoPaginationPage(elementIndex);
+        }
+    }
+    
+    // Check if new page should be created
+    shouldCreateNewPage(element) {
+        const rect = element.getBoundingClientRect();
+        const dropZone = document.getElementById('dropZone');
+        const dropZoneRect = dropZone.getBoundingClientRect();
+        
+        const elementBottom = rect.bottom - dropZoneRect.top;
+        const pageHeight = this.paginationConfig.pageHeight -
+                          this.paginationConfig.marginTop -
+                          this.paginationConfig.marginBottom;
+        
+        const currentPageUsage = (elementBottom % pageHeight) / pageHeight;
+        
+        return currentPageUsage > this.paginationConfig.pageBreakThreshold;
+    }
+    
+    // Create new page for auto-pagination
+    createAutoPaginationPage(fromElementIndex) {
+        this.paginationState.isProcessing = true;
+        
+        try {
+            // Save current state
+            this.saveToHistory();
+            
+            const currentPageData = this.formData.pages[this.currentPageIndex];
+            const elementsToMove = currentPageData.elements.slice(fromElementIndex);
+            
+            // Create new page
+            const newPageIndex = this.currentPageIndex + 1;
+            const newPage = {
+                name: `page${newPageIndex + 1}_auto`,
+                title: `Page ${newPageIndex + 1} (Auto)`,
+                elements: elementsToMove,
+                isAutoPaginated: true
+            };
+            
+            // Insert new page after current page
+            this.formData.pages.splice(newPageIndex, 0, newPage);
+            
+            // Remove moved elements from current page
+            currentPageData.elements = currentPageData.elements.slice(0, fromElementIndex);
+            
+            // Update UI
+            this.renderPageTabs();
+            this.renderFormElements();
+            
+            // Show notification
+            this.showNotification(`Auto-pagination: Created new page with ${elementsToMove.length} elements`);
+            
+            // Mark as changed
+            this.hasUnsavedChanges = true;
+            this.debouncedSave();
+            
+        } finally {
+            this.paginationState.isProcessing = false;
+        }
+    }
+    
+    // Move element to new page
+    moveElementToNewPage(elementIndex) {
+        const currentPageData = this.formData.pages[this.currentPageIndex];
+        const element = currentPageData.elements[elementIndex];
+        
+        // Check if next page exists and is auto-paginated
+        const nextPageIndex = this.currentPageIndex + 1;
+        if (nextPageIndex < this.formData.pages.length &&
+            this.formData.pages[nextPageIndex].isAutoPaginated) {
+            // Move to existing auto-paginated page
+            this.formData.pages[nextPageIndex].elements.unshift(element);
+            currentPageData.elements.splice(elementIndex, 1);
+        } else {
+            // Create new auto-paginated page
+            this.createAutoPaginationPage(elementIndex);
+        }
+    }
+    
+    // Recalculate pagination for all elements
+    recalculatePagination() {
+        console.log('FormBuilder: Recalculating pagination');
+        
+        // Re-observe all elements
+        this.observeFormElements();
+        
+        // Check each element for pagination needs
+        const formElements = document.querySelectorAll('.form-element');
+        formElements.forEach(element => {
+            this.checkForPageBreak(element);
+        });
+    }
+    
+    // Calculate content height for print preview
+    calculatePrintHeight() {
+        const dropZone = document.getElementById('dropZone');
+        if (!dropZone) return 0;
+        
+        let totalHeight = 0;
+        const elements = dropZone.querySelectorAll('.form-element');
+        
+        elements.forEach(element => {
+            const rect = element.getBoundingClientRect();
+            const styles = window.getComputedStyle(element);
+            const marginTop = parseFloat(styles.marginTop);
+            const marginBottom = parseFloat(styles.marginBottom);
+            
+            totalHeight += rect.height + marginTop + marginBottom;
+        });
+        
+        return totalHeight;
+    }
+    
+    // Get pagination metrics for analytics
+    getPaginationMetrics() {
+        return {
+            totalPages: this.formData.pages.length,
+            autoPaginatedPages: this.formData.pages.filter(p => p.isAutoPaginated).length,
+            elementsPerPage: this.formData.pages.map(p => ({
+                pageTitle: p.title,
+                elementCount: p.elements ? p.elements.length : 0,
+                isAutoPaginated: p.isAutoPaginated || false
+            })),
+            estimatedPrintPages: Math.ceil(this.calculatePrintHeight() / this.paginationConfig.pageHeight)
+        };
+    }
+    
+    // Clean up observers
+    cleanupPaginationObservers() {
+        if (this.viewportObserver) {
+            this.viewportObserver.disconnect();
+        }
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+        }
+        if (this.mutationObserver) {
+            this.mutationObserver.disconnect();
+        }
+        
+        clearTimeout(this.resizeTimeout);
+        clearTimeout(this.mutationTimeout);
     }
 
     // Register custom question types with Survey.js
