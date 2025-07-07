@@ -4719,6 +4719,110 @@ class IPLCFormBuilder {
         });
     }
 
+    // Helper method to create a default element based on type
+    createDefaultElement(type) {
+        const timestamp = Date.now();
+        const baseElement = {
+            type: type,
+            name: `${type}_${timestamp}`,
+            title: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`
+        };
+
+        // Add type-specific defaults
+        switch (type) {
+            case 'text':
+                baseElement.placeholder = 'Enter text here';
+                baseElement.inputType = 'text';
+                break;
+            case 'comment':
+                baseElement.placeholder = 'Enter your comments...';
+                baseElement.rows = 4;
+                break;
+            case 'checkbox':
+            case 'radiogroup':
+            case 'dropdown':
+                baseElement.choices = ['Option 1', 'Option 2', 'Option 3'];
+                break;
+            case 'rating':
+                baseElement.rateMin = 1;
+                baseElement.rateMax = 5;
+                baseElement.minRateDescription = 'Poor';
+                baseElement.maxRateDescription = 'Excellent';
+                break;
+            case 'boolean':
+                baseElement.labelTrue = 'Yes';
+                baseElement.labelFalse = 'No';
+                break;
+            case 'matrix':
+                baseElement.columns = ['Column 1', 'Column 2', 'Column 3'];
+                baseElement.rows = ['Row 1', 'Row 2', 'Row 3'];
+                break;
+            case 'panel':
+                baseElement.elements = [];
+                baseElement.title = 'New Section';
+                break;
+            case 'signaturepad':
+                baseElement.width = '300';
+                baseElement.height = '150';
+                baseElement.penColor = '#000080';
+                baseElement.backgroundColor = '#ffffff';
+                break;
+            case 'html':
+                baseElement.html = '<p>Enter your HTML content here</p>';
+                break;
+            case 'file':
+                baseElement.allowMultiple = false;
+                baseElement.acceptedTypes = '*';
+                break;
+            case 'expression':
+                baseElement.expression = '';
+                baseElement.displayStyle = 'none';
+                break;
+            case 'image':
+                baseElement.imageLink = '';
+                baseElement.imageFit = 'contain';
+                baseElement.imageHeight = 'auto';
+                baseElement.imageWidth = 'auto';
+                break;
+            case 'matrixdropdown':
+                baseElement.columns = [
+                    { name: 'col1', title: 'Column 1', cellType: 'dropdown', choices: ['A', 'B', 'C'] }
+                ];
+                baseElement.rows = ['Row 1', 'Row 2'];
+                baseElement.choices = ['A', 'B', 'C'];
+                break;
+            case 'matrixdynamic':
+                baseElement.columns = [
+                    { name: 'col1', title: 'Column 1', cellType: 'text' }
+                ];
+                baseElement.rowCount = 1;
+                baseElement.addRowText = 'Add Row';
+                baseElement.removeRowText = 'Remove';
+                break;
+            case 'paneldynamic':
+                baseElement.templateElements = [
+                    { type: 'text', name: 'field1', title: 'Field 1' }
+                ];
+                baseElement.panelCount = 1;
+                baseElement.panelAddText = 'Add Panel';
+                baseElement.panelRemoveText = 'Remove';
+                break;
+            case 'multipletext':
+                baseElement.items = [
+                    { name: 'text1', title: 'Text 1' },
+                    { name: 'text2', title: 'Text 2' }
+                ];
+                break;
+            case 'imagepicker':
+                baseElement.choices = [
+                    { value: 'option1', imageLink: '' }
+                ];
+                break;
+        }
+
+        return baseElement;
+    }
+
     deleteElement(index) {
         // Check if form is locked
         if (this.checkFormLocked()) {
