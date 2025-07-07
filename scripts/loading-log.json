@@ -130,5 +130,15 @@
     "error": "Failed to load 164 documents. Check logs for details.",
     "success": false,
     "source": "C:\\Users\\Peter Darley\\Desktop\\IPLC GitHub Eval\\IPLC_SOP_Chunks.json"
+  },
+  {
+    "timestamp": "2025-07-07T23:10:25.013Z",
+    "chunksLoaded": 164,
+    "chunksFailed": 0,
+    "totalDocuments": 164,
+    "success": true,
+    "source": "c:\\Users\\Peter Darley\\Desktop\\IPLC GitHub Eval\\IPLC_SOP_Chunks.json",
+    "batchSize": 50,
+    "errors": []
   }
 ]
