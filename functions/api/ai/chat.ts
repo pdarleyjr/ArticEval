@@ -1,13 +1,16 @@
+/// <reference types="@cloudflare/workers-types" />
+
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { CloudflareVectorizeStore } from '@langchain/cloudflare';
-import { RecursiveCharacterTextSplitter } from 'langchain/text_splitter';
+import { CloudflareWorkersAIEmbeddings } from '@langchain/cloudflare';
+import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters';
 import { Document } from '@langchain/core/documents';
 
 interface Env {
   VECTORIZE: VectorizeIndex;
-  chat_metadata: KVNamespace;
-  AI: any;
+  CHAT_METADATA: KVNamespace;
+  AI: Ai;
 }
 
 interface LoadRequest {
@@ -33,12 +36,12 @@ app.use('/*', cors({
 }));
 
 // Health check endpoint
-app.get('/api/ai/chat/health', (c) => {
+app.get('/health', (c) => {
   return c.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 
 // Data ingestion endpoint
-app.post('/api/ai/chat/load', async (c) => {
+app.post('/load', async (c) => {
   try {
     const { chunks } = await c.req.json<LoadRequest>();
     
@@ -46,12 +49,16 @@ app.post('/api/ai/chat/load', async (c) => {
       return c.json({ error: 'Invalid request: chunks array required' }, 400);
     }
 
-    const vectorStore = new CloudflareVectorizeStore(
-      {
-        index: c.env.VECTORIZE,
-        textKey: 'text'
-      }
-    );
+    // Create embeddings for data loading
+    const embeddings = new CloudflareWorkersAIEmbeddings({
+      binding: c.env.AI as any, // Type casting to handle conflicting Response types
+      modelName: '@cf/baai/bge-base-en-v1.5',
+    });
+
+    const vectorStore = new CloudflareVectorizeStore(embeddings, {
+      index: c.env.VECTORIZE,
+      textKey: 'text'
+    });
 
     // Process chunks and create documents
     const documents = chunks.map(chunk => new Document({
@@ -67,7 +74,7 @@ app.post('/api/ai/chat/load', async (c) => {
 
     // Store metadata in KV for reference
     for (const chunk of chunks) {
-      await c.env.chat_metadata.put(
+      await c.env.CHAT_METADATA.put(
         `chunk:${chunk.id}`,
         JSON.stringify({
           text: chunk.text,
@@ -91,8 +98,8 @@ app.post('/api/ai/chat/load', async (c) => {
   }
 });
 
-// Chat endpoint
-app.post('/api/ai/chat', async (c) => {
+// Chat endpoint (root path for the function)
+app.post('/', async (c) => {
   try {
     const { message, conversationId } = await c.req.json<ChatRequest>();
     
@@ -100,13 +107,16 @@ app.post('/api/ai/chat', async (c) => {
       return c.json({ error: 'Message is required' }, 400);
     }
 
-    // Initialize vector store
-    const vectorStore = new CloudflareVectorizeStore(
-      {
-        index: c.env.VECTORIZE,
-        textKey: 'text'
-      }
-    );
+    // Initialize embeddings with BGE model
+    const embeddings = new CloudflareWorkersAIEmbeddings({
+      binding: c.env.AI as any, // Type casting to handle conflicting Response types
+      modelName: '@cf/baai/bge-base-en-v1.5',
+    });
+
+    const vectorStore = new CloudflareVectorizeStore(embeddings, {
+      index: c.env.VECTORIZE,
+      textKey: 'text'
+    });
 
     // Search for relevant context
     const searchResults = await vectorStore.similaritySearch(message, 5);
@@ -136,7 +146,7 @@ ${context}`;
     // Store conversation in KV if conversationId provided
     if (conversationId) {
       const conversationKey = `conversation:${conversationId}`;
-      const existingConversation = await c.env.chat_metadata.get(conversationKey);
+      const existingConversation = await c.env.CHAT_METADATA.get(conversationKey);
       const conversation = existingConversation ? JSON.parse(existingConversation) : { messages: [] };
       
       conversation.messages.push({
@@ -152,7 +162,7 @@ ${context}`;
         sources: searchResults.map(doc => doc.metadata?.id).filter(Boolean)
       });
       
-      await c.env.chat_metadata.put(conversationKey, JSON.stringify(conversation));
+      await c.env.CHAT_METADATA.put(conversationKey, JSON.stringify(conversation));
     }
 
     return c.json({
