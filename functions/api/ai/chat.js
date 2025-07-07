@@ -7,6 +7,29 @@ import { Document } from '@langchain/core/documents';
 
 const app = new Hono();
 
+// Helper function for exponential backoff retry
+async function retryWithBackoff(fn, maxRetries = 3, initialDelay = 1000) {
+  let lastError;
+  
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      
+      if (attempt === maxRetries) {
+        throw error;
+      }
+      
+      const delay = initialDelay * Math.pow(2, attempt);
+      console.log(`[Retry] Attempt ${attempt + 1} failed, retrying after ${delay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  
+  throw lastError;
+}
+
 // Apply CORS to all routes
 app.use('/*', cors({
   origin: '*',
@@ -44,7 +67,11 @@ app.get('/health', async (c) => {
         });
         
         // Try a simple search to see if there's data
-        const testResults = await vectorStore.similaritySearch('test', 1);
+        const testResults = await retryWithBackoff(
+          () => vectorStore.similaritySearch('test', 1),
+          2, // fewer retries for health check
+          500 // shorter initial delay
+        );
         documentCount = testResults.length;
         vectorIndexStatus = documentCount > 0 ? 'populated' : 'empty';
         console.log(`[Health Check] Vector index status: ${vectorIndexStatus}, documents found: ${documentCount}`);
@@ -76,13 +103,46 @@ app.get('/health', async (c) => {
 app.post('/load', async (c) => {
   console.log('Load endpoint called');
   try {
+    // Rate limiting check
+    if (c.env.RATE_LIMITER) {
+      // Use IP address as the rate limiting key
+      const clientIP = c.req.header('CF-Connecting-IP') || c.req.header('X-Forwarded-For') || 'unknown';
+      const rateLimitKey = `load:${clientIP}`;
+      
+      try {
+        const { success } = await c.env.RATE_LIMITER.limit({ key: rateLimitKey });
+        if (!success) {
+          console.error(`[Load] Rate limit exceeded for IP: ${clientIP}`);
+          return c.json({
+            error: 'Rate limit exceeded',
+            message: 'Too many requests. Please try again later.',
+            retryAfter: 60 // seconds
+          }, 429);
+        }
+      } catch (rateLimitError) {
+        console.error('[Load] Rate limiting error:', rateLimitError);
+        // Continue without rate limiting if there's an error
+      }
+    }
+    
     // Check bindings first
     console.log('Checking bindings...');
     console.log('AI binding available:', !!c.env.AI);
     console.log('VECTORIZE binding available:', !!c.env.VECTORIZE);
     console.log('CHAT_METADATA binding available:', !!c.env.CHAT_METADATA);
     
-    const { chunks } = await c.req.json();
+    let chunks;
+    try {
+      const body = await c.req.json();
+      chunks = body.chunks;
+    } catch (jsonError) {
+      console.error('Invalid JSON in request body:', jsonError);
+      return c.json({
+        error: 'Invalid JSON in request body',
+        details: jsonError instanceof Error ? jsonError.message : 'Malformed JSON'
+      }, 400);
+    }
+    
     console.log(`Received ${chunks?.length || 0} chunks to load`);
     
     if (!chunks || !Array.isArray(chunks)) {
@@ -113,8 +173,12 @@ app.post('/load', async (c) => {
     }));
 
     console.log(`Adding ${documents.length} documents to vector store...`);
-    // Add documents to vector store
-    await vectorStore.addDocuments(documents);
+    // Add documents to vector store with retry
+    await retryWithBackoff(
+      () => vectorStore.addDocuments(documents),
+      3,
+      1000
+    );
 
     console.log('Storing metadata in KV...');
     // Store metadata in KV for reference
@@ -152,6 +216,28 @@ app.post('/', async (c) => {
   console.log('[Main] Request headers:', Object.fromEntries(c.req.headers.entries()));
   
   try {
+    // Rate limiting check
+    if (c.env.RATE_LIMITER) {
+      // Use IP address as the rate limiting key
+      const clientIP = c.req.header('CF-Connecting-IP') || c.req.header('X-Forwarded-For') || 'unknown';
+      const rateLimitKey = `chat:${clientIP}`;
+      
+      try {
+        const { success } = await c.env.RATE_LIMITER.limit({ key: rateLimitKey });
+        if (!success) {
+          console.error(`[Main] Rate limit exceeded for IP: ${clientIP}`);
+          return c.json({
+            error: 'Rate limit exceeded',
+            message: 'Too many chat requests. Please wait a moment before trying again.',
+            retryAfter: 60 // seconds
+          }, 429);
+        }
+      } catch (rateLimitError) {
+        console.error('[Main] Rate limiting error:', rateLimitError);
+        // Continue without rate limiting if there's an error
+      }
+    }
+    
     // Check bindings first
     console.log('[Main] Checking bindings...');
     if (!c.env.AI) {
@@ -165,7 +251,19 @@ app.post('/', async (c) => {
     }
     console.log('[Main] All bindings confirmed');
     
-    const { message, conversationId } = await c.req.json();
+    let message, conversationId;
+    try {
+      const body = await c.req.json();
+      message = body.message;
+      conversationId = body.conversationId;
+    } catch (jsonError) {
+      console.error('[Main] Invalid JSON in request body:', jsonError);
+      return c.json({
+        error: 'Invalid JSON in request body',
+        details: jsonError instanceof Error ? jsonError.message : 'Malformed JSON'
+      }, 400);
+    }
+    
     console.log('[Main] Received message:', message);
     console.log('[Main] Conversation ID:', conversationId);
     
@@ -189,8 +287,12 @@ app.post('/', async (c) => {
     console.log('[Main] Performing similarity search...');
     let searchResults = [];
     try {
-      // Search for relevant context
-      searchResults = await vectorStore.similaritySearch(message, 5);
+      // Search for relevant context with retry
+      searchResults = await retryWithBackoff(
+        () => vectorStore.similaritySearch(message, 5),
+        3,
+        1000
+      );
       console.log(`[Main] Found ${searchResults.length} relevant documents`);
       
       // Check if vector store is empty
@@ -227,15 +329,19 @@ ${context}`;
     console.log('[Main] Generating AI response...');
     let aiResponse;
     try {
-      // Generate response using Cloudflare AI
-      aiResponse = await c.env.AI.run('@cf/meta/llama-3-8b-instruct', {
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: message }
-        ],
-        temperature: 0.7,
-        max_tokens: 500
-      });
+      // Generate response using Cloudflare AI with retry
+      aiResponse = await retryWithBackoff(
+        () => c.env.AI.run('@cf/meta/llama-3-8b-instruct', {
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: message }
+          ],
+          temperature: 0.7,
+          max_tokens: 500
+        }),
+        3,
+        1000
+      );
       
       console.log('[Main] AI response generated successfully');
       console.log('[Main] AI response type:', typeof aiResponse);

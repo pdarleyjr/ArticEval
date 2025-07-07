@@ -40,3 +40,19 @@ id = "29cc6219f29d48d1a5ddd38dcda1a0f0"
 
 [env.production.ai]
 binding = "AI"
+
+# Rate limiting configuration
+[[unsafe.bindings]]
+name = "RATE_LIMITER"
+type = "ratelimit"
+# Unique namespace for this rate limiter
+namespace_id = "1000"
+# Allow 10 requests per minute per key
+simple = { limit = 10, period = 60 }
+
+# Rate limiting for production environment
+[[env.production.unsafe.bindings]]
+name = "RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1000"
+simple = { limit = 10, period = 60 }

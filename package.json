@@ -21,6 +21,7 @@
     "@langchain/textsplitters": "^0.1.0",
     "hono": "^4.8.4",
     "jspdf": "^3.0.0",
+    "node-fetch": "^3.3.2",
     "serve": "^14.2.1"
   },
   "serve": {
