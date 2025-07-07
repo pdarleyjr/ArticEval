@@ -148,7 +148,10 @@ class IPLCFormBuilder {
                     </div>
 
                     <!-- Right Panel: Properties -->
-                    <div class="builder-properties">
+                    <div class="builder-properties" id="builderProperties">
+                        <button class="properties-toggle" onclick="formBuilder.togglePropertiesPanel()" title="Toggle Properties Panel">
+                            <span id="toggleIcon">◀</span>
+                        </button>
                         <h3>Element Properties</h3>
                         <div id="propertiesPanel" class="properties-content">
                             <div class="empty-properties">
@@ -435,11 +438,44 @@ class IPLCFormBuilder {
                 padding: 1rem;
                 margin-bottom: 1rem;
                 cursor: pointer;
+                transition: all 0.2s ease;
+                position: relative;
+            }
+
+            .form-element:hover {
+                border-color: #3498db;
+                background-color: #f8f9fa;
+                transform: translateY(-1px);
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             }
 
             .form-element.selected {
                 border-color: #3498db;
                 box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+            }
+
+            /* Visual indicator for editable elements */
+            .form-element::after {
+                content: 'Double-click to edit';
+                position: absolute;
+                top: -8px;
+                right: 10px;
+                background: #3498db;
+                color: white;
+                font-size: 11px;
+                padding: 2px 8px;
+                border-radius: 10px;
+                opacity: 0;
+                transition: opacity 0.2s ease;
+                pointer-events: none;
+            }
+
+            .form-element:hover::after {
+                opacity: 1;
+            }
+
+            .form-element.selected::after {
+                opacity: 0;
             }
 
             .element-header {
@@ -454,6 +490,18 @@ class IPLCFormBuilder {
                 cursor: pointer;
                 padding: 0.25rem;
                 margin-left: 0.25rem;
+                opacity: 0.7;
+                transition: all 0.2s ease;
+            }
+
+            .element-actions button:hover {
+                opacity: 1;
+                transform: scale(1.1);
+            }
+
+            .element-actions button:first-child {
+                color: #3498db;
+                font-weight: bold;
             }
 
             .builder-properties {
@@ -462,6 +510,76 @@ class IPLCFormBuilder {
                 border-left: 1px solid #e1e4e8;
                 padding: 1rem;
                 overflow-y: auto;
+                transition: width 0.3s ease, margin-right 0.3s ease;
+                position: relative;
+            }
+            
+            .builder-properties.collapsed {
+                width: 40px;
+                padding: 0;
+                overflow: hidden;
+            }
+            
+            .builder-properties.collapsed .properties-content,
+            .builder-properties.collapsed h3,
+            .builder-properties.collapsed .form-settings-section {
+                display: none;
+            }
+            
+            .properties-toggle {
+                position: absolute;
+                left: 0;
+                top: 50%;
+                transform: translateY(-50%);
+                background: #3498db;
+                color: white;
+                border: none;
+                border-radius: 0 4px 4px 0;
+                padding: 1rem 0.25rem;
+                cursor: pointer;
+                font-size: 1.2rem;
+                z-index: 10;
+                transition: all 0.2s ease;
+            }
+            
+            .properties-toggle:hover {
+                background: #2980b9;
+                padding-left: 0.5rem;
+            }
+            
+            .builder-properties.collapsed .properties-toggle {
+                left: 40px;
+                border-radius: 4px 0 0 4px;
+            }
+            
+            /* Responsive adjustments */
+            @media (max-width: 1200px) {
+                .builder-properties {
+                    width: 250px;
+                }
+            }
+            
+            @media (max-width: 992px) {
+                .builder-toolbox {
+                    width: 200px;
+                }
+                .builder-properties {
+                    width: 200px;
+                }
+            }
+            
+            @media (max-width: 768px) {
+                .builder-main {
+                    flex-direction: column;
+                }
+                .builder-toolbox,
+                .builder-properties {
+                    width: 100%;
+                    max-height: 200px;
+                }
+                .builder-canvas {
+                    min-height: 400px;
+                }
             }
 
             .property-group {
@@ -567,6 +685,57 @@ class IPLCFormBuilder {
             .field-checkbox input {
                 margin-right: 0.5rem;
             }
+            
+            /* Auto-save indicator styles */
+            .auto-save-indicator {
+                position: fixed;
+                bottom: 20px;
+                left: 20px;
+                background: #333;
+                color: white;
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-size: 14px;
+                display: none;
+                align-items: center;
+                gap: 8px;
+                z-index: 1000;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            }
+            
+            .auto-save-indicator.saving {
+                background: #f39c12;
+            }
+            
+            .auto-save-indicator.saved {
+                background: #27ae60;
+            }
+            
+            .auto-save-indicator.fade-out {
+                animation: fadeOut 0.5s ease-out forwards;
+            }
+            
+            @keyframes fadeOut {
+                to {
+                    opacity: 0;
+                    transform: translateY(10px);
+                }
+            }
+            
+            .save-icon {
+                width: 16px;
+                height: 16px;
+            }
+            
+            .save-icon.saving {
+                animation: spin 1s linear infinite;
+            }
+            
+            @keyframes spin {
+                to {
+                    transform: rotate(360deg);
+                }
+            }
         `;
         document.head.appendChild(styles);
     }
@@ -597,15 +766,19 @@ class IPLCFormBuilder {
 
     renderFormElement(element, index) {
         return `
-            <div class="form-element ${this.selectedElement === index ? 'selected' : ''}" 
-                 data-index="${index}" onclick="formBuilder.selectElement(${index})">
+            <div class="form-element ${this.selectedElement === index ? 'selected' : ''}"
+                 data-index="${index}"
+                 onclick="formBuilder.selectElement(${index})"
+                 ondblclick="formBuilder.editElement(${index}); event.stopPropagation();"
+                 title="Double-click to edit">
                 <div class="element-header">
                     <span class="element-type">${element.title || element.name || 'Untitled'}</span>
                     <div class="element-actions">
-                        <button onclick="formBuilder.moveElement(${index}, -1); event.stopPropagation();">↑</button>
-                        <button onclick="formBuilder.moveElement(${index}, 1); event.stopPropagation();">↓</button>
-                        <button onclick="formBuilder.duplicateElement(${index}); event.stopPropagation();">📋</button>
-                        <button onclick="formBuilder.deleteElement(${index}); event.stopPropagation();">🗑️</button>
+                        <button onclick="formBuilder.editElement(${index}); event.stopPropagation();" title="Edit">✏️</button>
+                        <button onclick="formBuilder.moveElement(${index}, -1); event.stopPropagation();" title="Move Up">↑</button>
+                        <button onclick="formBuilder.moveElement(${index}, 1); event.stopPropagation();" title="Move Down">↓</button>
+                        <button onclick="formBuilder.duplicateElement(${index}); event.stopPropagation();" title="Duplicate">📋</button>
+                        <button onclick="formBuilder.deleteElement(${index}); event.stopPropagation();" title="Delete">🗑️</button>
                     </div>
                 </div>
             </div>
@@ -3692,15 +3865,22 @@ class IPLCFormBuilder {
         if (!element.elements) element.elements = [];
         
         // Show element type selector dialog
-        const dialog = this.createElementTypeDialog((type) => {
+        this.createElementTypeDialog((type) => {
             const newElement = this.createDefaultElement(type);
             element.elements.push(newElement);
-            this.showElementProperties();
+            
+            // Re-render the form elements to show the new element
+            this.renderFormElements();
+            
+            // Re-select the panel to refresh properties
+            this.selectElement(this.selectedElement);
+            
             this.hasUnsavedChanges = true;
             this.debouncedSave();
+            
+            // Show success notification
+            this.showNotification(`Added ${type} element to panel`);
         });
-        
-        document.body.appendChild(dialog);
     }
 
     // Matrix manipulation methods
@@ -3915,6 +4095,40 @@ class IPLCFormBuilder {
         
         this.formData.pages[this.currentPageIndex].elements.splice(index + 1, 0, duplicate);
         this.renderFormElements();
+    }
+
+    // Edit element - called on double-click or edit button click
+    editElement(index) {
+        // Check if form is locked
+        if (this.checkFormLocked()) {
+            return;
+        }
+
+        const element = this.formData.pages[this.currentPageIndex].elements[index];
+        
+        // Create edit dialog based on element type
+        const dialog = this.createElementEditDialog(element, element.type, (updatedElement) => {
+            // Save to history before making changes
+            this.saveToHistory();
+            
+            // Update the element
+            this.formData.pages[this.currentPageIndex].elements[index] = updatedElement;
+            
+            // Re-render elements
+            this.renderFormElements();
+            
+            // Keep the element selected
+            this.selectElement(index);
+            
+            // Mark as unsaved
+            this.hasUnsavedChanges = true;
+            this.debouncedSave();
+            
+            // Show success notification
+            this.showNotification('Element updated successfully');
+        });
+        
+        document.body.appendChild(dialog);
     }
 
     switchPage(index) {
@@ -4801,82 +5015,248 @@ class IPLCFormBuilder {
             { value: 'matrixdynamic', label: 'Dynamic Matrix' }
         ];
 
+        // Create modal backdrop
+        const backdrop = document.createElement('div');
+        backdrop.className = 'custom-modal-backdrop';
+        backdrop.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1040;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        `;
+
+        // Create modal dialog
         const dialog = document.createElement('div');
-        dialog.className = 'modal fade';
+        dialog.className = 'custom-modal-dialog';
+        dialog.style.cssText = `
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow: hidden;
+            animation: modalFadeIn 0.3s ease-out;
+        `;
+
         dialog.innerHTML = `
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Select Element Type</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <select class="form-select" id="elementTypeSelect">
-                            ${types.map(t => `<option value="${t.value}">${t.label}</option>`).join('')}
-                        </select>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-primary" id="confirmElementType">Add Element</button>
-                    </div>
-                </div>
+            <div class="modal-header" style="padding: 1rem; border-bottom: 1px solid #dee2e6; display: flex; justify-content: space-between; align-items: center;">
+                <h5 class="modal-title" style="margin: 0; font-size: 1.25rem;">Select Element Type</h5>
+                <button type="button" class="btn-close" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; opacity: 0.5;" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 1rem;">
+                <select class="form-select" id="elementTypeSelect" style="width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem; font-size: 1rem;">
+                    ${types.map(t => `<option value="${t.value}">${t.label}</option>`).join('')}
+                </select>
+            </div>
+            <div class="modal-footer" style="padding: 1rem; border-top: 1px solid #dee2e6; display: flex; justify-content: flex-end; gap: 0.5rem;">
+                <button type="button" class="btn btn-secondary" style="padding: 0.375rem 0.75rem; border: 1px solid #6c757d; background: #6c757d; color: white; border-radius: 0.25rem; cursor: pointer;">Cancel</button>
+                <button type="button" class="btn btn-primary" id="confirmElementType" style="padding: 0.375rem 0.75rem; border: 1px solid #0d6efd; background: #0d6efd; color: white; border-radius: 0.25rem; cursor: pointer;">Add Element</button>
             </div>
         `;
 
-        document.body.appendChild(dialog);
-        const modal = new bootstrap.Modal(dialog);
+        // Add animation styles if not already present
+        if (!document.getElementById('modal-animation-styles')) {
+            const animationStyles = document.createElement('style');
+            animationStyles.id = 'modal-animation-styles';
+            animationStyles.textContent = `
+                @keyframes modalFadeIn {
+                    from {
+                        opacity: 0;
+                        transform: scale(0.9);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: scale(1);
+                    }
+                }
+                @keyframes modalFadeOut {
+                    from {
+                        opacity: 1;
+                        transform: scale(1);
+                    }
+                    to {
+                        opacity: 0;
+                        transform: scale(0.9);
+                    }
+                }
+            `;
+            document.head.appendChild(animationStyles);
+        }
 
-        dialog.querySelector('#confirmElementType').addEventListener('click', () => {
-            const type = dialog.querySelector('#elementTypeSelect').value;
-            modal.hide();
-            dialog.addEventListener('hidden.bs.modal', () => {
-                document.body.removeChild(dialog);
-                callback(type);
-            }, { once: true });
+        // Append modal to backdrop and backdrop to body
+        backdrop.appendChild(dialog);
+        document.body.appendChild(backdrop);
+
+        // Function to close modal
+        const closeModal = () => {
+            dialog.style.animation = 'modalFadeOut 0.3s ease-out';
+            backdrop.style.opacity = '0';
+            backdrop.style.transition = 'opacity 0.3s ease-out';
+            
+            setTimeout(() => {
+                if (backdrop.parentNode) {
+                    backdrop.parentNode.removeChild(backdrop);
+                }
+            }, 300);
+        };
+
+        // Handle close button click
+        dialog.querySelector('.btn-close').addEventListener('click', closeModal);
+
+        // Handle cancel button click
+        dialog.querySelector('.btn-secondary').addEventListener('click', closeModal);
+
+        // Handle backdrop click
+        backdrop.addEventListener('click', (e) => {
+            if (e.target === backdrop) {
+                closeModal();
+            }
         });
 
-        modal.show();
+        // Handle confirm button click
+        dialog.querySelector('#confirmElementType').addEventListener('click', () => {
+            const type = dialog.querySelector('#elementTypeSelect').value;
+            closeModal();
+            // Call the callback after modal is closed
+            setTimeout(() => {
+                callback(type);
+            }, 300);
+        });
+
+        // Handle escape key
+        const handleEscape = (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+                document.removeEventListener('keydown', handleEscape);
+            }
+        };
+        document.addEventListener('keydown', handleEscape);
+
+        // Focus on select element
+        setTimeout(() => {
+            dialog.querySelector('#elementTypeSelect').focus();
+        }, 100);
+
+        return dialog;
     }
 
     // Helper method to create element edit dialog
     createElementEditDialog(element, type, callback) {
+        // Create modal backdrop
+        const backdrop = document.createElement('div');
+        backdrop.className = 'custom-modal-backdrop';
+        backdrop.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1040;
+            opacity: 0;
+            transition: opacity 0.15s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        `;
+
+        // Create modal dialog
         const dialog = document.createElement('div');
-        dialog.className = 'modal fade';
+        dialog.className = 'custom-modal-dialog';
+        dialog.style.cssText = `
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transform: scale(0.9);
+            opacity: 0;
+            transition: all 0.3s ease-out;
+        `;
+
+        // Create modal content
         dialog.innerHTML = `
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Edit ${type.charAt(0).toUpperCase() + type.slice(1)} Element</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header" style="padding: 1rem 1.5rem; border-bottom: 1px solid #dee2e6; flex-shrink: 0;">
+                <h5 class="modal-title" style="margin: 0; font-size: 1.25rem; font-weight: 500;">
+                    Edit ${type ? type.charAt(0).toUpperCase() + type.slice(1) : ''} Element
+                </h5>
+                <button type="button" class="btn-close" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; opacity: 0.5; padding: 0; width: 1.5rem; height: 1.5rem; display: flex; align-items: center; justify-content: center;">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem; overflow-y: auto; flex: 1;">
+                <form id="elementEditForm">
+                    <div class="mb-3" style="margin-bottom: 1rem;">
+                        <label for="elementName" class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Name (ID):</label>
+                        <input type="text" class="form-control" id="elementName" value="${element.name || ''}"
+                               style="width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem; font-size: 1rem;">
                     </div>
-                    <div class="modal-body">
-                        <form id="elementEditForm">
-                            <div class="mb-3">
-                                <label for="elementName" class="form-label">Name:</label>
-                                <input type="text" class="form-control" id="elementName" value="${element.name || ''}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="elementTitle" class="form-label">Title:</label>
-                                <input type="text" class="form-control" id="elementTitle" value="${element.title || ''}">
-                            </div>
-                            <div id="elementSpecificProperties"></div>
-                        </form>
+                    <div class="mb-3" style="margin-bottom: 1rem;">
+                        <label for="elementTitle" class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Title:</label>
+                        <input type="text" class="form-control" id="elementTitle" value="${element.title || ''}"
+                               style="width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem; font-size: 1rem;">
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-primary" id="saveElementChanges">Save Changes</button>
-                    </div>
-                </div>
+                    <div id="elementSpecificProperties"></div>
+                </form>
+            </div>
+            <div class="modal-footer" style="padding: 1rem 1.5rem; border-top: 1px solid #dee2e6; display: flex; justify-content: flex-end; gap: 0.5rem; flex-shrink: 0;">
+                <button type="button" class="btn btn-secondary" style="padding: 0.375rem 0.75rem; border: 1px solid #6c757d; background: #6c757d; color: white; border-radius: 0.25rem; cursor: pointer;">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveElementChanges" style="padding: 0.375rem 0.75rem; border: 1px solid #0d6efd; background: #0d6efd; color: white; border-radius: 0.25rem; cursor: pointer;">Save Changes</button>
             </div>
         `;
 
-        document.body.appendChild(dialog);
-        const modal = new bootstrap.Modal(dialog);
+        // Append modal to backdrop and backdrop to body
+        backdrop.appendChild(dialog);
+        document.body.appendChild(backdrop);
 
         // Add type-specific properties
         const specificProps = dialog.querySelector('#elementSpecificProperties');
-        specificProps.innerHTML = this.getTypeSpecificFormFields(element, type);
+        const elementType = type || element.type || 'text';
+        specificProps.innerHTML = this.getTypeSpecificFormFields(element, elementType);
 
+        // Trigger reflow and add show classes for animation
+        setTimeout(() => {
+            backdrop.style.opacity = '1';
+            dialog.style.transform = 'scale(1)';
+            dialog.style.opacity = '1';
+        }, 10);
+
+        // Function to close modal
+        const closeModal = () => {
+            dialog.style.transform = 'scale(0.9)';
+            dialog.style.opacity = '0';
+            backdrop.style.opacity = '0';
+            
+            setTimeout(() => {
+                if (backdrop.parentNode) {
+                    backdrop.parentNode.removeChild(backdrop);
+                }
+            }, 300);
+        };
+
+        // Handle close button click
+        dialog.querySelector('.btn-close').addEventListener('click', closeModal);
+
+        // Handle cancel button click
+        dialog.querySelector('.btn-secondary').addEventListener('click', closeModal);
+
+        // Handle backdrop click
+        backdrop.addEventListener('click', (e) => {
+            if (e.target === backdrop) {
+                closeModal();
+            }
+        });
+
+        // Handle save button click
         dialog.querySelector('#saveElementChanges').addEventListener('click', () => {
             const updatedElement = {
                 ...element,
@@ -4885,16 +5265,30 @@ class IPLCFormBuilder {
             };
 
             // Gather type-specific properties
-            this.gatherTypeSpecificProperties(updatedElement, type, dialog);
+            this.gatherTypeSpecificProperties(updatedElement, elementType, dialog);
 
-            modal.hide();
-            dialog.addEventListener('hidden.bs.modal', () => {
-                document.body.removeChild(dialog);
+            closeModal();
+            // Call the callback after modal is closed
+            setTimeout(() => {
                 callback(updatedElement);
-            }, { once: true });
+            }, 300);
         });
 
-        modal.show();
+        // Handle escape key
+        const handleEscape = (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+                document.removeEventListener('keydown', handleEscape);
+            }
+        };
+        document.addEventListener('keydown', handleEscape);
+
+        // Focus on first input
+        setTimeout(() => {
+            dialog.querySelector('#elementName').focus();
+        }, 350);
+
+        return dialog;
     }
 
     // Get type-specific form fields for the edit dialog
