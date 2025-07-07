@@ -69,11 +69,16 @@ class IPLCFormBuilder {
         const isCollapsed = localStorage.getItem('propertiesPanel_collapsed') === 'true';
         const propertiesPanel = document.getElementById('builderProperties');
         const toggleIcon = document.getElementById('toggleIcon');
+        const builderCanvas = document.querySelector('.builder-canvas');
         
         if (isCollapsed && propertiesPanel) {
             propertiesPanel.classList.add('collapsed');
             if (toggleIcon) {
                 toggleIcon.textContent = '▶';
+            }
+            // Also expand the canvas when panel is collapsed
+            if (builderCanvas) {
+                builderCanvas.classList.add('expanded');
             }
         }
     }
@@ -294,11 +299,18 @@ class IPLCFormBuilder {
         const toggleIcon = document.getElementById('toggleIcon');
         const isCollapsed = propertiesPanel.classList.contains('collapsed');
         
+        const builderCanvas = document.querySelector('.builder-canvas');
+        
         if (isCollapsed) {
             // Expand panel
             propertiesPanel.classList.remove('collapsed');
             toggleIcon.textContent = '◀';
             localStorage.setItem('propertiesPanel_collapsed', 'false');
+            
+            // Remove expanded class from canvas
+            if (builderCanvas) {
+                builderCanvas.classList.remove('expanded');
+            }
             
             // Show notification
             this.showNotification('Properties panel expanded');
@@ -307,6 +319,11 @@ class IPLCFormBuilder {
             propertiesPanel.classList.add('collapsed');
             toggleIcon.textContent = '▶';
             localStorage.setItem('propertiesPanel_collapsed', 'true');
+            
+            // Add expanded class to canvas to use full width
+            if (builderCanvas) {
+                builderCanvas.classList.add('expanded');
+            }
             
             // Show notification
             this.showNotification('Properties panel collapsed');
@@ -324,9 +341,10 @@ class IPLCFormBuilder {
         styles.textContent = `
             .form-builder-container {
                 height: 100%;
+                width: 100%;
                 display: flex;
                 flex-direction: column;
-                background: #f5f7fa;
+                background: #ffffff;
             }
 
             .builder-header {
@@ -393,8 +411,13 @@ class IPLCFormBuilder {
                 flex: 1;
                 padding: 2rem;
                 overflow-y: auto;
-                background: #f5f7fa;
+                background: #ffffff;
                 min-width: 0;
+                transition: margin-right 0.3s ease;
+            }
+            
+            .builder-canvas.expanded {
+                margin-right: 50px !important;
             }
 
             .form-metadata {
@@ -696,14 +719,16 @@ class IPLCFormBuilder {
                 border-left: 1px solid #e1e4e8;
                 padding: 1rem;
                 overflow-y: auto;
-                transition: width 0.3s ease, margin-right 0.3s ease;
+                transition: width 0.3s ease;
                 position: relative;
+                flex-shrink: 0;
             }
             
             .builder-properties.collapsed {
-                width: 40px;
+                width: 0;
                 padding: 0;
                 overflow: hidden;
+                border-left: none;
             }
             
             .builder-properties.collapsed .properties-content,
@@ -714,34 +739,43 @@ class IPLCFormBuilder {
             
             .properties-toggle {
                 position: absolute;
-                left: 0;
+                left: -32px;
                 top: 50%;
                 transform: translateY(-50%);
                 background: #3498db;
                 color: white;
                 border: none;
-                border-radius: 0 4px 4px 0;
-                padding: 1rem 0.25rem;
+                border-radius: 4px 0 0 4px;
+                padding: 0.75rem 0.25rem;
                 cursor: pointer;
-                font-size: 1.2rem;
+                font-size: 1rem;
                 z-index: 10;
                 transition: all 0.2s ease;
+                width: 32px;
+                height: 80px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
             
             .properties-toggle:hover {
                 background: #2980b9;
-                padding-left: 0.5rem;
+                left: -36px;
+                width: 36px;
             }
             
             .builder-properties.collapsed .properties-toggle {
-                left: 40px;
-                border-radius: 4px 0 0 4px;
+                left: 0;
+                border-radius: 0 4px 4px 0;
             }
             
             /* Responsive adjustments */
             @media (max-width: 1200px) {
                 .builder-properties {
                     width: 250px;
+                }
+                .builder-properties.collapsed {
+                    width: 0;
                 }
             }
             
@@ -751,6 +785,9 @@ class IPLCFormBuilder {
                 }
                 .builder-properties {
                     width: 200px;
+                }
+                .builder-properties.collapsed {
+                    width: 0;
                 }
             }
             
@@ -763,8 +800,15 @@ class IPLCFormBuilder {
                     width: 100%;
                     max-height: 200px;
                 }
+                .builder-properties.collapsed {
+                    max-height: 0;
+                    width: 100%;
+                }
                 .builder-canvas {
                     min-height: 400px;
+                }
+                .properties-toggle {
+                    display: none;
                 }
             }
 
