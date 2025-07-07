@@ -43,3 +43,4 @@ scripts/chat-verification-report.json
 test-results/
 playwright-report/
 playwright/.cache/
+IPLC GitHub Eval.code-workspace

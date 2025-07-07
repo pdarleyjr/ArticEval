@@ -7,7 +7,8 @@
 	"settings": {},
 	"extensions": {
 		"recommendations": [
-			"codiium.wrangler"
+			"codiium.wrangler",
+			"ms-vsliveshare.vsliveshare"
 		]
 	}
 }
