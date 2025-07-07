@@ -50,10 +50,12 @@ class IPLCFormBuilder {
     }
 
     init() {
+        console.log('FormBuilder: init() called');
         this.checkForEditMode();
         this.render();
         this.attachEventListeners();
         this.setupAutoSave();
+        this.registerCustomQuestionTypes();
     }
 
     render() {
@@ -307,12 +309,18 @@ class IPLCFormBuilder {
                 display: flex;
                 align-items: center;
                 gap: 0.5rem;
+                user-select: none;
             }
 
             .draggable-element:hover {
                 background: #e9ecef;
                 border-color: #3498db;
                 transform: translateX(2px);
+            }
+            
+            .draggable-element.dragging {
+                opacity: 0.5;
+                cursor: grabbing;
             }
 
             .builder-canvas {
@@ -489,6 +497,58 @@ class IPLCFormBuilder {
                 max-height: calc(100vh - 200px);
                 overflow-y: auto;
             }
+            
+            .conditional-logic-btn {
+                background: #f6f8fa;
+                border: 1px solid #e1e4e8;
+                padding: 0.5rem 1rem;
+                border-radius: 4px;
+                cursor: pointer;
+                transition: all 0.2s;
+                width: 100%;
+                text-align: center;
+            }
+            
+            .conditional-logic-btn:hover {
+                background: #e9ecef;
+                border-color: #3498db;
+            }
+            
+            .current-condition-preview {
+                margin-top: 0.5rem;
+                font-size: 0.85rem;
+                color: #586069;
+            }
+            
+            .current-condition-preview code {
+                background: #f6f8fa;
+                padding: 0.2rem 0.4rem;
+                border-radius: 3px;
+                font-family: monospace;
+            }
+            
+            .ai-summary-field-selector {
+                margin-top: 1rem;
+                padding: 1rem;
+                background: #f6f8fa;
+                border: 1px solid #e1e4e8;
+                border-radius: 4px;
+            }
+            
+            .ai-summary-field-selector h5 {
+                margin: 0 0 0.5rem 0;
+                font-size: 0.9rem;
+            }
+            
+            .field-checkbox {
+                display: block;
+                margin-bottom: 0.5rem;
+                cursor: pointer;
+            }
+            
+            .field-checkbox input {
+                margin-right: 0.5rem;
+            }
         `;
         document.head.appendChild(styles);
     }
@@ -572,63 +632,76 @@ class IPLCFormBuilder {
         console.log('setupDragAndDrop() completed');
         this.setupKeyboardShortcuts();
     }
-setupDragAndDrop() {
-    console.log('setupDragAndDrop() method called');
-    const draggables = document.querySelectorAll('.draggable-element');
-    const dropZone = document.getElementById('dropZone');
-    
-    console.log('Found draggable elements:', draggables.length);
-    console.log('Draggables:', draggables);
-    console.log('DropZone element:', dropZone);
-
-    draggables.forEach((draggable, index) => {
-        console.log(`Setting up draggable ${index}:`, draggable, 'Type:', draggable.dataset.type);
+    setupDragAndDrop() {
+        console.log('FormBuilder: setupDragAndDrop() called');
+        const draggables = document.querySelectorAll('.draggable-element');
+        const dropZone = document.getElementById('dropZone');
         
-        draggable.addEventListener('dragstart', (e) => {
-            console.log('Drag started for element:', draggable.dataset.type);
-            e.dataTransfer.setData('elementType', draggable.dataset.type);
-            e.dataTransfer.setData('isCustom', draggable.dataset.custom || 'false');
-            draggable.classList.add('dragging');
-        });
+        console.log('FormBuilder: Found', draggables.length, 'draggable elements');
+        console.log('FormBuilder: Drop zone found:', !!dropZone);
 
-        draggable.addEventListener('dragend', () => {
-            console.log('Drag ended');
-            draggable.classList.remove('dragging');
-        });
-    });
-
-    if (dropZone) {
-        console.log('Setting up drop zone event listeners');
-        
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('drag-over');
-        });
-
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('drag-over');
-        });
-
-        dropZone.addEventListener('drop', (e) => {
-            console.log('Drop event triggered');
-            e.preventDefault();
-            dropZone.classList.remove('drag-over');
+        // Clear any existing drag event listeners to prevent duplicates
+        draggables.forEach((draggable, index) => {
+            console.log(`FormBuilder: Setting up draggable element ${index}:`, draggable.dataset.type);
             
-            const elementType = e.dataTransfer.getData('elementType');
-            const isCustom = e.dataTransfer.getData('isCustom') === 'true';
+            // Clone and replace to remove all existing event listeners
+            const newDraggable = draggable.cloneNode(true);
+            draggable.parentNode.replaceChild(newDraggable, draggable);
             
-            console.log('Dropped element type:', elementType, 'isCustom:', isCustom);
-            
-            if (elementType) {
-                this.addElement(elementType, isCustom);
-            }
-        });
-    } else {
-        console.error('DropZone element not found!');
-    }
-}
+            newDraggable.addEventListener('dragstart', (e) => {
+                console.log('FormBuilder: Drag started for:', newDraggable.dataset.type);
+                e.dataTransfer.effectAllowed = 'copy';
+                e.dataTransfer.setData('elementType', newDraggable.dataset.type);
+                e.dataTransfer.setData('isCustom', newDraggable.dataset.custom || 'false');
+                newDraggable.classList.add('dragging');
+            });
 
+            newDraggable.addEventListener('dragend', (e) => {
+                console.log('FormBuilder: Drag ended');
+                newDraggable.classList.remove('dragging');
+            });
+        });
+
+        if (dropZone) {
+            console.log('FormBuilder: Setting up drop zone event listeners');
+            
+            // Clone and replace drop zone to remove existing listeners
+            const newDropZone = dropZone.cloneNode(true);
+            dropZone.parentNode.replaceChild(newDropZone, dropZone);
+            
+            newDropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'copy';
+                newDropZone.classList.add('drag-over');
+            });
+
+            newDropZone.addEventListener('dragleave', (e) => {
+                // Only remove the class if we're leaving the drop zone entirely
+                if (e.target === newDropZone) {
+                    newDropZone.classList.remove('drag-over');
+                }
+            });
+
+            newDropZone.addEventListener('drop', (e) => {
+                console.log('FormBuilder: Drop event triggered');
+                e.preventDefault();
+                e.stopPropagation();
+                newDropZone.classList.remove('drag-over');
+                
+                const elementType = e.dataTransfer.getData('elementType');
+                const isCustom = e.dataTransfer.getData('isCustom') === 'true';
+                
+                console.log('FormBuilder: Dropped element type:', elementType, 'isCustom:', isCustom);
+                
+                if (elementType) {
+                    this.addElement(elementType, isCustom);
+                }
+            });
+        } else {
+            console.error('FormBuilder: Drop zone element not found!');
         }
+    }
+
     addElement(type, isCustom = false) {
         this.saveToHistory();
         const element = isCustom ? this.createCustomElement(type) : this.createDefaultElement(type);
@@ -948,13 +1021,19 @@ setupDragAndDrop() {
             </div>
         `;
 
+        // Add AI Summary specific properties
+        if (element.type === 'ai-summary' || element.customType === 'ai-summary') {
+            propertiesHTML += this.getAISummaryPropertiesHTML(element);
+        }
+
         // Add conditional logic section
         propertiesHTML += `
             <div class="property-group">
                 <h4 style="margin-bottom: 0.5rem;">Conditional Logic</h4>
-                <button class="btn btn-sm btn-secondary" onclick="formBuilder.showConditionalLogicEditor()">
-                    Configure Conditions
+                <button class="btn btn-sm btn-secondary conditional-logic-btn" onclick="formBuilder.showConditionalLogicEditor()">
+                    <span class="icon">⚙️</span> Configure Conditions
                 </button>
+                ${element.visibleIf ? `<div class="current-condition-preview">Current: <code>${element.visibleIf}</code></div>` : ''}
             </div>
         `;
 
@@ -1916,7 +1995,7 @@ setupDragAndDrop() {
         currentPage.elements = currentPage.elements.concat(elementsWithUniqueNames);
         
         // Update the form designer display
-        this.updateFormDesigner();
+        this.renderFormElements();
         
         // Reset the dropdown
         const select = document.getElementById('fieldTemplateSelect');
@@ -2123,6 +2202,144 @@ setupDragAndDrop() {
         
         // Show notification
         this.showNotification(`Form setting updated: ${setting}`);
+    }
+
+    // Get AI Summary properties HTML
+    getAISummaryPropertiesHTML(element) {
+        const allFields = this.getAllFormElements();
+        const selectedFields = element.selectedFields || [];
+        
+        return `
+            <div class="property-group">
+                <h4 style="margin-bottom: 0.5rem;">AI Summary Settings</h4>
+                
+                <div class="property-field">
+                    <label class="property-label">Summary Type</label>
+                    <select class="property-input" onchange="formBuilder.updateElementProperty('summaryType', this.value)">
+                        <option value="comprehensive" ${element.summaryType === 'comprehensive' ? 'selected' : ''}>Comprehensive</option>
+                        <option value="brief" ${element.summaryType === 'brief' ? 'selected' : ''}>Brief</option>
+                    </select>
+                </div>
+                
+                <div class="property-field">
+                    <label class="property-label">Display Mode</label>
+                    <select class="property-input" onchange="formBuilder.updateElementProperty('displayMode', this.value)">
+                        <option value="seamless" ${element.displayMode === 'seamless' ? 'selected' : ''}>Seamless</option>
+                        <option value="highlighted" ${element.displayMode === 'highlighted' ? 'selected' : ''}>Highlighted</option>
+                        <option value="expandable" ${element.displayMode === 'expandable' ? 'selected' : ''}>Expandable</option>
+                    </select>
+                </div>
+                
+                <div class="property-field">
+                    <label class="property-label">
+                        <input type="checkbox" ${element.allowRuntimeSelection ? 'checked' : ''}
+                               onchange="formBuilder.updateElementProperty('allowRuntimeSelection', this.checked)">
+                        Allow runtime field selection
+                    </label>
+                </div>
+                
+                <div class="ai-summary-field-selector">
+                    <h5>Select fields to include in summary:</h5>
+                    ${allFields.map(field => `
+                        <label class="field-checkbox">
+                            <input type="checkbox"
+                                   value="${field.name}"
+                                   ${selectedFields.includes(field.name) ? 'checked' : ''}
+                                   onchange="formBuilder.updateAISummaryFields('${field.name}', this.checked)">
+                            ${field.title || field.name}
+                        </label>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    // Update AI Summary selected fields
+    updateAISummaryFields(fieldName, checked) {
+        if (this.selectedElement === null) return;
+        
+        const element = this.formData.pages[this.currentPageIndex].elements[this.selectedElement];
+        if (!element.selectedFields) {
+            element.selectedFields = [];
+        }
+        
+        if (checked) {
+            if (!element.selectedFields.includes(fieldName)) {
+                element.selectedFields.push(fieldName);
+            }
+        } else {
+            const index = element.selectedFields.indexOf(fieldName);
+            if (index > -1) {
+                element.selectedFields.splice(index, 1);
+            }
+        }
+        
+        this.hasUnsavedChanges = true;
+        this.debouncedSave();
+    }
+
+    // Register custom question types with Survey.js
+    registerCustomQuestionTypes() {
+        console.log('FormBuilder: Registering custom question types');
+        
+        // Only register if Survey is available
+        if (typeof Survey === 'undefined') {
+            console.warn('FormBuilder: Survey.js not loaded, skipping custom question registration');
+            return;
+        }
+        
+        // Register AI Summary custom question type
+        const AISummaryQuestion = function(name) {
+            Survey.Question.call(this, name);
+        };
+        
+        Survey.Serializer.addClass(
+            "ai-summary",
+            [{
+                name: "selectedFields:string[]",
+                default: []
+            }, {
+                name: "summaryType",
+                default: "comprehensive",
+                choices: ["comprehensive", "brief"]
+            }, {
+                name: "displayMode",
+                default: "seamless",
+                choices: ["seamless", "highlighted", "expandable"]
+            }, {
+                name: "allowRuntimeSelection:boolean",
+                default: true
+            }, {
+                name: "placeholder",
+                default: "AI summary will appear here after you complete the selected fields..."
+            }, {
+                name: "loadingText",
+                default: "Generating summary..."
+            }, {
+                name: "errorText",
+                default: "Unable to generate summary. Please try again."
+            }, {
+                name: "minHeight:number",
+                default: 200
+            }],
+            function() {
+                return new AISummaryQuestion("");
+            },
+            "question"
+        );
+        
+        AISummaryQuestion.prototype = Object.create(Survey.Question.prototype);
+        AISummaryQuestion.prototype.constructor = AISummaryQuestion;
+        AISummaryQuestion.prototype.getType = function() {
+            return "ai-summary";
+        };
+        
+        // Add the question type to the toolbox if needed
+        Survey.QuestionFactory.Instance.registerQuestion("ai-summary", (name) => {
+            return new AISummaryQuestion(name);
+        });
+        
+        console.log('FormBuilder: AI Summary question type registered');
     }
 }
 
