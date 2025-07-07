@@ -1398,6 +1398,9 @@
             
             // Check if the chat API is available
             try {
+                console.log('Initializing AI Chat...');
+                
+                // Test the health endpoint
                 const healthResponse = await fetch('/api/ai/chat/health', {
                     method: 'GET',
                     headers: {
@@ -1405,23 +1408,42 @@
                     }
                 });
                 
+                console.log('Health check response status:', healthResponse.status);
+                const contentType = healthResponse.headers.get('content-type');
+                console.log('Health check Content-Type:', contentType);
+                
+                const responseText = await healthResponse.text();
+                console.log('Health check raw response:', responseText.substring(0, 200));
+                
                 if (healthResponse.ok) {
-                    const health = await healthResponse.json();
-                    console.log('AI Chat health check:', health);
-                    chatInitialized = true;
-                    
-                    // Update status indicator
-                    const statusIndicator = document.querySelector('.chat-status');
-                    if (statusIndicator) {
-                        statusIndicator.style.background = '#4CAF50';
+                    try {
+                        const health = JSON.parse(responseText);
+                        console.log('AI Chat health check parsed:', health);
+                        chatInitialized = true;
+                        
+                        // Update status indicator
+                        const statusIndicator = document.querySelector('.chat-status');
+                        if (statusIndicator) {
+                            statusIndicator.style.background = '#4CAF50';
+                        }
+                    } catch (parseError) {
+                        console.error('Failed to parse health check response:', parseError);
+                        console.error('Response was:', responseText);
+                        showChatError('AI Chat service returned invalid response. The service may be misconfigured.');
                     }
                 } else {
-                    console.error('AI Chat health check failed:', healthResponse.status);
-                    showChatError('AI Chat service is currently unavailable. Please try again later.');
+                    console.error('AI Chat health check failed:', healthResponse.status, responseText);
+                    showChatError(`AI Chat service is currently unavailable (Status: ${healthResponse.status}). Please try again later.`);
                 }
             } catch (error) {
                 console.error('Failed to connect to AI Chat service:', error);
-                showChatError('Unable to connect to AI Chat service. Please check your connection.');
+                showChatError('Unable to connect to AI Chat service. Please check your connection and ensure the API is properly configured.');
+                
+                // Provide diagnostic information
+                console.log('Diagnostic info:');
+                console.log('- API endpoint: /api/ai/chat/');
+                console.log('- Expected routes.json to handle /api/* routes');
+                console.log('- Check if functions/api/ai/chat.js is properly deployed');
             }
             
             // Load previous messages from localStorage if available
@@ -1496,24 +1518,61 @@
                     })
                 });
                 
-                const responseText = await response.text();
-                console.log('AI Chat response:', response.status, responseText);
+                // Check Content-Type header
+                const contentType = response.headers.get('content-type');
+                console.log('Response Content-Type:', contentType);
+                console.log('Response Status:', response.status);
                 
-                if (!response.ok) {
-                    let errorMessage = 'Failed to get response from AI';
-                    try {
-                        const errorData = JSON.parse(responseText);
-                        errorMessage = errorData.error || errorData.message || errorMessage;
-                    } catch (e) {
-                        errorMessage = `Server error: ${response.status} ${response.statusText}`;
+                // Get response text
+                const responseText = await response.text();
+                console.log('Raw response (first 200 chars):', responseText.substring(0, 200));
+                
+                // Validate response format
+                let data;
+                if (!responseText || responseText.trim() === '') {
+                    throw new Error('Empty response from server');
+                }
+                
+                // Check if response is HTML (common error page indicator)
+                if (responseText.trim().startsWith('<!DOCTYPE') || responseText.trim().startsWith('<html')) {
+                    console.error('Received HTML response instead of JSON:', responseText.substring(0, 500));
+                    throw new Error(`Server returned HTML instead of JSON. Status: ${response.status}`);
+                }
+                
+                // Check if response is plain text error
+                if (!contentType || !contentType.includes('application/json')) {
+                    console.warn('Response is not JSON. Content-Type:', contentType);
+                    if (!response.ok) {
+                        throw new Error(`Server error: ${response.status} ${response.statusText}. Response: ${responseText.substring(0, 100)}`);
                     }
+                }
+                
+                // Try to parse JSON
+                try {
+                    data = JSON.parse(responseText);
+                } catch (parseError) {
+                    console.error('JSON parse error:', parseError);
+                    console.error('Failed to parse response:', responseText);
+                    
+                    // Check if it's a network or CORS error
+                    if (response.status === 0) {
+                        throw new Error('Network error: Unable to reach the AI Chat service. Please check your connection.');
+                    }
+                    
+                    throw new Error(`Invalid JSON response from server. Status: ${response.status}. Error: ${parseError.message}`);
+                }
+                
+                // Check response status
+                if (!response.ok) {
+                    const errorMessage = data.error || data.message || 'Failed to get response from AI';
+                    console.error('API Error:', errorMessage, data);
                     throw new Error(errorMessage);
                 }
                 
-                const data = JSON.parse(responseText);
-                
+                // Validate response structure
                 if (!data.response) {
-                    throw new Error('Invalid response from server');
+                    console.error('Invalid response structure:', data);
+                    throw new Error('Invalid response format from server');
                 }
                 
                 // Hide typing indicator
