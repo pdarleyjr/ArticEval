@@ -58,6 +58,7 @@ class IPLCFormBuilder {
         this.attachEventListeners();
         this.setupAutoSave();
         this.registerCustomQuestionTypes();
+        this.addComplexEditorStyles();
     }
 
     render() {
@@ -2763,42 +2764,57 @@ class IPLCFormBuilder {
 
         // Add type-specific properties
         if (element.type === 'dropdown' || element.type === 'radiogroup' || element.type === 'checkbox') {
-            propertiesHTML += `
-                <div class="property-group">
-                    <label class="property-label">Choices</label>
-                    <div class="choices-editor">
-                        ${(element.choices || []).map((choice, i) => `
-                            <div class="choice-item">
-                                <input type="text" class="property-input" value="${choice}"
-                                       onchange="formBuilder.updateChoice(${i}, this.value)">
-                                <button onclick="formBuilder.removeChoice(${i})">×</button>
-                            </div>
-                        `).join('')}
-                        <button class="btn btn-sm add-choice" onclick="formBuilder.addChoice()">Add Choice</button>
-                    </div>
-                </div>
-            `;
+            propertiesHTML += this.getChoicesEditorHTML(element);
+        }
+
+        // Add panel-specific properties
+        if (element.type === 'panel') {
+            propertiesHTML += this.getPanelPropertiesHTML(element);
+        }
+
+        // Add matrix-specific properties
+        if (element.type === 'matrix') {
+            propertiesHTML += this.getMatrixPropertiesHTML(element);
+        }
+
+        // Add dynamic matrix properties
+        if (element.type === 'matrixdynamic') {
+            propertiesHTML += this.getMatrixDynamicPropertiesHTML(element);
+        }
+
+        // Add dynamic panel properties
+        if (element.type === 'paneldynamic') {
+            propertiesHTML += this.getPanelDynamicPropertiesHTML(element);
+        }
+
+        // Add text-specific properties
+        if (element.type === 'text') {
+            propertiesHTML += this.getTextPropertiesHTML(element);
+        }
+
+        // Add comment-specific properties
+        if (element.type === 'comment') {
+            propertiesHTML += this.getCommentPropertiesHTML(element);
+        }
+
+        // Add rating-specific properties
+        if (element.type === 'rating') {
+            propertiesHTML += this.getRatingPropertiesHTML(element);
+        }
+
+        // Add boolean-specific properties
+        if (element.type === 'boolean') {
+            propertiesHTML += this.getBooleanPropertiesHTML(element);
         }
 
         // Add signature-specific properties
         if (element.type === 'signaturepad') {
-            propertiesHTML += `
-                <div class="property-group">
-                    <label class="property-label">Width</label>
-                    <input type="number" class="property-input" value="${element.width || '300'}"
-                           onchange="formBuilder.updateElementProperty('width', this.value)">
-                </div>
-                <div class="property-group">
-                    <label class="property-label">Height</label>
-                    <input type="number" class="property-input" value="${element.height || '150'}"
-                           onchange="formBuilder.updateElementProperty('height', this.value)">
-                </div>
-                <div class="property-group">
-                    <label class="property-label">Pen Color</label>
-                    <input type="color" class="property-input" value="${element.penColor || '#000080'}"
-                           onchange="formBuilder.updateElementProperty('penColor', this.value)">
-                </div>
-            `;
+            propertiesHTML += this.getSignaturePropertiesHTML(element);
+        }
+
+        // Add HTML element properties
+        if (element.type === 'html') {
+            propertiesHTML += this.getHtmlPropertiesHTML(element);
         }
 
         // Add validation rules section
@@ -2824,8 +2840,356 @@ class IPLCFormBuilder {
                 ${element.visibleIf ? `<div class="current-condition-preview">Current: <code>${element.visibleIf}</code></div>` : ''}
             </div>
         `;
-
         propertiesPanel.innerHTML = propertiesHTML;
+    }
+
+    // Get choices editor HTML for dropdown/radio/checkbox
+    getChoicesEditorHTML(element) {
+        return `
+            <div class="property-group">
+                <label class="property-label">Choices</label>
+                <div class="choices-editor">
+                    ${(element.choices || []).map((choice, i) => `
+                        <div class="choice-item">
+                            <input type="text" class="property-input" value="${this.escapeHtml(choice)}"
+                                   onchange="formBuilder.updateChoice(${i}, this.value)">
+                            <button onclick="formBuilder.removeChoice(${i})" class="remove-btn">×</button>
+                        </div>
+                    `).join('')}
+                    <button class="btn btn-sm add-choice" onclick="formBuilder.addChoice()">
+                        <span class="icon">➕</span> Add Choice
+                    </button>
+                </div>
+            </div>
+            ${element.type === 'checkbox' ? `
+                <div class="property-group">
+                    <label class="property-label">
+                        <input type="checkbox" ${element.hasOther ? 'checked' : ''}
+                               onchange="formBuilder.updateElementProperty('hasOther', this.checked)">
+                        Include "Other" option
+                    </label>
+                </div>
+            ` : ''}
+        `;
+    }
+
+    // Get panel properties HTML
+    getPanelPropertiesHTML(element) {
+        return `
+            <div class="property-group">
+                <h4 style="margin-bottom: 0.5rem;">Panel Elements</h4>
+                <div class="panel-elements-editor">
+                    ${(element.elements || []).map((el, i) => `
+                        <div class="panel-element-item">
+                            <div class="element-summary">
+                                <span class="element-type-badge">${el.type}</span>
+                                <span class="element-name">${el.title || el.name || 'Untitled'}</span>
+                                <div class="element-actions">
+                                    <button onclick="formBuilder.editPanelElement(${i})" class="edit-btn" title="Edit">✏️</button>
+                                    <button onclick="formBuilder.movePanelElement(${i}, -1)" class="move-btn" title="Move Up">↑</button>
+                                    <button onclick="formBuilder.movePanelElement(${i}, 1)" class="move-btn" title="Move Down">↓</button>
+                                    <button onclick="formBuilder.removePanelElement(${i})" class="remove-btn" title="Remove">🗑️</button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                    <button class="btn btn-sm add-panel-element" onclick="formBuilder.addPanelElement()">
+                        <span class="icon">➕</span> Add Element to Panel
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    // Get matrix properties HTML
+    getMatrixPropertiesHTML(element) {
+        return `
+            <div class="property-group">
+                <h4 style="margin-bottom: 0.5rem;">Matrix Configuration</h4>
+                
+                <div class="matrix-columns-editor">
+                    <label class="property-label">Columns</label>
+                    ${(element.columns || []).map((col, i) => `
+                        <div class="matrix-item">
+                            <input type="text" class="property-input" value="${this.escapeHtml(col)}"
+                                   onchange="formBuilder.updateMatrixColumn(${i}, this.value)">
+                            <button onclick="formBuilder.removeMatrixColumn(${i})" class="remove-btn">×</button>
+                        </div>
+                    `).join('')}
+                    <button class="btn btn-sm" onclick="formBuilder.addMatrixColumn()">
+                        <span class="icon">➕</span> Add Column
+                    </button>
+                </div>
+                
+                <div class="matrix-rows-editor" style="margin-top: 1rem;">
+                    <label class="property-label">Rows</label>
+                    ${(element.rows || []).map((row, i) => `
+                        <div class="matrix-item">
+                            <input type="text" class="property-input" value="${this.escapeHtml(row)}"
+                                   onchange="formBuilder.updateMatrixRow(${i}, this.value)">
+                            <button onclick="formBuilder.removeMatrixRow(${i})" class="remove-btn">×</button>
+                        </div>
+                    `).join('')}
+                    <button class="btn btn-sm" onclick="formBuilder.addMatrixRow()">
+                        <span class="icon">➕</span> Add Row
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    // Get dynamic matrix properties HTML
+    getMatrixDynamicPropertiesHTML(element) {
+        return `
+            <div class="property-group">
+                <h4 style="margin-bottom: 0.5rem;">Dynamic Matrix Configuration</h4>
+                
+                <div class="property-field">
+                    <label class="property-label">Initial Row Count</label>
+                    <input type="number" class="property-input" min="0" value="${element.rowCount || 1}"
+                           onchange="formBuilder.updateElementProperty('rowCount', parseInt(this.value))">
+                </div>
+                
+                <div class="property-field">
+                    <label class="property-label">Add Row Button Text</label>
+                    <input type="text" class="property-input" value="${element.addRowText || 'Add Row'}"
+                           onchange="formBuilder.updateElementProperty('addRowText', this.value)">
+                </div>
+                
+                <div class="property-field">
+                    <label class="property-label">
+                        <input type="checkbox" ${element.allowRowsDeletion !== false ? 'checked' : ''}
+                               onchange="formBuilder.updateElementProperty('allowRowsDeletion', this.checked)">
+                        Allow Row Deletion
+                    </label>
+                </div>
+                
+                <div class="matrix-columns-editor">
+                    <label class="property-label">Column Definitions</label>
+                    ${(element.columns || []).map((col, i) => `
+                        <div class="matrix-column-def">
+                            <input type="text" class="property-input" placeholder="Column name"
+                                   value="${col.name || ''}"
+                                   onchange="formBuilder.updateMatrixDynamicColumn(${i}, 'name', this.value)">
+                            <input type="text" class="property-input" placeholder="Column title"
+                                   value="${col.title || ''}"
+                                   onchange="formBuilder.updateMatrixDynamicColumn(${i}, 'title', this.value)">
+                            <select class="property-input" onchange="formBuilder.updateMatrixDynamicColumn(${i}, 'cellType', this.value)">
+                                <option value="text" ${col.cellType === 'text' ? 'selected' : ''}>Text</option>
+                                <option value="dropdown" ${col.cellType === 'dropdown' ? 'selected' : ''}>Dropdown</option>
+                                <option value="checkbox" ${col.cellType === 'checkbox' ? 'selected' : ''}>Checkbox</option>
+                                <option value="radiogroup" ${col.cellType === 'radiogroup' ? 'selected' : ''}>Radio</option>
+                                <option value="boolean" ${col.cellType === 'boolean' ? 'selected' : ''}>Yes/No</option>
+                            </select>
+                            <button onclick="formBuilder.removeMatrixDynamicColumn(${i})" class="remove-btn">×</button>
+                        </div>
+                    `).join('')}
+                    <button class="btn btn-sm" onclick="formBuilder.addMatrixDynamicColumn()">
+                        <span class="icon">➕</span> Add Column
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    // Get dynamic panel properties HTML
+    getPanelDynamicPropertiesHTML(element) {
+        return `
+            <div class="property-group">
+                <h4 style="margin-bottom: 0.5rem;">Dynamic Panel Configuration</h4>
+                
+                <div class="property-field">
+                    <label class="property-label">Initial Panel Count</label>
+                    <input type="number" class="property-input" min="0" value="${element.panelCount || 1}"
+                           onchange="formBuilder.updateElementProperty('panelCount', parseInt(this.value))">
+                </div>
+                
+                <div class="property-field">
+                    <label class="property-label">Add Panel Button Text</label>
+                    <input type="text" class="property-input" value="${element.panelAddText || 'Add Panel'}"
+                           onchange="formBuilder.updateElementProperty('panelAddText', this.value)">
+                </div>
+                
+                <div class="property-field">
+                    <label class="property-label">Remove Panel Button Text</label>
+                    <input type="text" class="property-input" value="${element.panelRemoveText || 'Remove'}"
+                           onchange="formBuilder.updateElementProperty('panelRemoveText', this.value)">
+                </div>
+                
+                <div class="panel-template-editor">
+                    <label class="property-label">Template Elements</label>
+                    ${(element.templateElements || []).map((el, i) => `
+                        <div class="panel-element-item">
+                            <div class="element-summary">
+                                <span class="element-type-badge">${el.type}</span>
+                                <span class="element-name">${el.title || el.name || 'Untitled'}</span>
+                                <div class="element-actions">
+                                    <button onclick="formBuilder.editPanelDynamicElement(${i})" class="edit-btn" title="Edit">✏️</button>
+                                    <button onclick="formBuilder.movePanelDynamicElement(${i}, -1)" class="move-btn" title="Move Up">↑</button>
+                                    <button onclick="formBuilder.movePanelDynamicElement(${i}, 1)" class="move-btn" title="Move Down">↓</button>
+                                    <button onclick="formBuilder.removePanelDynamicElement(${i})" class="remove-btn" title="Remove">🗑️</button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                    <button class="btn btn-sm" onclick="formBuilder.addPanelDynamicElement()">
+                        <span class="icon">➕</span> Add Template Element
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    // Get text field properties HTML
+    getTextPropertiesHTML(element) {
+        return `
+            <div class="property-group">
+                <label class="property-label">Placeholder</label>
+                <input type="text" class="property-input" value="${element.placeholder || ''}"
+                       onchange="formBuilder.updateElementProperty('placeholder', this.value)">
+            </div>
+            <div class="property-group">
+                <label class="property-label">Input Type</label>
+                <select class="property-input" onchange="formBuilder.updateElementProperty('inputType', this.value)">
+                    <option value="text" ${element.inputType === 'text' || !element.inputType ? 'selected' : ''}>Text</option>
+                    <option value="email" ${element.inputType === 'email' ? 'selected' : ''}>Email</option>
+                    <option value="tel" ${element.inputType === 'tel' ? 'selected' : ''}>Phone</option>
+                    <option value="number" ${element.inputType === 'number' ? 'selected' : ''}>Number</option>
+                    <option value="date" ${element.inputType === 'date' ? 'selected' : ''}>Date</option>
+                    <option value="time" ${element.inputType === 'time' ? 'selected' : ''}>Time</option>
+                    <option value="datetime-local" ${element.inputType === 'datetime-local' ? 'selected' : ''}>Date & Time</option>
+                    <option value="password" ${element.inputType === 'password' ? 'selected' : ''}>Password</option>
+                    <option value="url" ${element.inputType === 'url' ? 'selected' : ''}>URL</option>
+                </select>
+            </div>
+            ${element.inputType === 'number' ? `
+                <div class="property-field">
+                    <label class="property-label">Min Value</label>
+                    <input type="number" class="property-input" value="${element.min || ''}"
+                           onchange="formBuilder.updateElementProperty('min', this.value ? parseFloat(this.value) : null)">
+                </div>
+                <div class="property-field">
+                    <label class="property-label">Max Value</label>
+                    <input type="number" class="property-input" value="${element.max || ''}"
+                           onchange="formBuilder.updateElementProperty('max', this.value ? parseFloat(this.value) : null)">
+                </div>
+                <div class="property-field">
+                    <label class="property-label">Step</label>
+                    <input type="number" class="property-input" value="${element.step || ''}"
+                           onchange="formBuilder.updateElementProperty('step', this.value ? parseFloat(this.value) : null)">
+                </div>
+            ` : ''}
+        `;
+    }
+
+    // Get comment field properties HTML
+    getCommentPropertiesHTML(element) {
+        return `
+            <div class="property-group">
+                <label class="property-label">Placeholder</label>
+                <input type="text" class="property-input" value="${element.placeholder || ''}"
+                       onchange="formBuilder.updateElementProperty('placeholder', this.value)">
+            </div>
+            <div class="property-group">
+                <label class="property-label">Rows</label>
+                <input type="number" class="property-input" min="1" value="${element.rows || 4}"
+                       onchange="formBuilder.updateElementProperty('rows', parseInt(this.value))">
+            </div>
+            <div class="property-group">
+                <label class="property-label">
+                    <input type="checkbox" ${element.readOnly ? 'checked' : ''}
+                           onchange="formBuilder.updateElementProperty('readOnly', this.checked)">
+                    Read-only
+                </label>
+            </div>
+        `;
+    }
+
+    // Get rating properties HTML
+    getRatingPropertiesHTML(element) {
+        return `
+            <div class="property-group">
+                <label class="property-label">Minimum Rating</label>
+                <input type="number" class="property-input" min="0" value="${element.rateMin || 1}"
+                       onchange="formBuilder.updateElementProperty('rateMin', parseInt(this.value))">
+            </div>
+            <div class="property-group">
+                <label class="property-label">Maximum Rating</label>
+                <input type="number" class="property-input" min="1" value="${element.rateMax || 5}"
+                       onchange="formBuilder.updateElementProperty('rateMax', parseInt(this.value))">
+            </div>
+            <div class="property-group">
+                <label class="property-label">Min Description</label>
+                <input type="text" class="property-input" value="${element.minRateDescription || ''}"
+                       onchange="formBuilder.updateElementProperty('minRateDescription', this.value)">
+            </div>
+            <div class="property-group">
+                <label class="property-label">Max Description</label>
+                <input type="text" class="property-input" value="${element.maxRateDescription || ''}"
+                       onchange="formBuilder.updateElementProperty('maxRateDescription', this.value)">
+            </div>
+        `;
+    }
+
+    // Get boolean properties HTML
+    getBooleanPropertiesHTML(element) {
+        return `
+            <div class="property-group">
+                <label class="property-label">True Label</label>
+                <input type="text" class="property-input" value="${element.labelTrue || 'Yes'}"
+                       onchange="formBuilder.updateElementProperty('labelTrue', this.value)">
+            </div>
+            <div class="property-group">
+                <label class="property-label">False Label</label>
+                <input type="text" class="property-input" value="${element.labelFalse || 'No'}"
+                       onchange="formBuilder.updateElementProperty('labelFalse', this.value)">
+            </div>
+        `;
+    }
+
+    // Get signature properties HTML
+    getSignaturePropertiesHTML(element) {
+        return `
+            <div class="property-group">
+                <label class="property-label">Width</label>
+                <input type="text" class="property-input" value="${element.width || '300'}"
+                       onchange="formBuilder.updateElementProperty('width', this.value)">
+            </div>
+            <div class="property-group">
+                <label class="property-label">Height</label>
+                <input type="text" class="property-input" value="${element.height || '150'}"
+                       onchange="formBuilder.updateElementProperty('height', this.value)">
+            </div>
+            <div class="property-group">
+                <label class="property-label">Pen Color</label>
+                <input type="color" class="property-input" value="${element.penColor || '#000080'}"
+                       onchange="formBuilder.updateElementProperty('penColor', this.value)">
+            </div>
+            <div class="property-group">
+                <label class="property-label">Background Color</label>
+                <input type="color" class="property-input" value="${element.backgroundColor || '#ffffff'}"
+                       onchange="formBuilder.updateElementProperty('backgroundColor', this.value)">
+            </div>
+        `;
+    }
+
+    // Get HTML element properties
+    getHtmlPropertiesHTML(element) {
+        return `
+            <div class="property-group">
+                <label class="property-label">HTML Content</label>
+                <textarea class="property-input" rows="6"
+                       onchange="formBuilder.updateElementProperty('html', this.value)">${element.html || ''}</textarea>
+                <small style="color: #666;">Enter HTML content to display</small>
+            </div>
+        `;
+    }
+
+    // Escape HTML for safe display
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     updateElementProperty(property, value) {
@@ -3273,6 +3637,243 @@ class IPLCFormBuilder {
         const element = this.formData.pages[this.currentPageIndex].elements[this.selectedElement];
         element.choices.splice(index, 1);
         this.showElementProperties();
+    }
+
+    // Panel element manipulation methods
+    editPanelElement(index) {
+        if (this.selectedElement === null) return;
+        
+        const element = this.formData.pages[this.currentPageIndex].elements[this.selectedElement];
+        const panelElement = element.elements[index];
+        
+        // Create edit dialog
+        const dialog = this.createElementEditDialog(panelElement, (updatedElement) => {
+            element.elements[index] = updatedElement;
+            this.showElementProperties();
+            this.hasUnsavedChanges = true;
+            this.debouncedSave();
+        });
+        
+        document.body.appendChild(dialog);
+    }
+
+    movePanelElement(index, direction) {
+        if (this.selectedElement === null) return;
+        
+        const element = this.formData.pages[this.currentPageIndex].elements[this.selectedElement];
+        const newIndex = index + direction;
+        
+        if (newIndex < 0 || newIndex >= element.elements.length) return;
+        
+        [element.elements[index], element.elements[newIndex]] =
+            [element.elements[newIndex], element.elements[index]];
+        
+        this.showElementProperties();
+        this.hasUnsavedChanges = true;
+        this.debouncedSave();
+    }
+
+    removePanelElement(index) {
+        if (this.selectedElement === null) return;
+        
+        if (confirm('Are you sure you want to remove this element from the panel?')) {
+            const element = this.formData.pages[this.currentPageIndex].elements[this.selectedElement];
+            element.elements.splice(index, 1);
+            this.showElementProperties();
+            this.hasUnsavedChanges = true;
+            this.debouncedSave();
+        }
+    }
+
+    addPanelElement() {
+        if (this.selectedElement === null) return;
+        
+        const element = this.formData.pages[this.currentPageIndex].elements[this.selectedElement];
+        if (!element.elements) element.elements = [];
+        
+        // Show element type selector dialog
+        const dialog = this.createElementTypeDialog((type) => {
+            const newElement = this.createDefaultElement(type);
+            element.elements.push(newElement);
+            this.showElementProperties();
+            this.hasUnsavedChanges = true;
+            this.debouncedSave();
+        });
+        
+        document.body.appendChild(dialog);
+    }
+
+    // Matrix manipulation methods
+    addMatrixColumn() {
+        if (this.selectedElement === null) return;
+        
+        const element = this.formData.pages[this.currentPageIndex].elements[this.selectedElement];
+        if (!element.columns) element.columns = [];
+        
+        const newColumn = prompt('Enter column name:');
+        if (newColumn) {
+            element.columns.push(newColumn);
+            this.showElementProperties();
+            this.hasUnsavedChanges = true;
+            this.debouncedSave();
+        }
+    }
+
+    removeMatrixColumn(index) {
+        if (this.selectedElement === null) return;
+        
+        const element = this.formData.pages[this.currentPageIndex].elements[this.selectedElement];
+        element.columns.splice(index, 1);
+        this.showElementProperties();
+        this.hasUnsavedChanges = true;
+        this.debouncedSave();
+    }
+
+    updateMatrixColumn(index, value) {
+        if (this.selectedElement === null) return;
+        
+        const element = this.formData.pages[this.currentPageIndex].elements[this.selectedElement];
+        element.columns[index] = value;
+        this.hasUnsavedChanges = true;
+        this.debouncedSave();
+    }
+
+    addMatrixRow() {
+        if (this.selectedElement === null) return;
+        
+        const element = this.formData.pages[this.currentPageIndex].elements[this.selectedElement];
+        if (!element.rows) element.rows = [];
+        
+        const newRow = prompt('Enter row name:');
+        if (newRow) {
+            element.rows.push(newRow);
+            this.showElementProperties();
+            this.hasUnsavedChanges = true;
+            this.debouncedSave();
+        }
+    }
+
+    removeMatrixRow(index) {
+        if (this.selectedElement === null) return;
+        
+        const element = this.formData.pages[this.currentPageIndex].elements[this.selectedElement];
+        element.rows.splice(index, 1);
+        this.showElementProperties();
+        this.hasUnsavedChanges = true;
+        this.debouncedSave();
+    }
+
+    updateMatrixRow(index, value) {
+        if (this.selectedElement === null) return;
+        
+        const element = this.formData.pages[this.currentPageIndex].elements[this.selectedElement];
+        element.rows[index] = value;
+        this.hasUnsavedChanges = true;
+        this.debouncedSave();
+    }
+
+    // Dynamic matrix column methods
+    addMatrixDynamicColumn() {
+        if (this.selectedElement === null) return;
+        
+        const element = this.formData.pages[this.currentPageIndex].elements[this.selectedElement];
+        if (!element.columns) element.columns = [];
+        
+        const newColumn = {
+            name: `col_${Date.now()}`,
+            title: 'New Column',
+            cellType: 'text'
+        };
+        
+        element.columns.push(newColumn);
+        this.showElementProperties();
+        this.hasUnsavedChanges = true;
+        this.debouncedSave();
+    }
+
+    removeMatrixDynamicColumn(index) {
+        if (this.selectedElement === null) return;
+        
+        const element = this.formData.pages[this.currentPageIndex].elements[this.selectedElement];
+        element.columns.splice(index, 1);
+        this.showElementProperties();
+        this.hasUnsavedChanges = true;
+        this.debouncedSave();
+    }
+
+    updateMatrixDynamicColumn(index, property, value) {
+        if (this.selectedElement === null) return;
+        
+        const element = this.formData.pages[this.currentPageIndex].elements[this.selectedElement];
+        if (!element.columns[index]) return;
+        
+        element.columns[index][property] = value;
+        this.hasUnsavedChanges = true;
+        this.debouncedSave();
+    }
+
+    // Dynamic panel template methods
+    editPanelDynamicElement(index) {
+        if (this.selectedElement === null) return;
+        
+        const element = this.formData.pages[this.currentPageIndex].elements[this.selectedElement];
+        const templateElement = element.templateElements[index];
+        
+        // Create edit dialog
+        const dialog = this.createElementEditDialog(templateElement, (updatedElement) => {
+            element.templateElements[index] = updatedElement;
+            this.showElementProperties();
+            this.hasUnsavedChanges = true;
+            this.debouncedSave();
+        });
+        
+        document.body.appendChild(dialog);
+    }
+
+    movePanelDynamicElement(index, direction) {
+        if (this.selectedElement === null) return;
+        
+        const element = this.formData.pages[this.currentPageIndex].elements[this.selectedElement];
+        const newIndex = index + direction;
+        
+        if (newIndex < 0 || newIndex >= element.templateElements.length) return;
+        
+        [element.templateElements[index], element.templateElements[newIndex]] =
+            [element.templateElements[newIndex], element.templateElements[index]];
+        
+        this.showElementProperties();
+        this.hasUnsavedChanges = true;
+        this.debouncedSave();
+    }
+
+    removePanelDynamicElement(index) {
+        if (this.selectedElement === null) return;
+        
+        if (confirm('Are you sure you want to remove this element from the template?')) {
+            const element = this.formData.pages[this.currentPageIndex].elements[this.selectedElement];
+            element.templateElements.splice(index, 1);
+            this.showElementProperties();
+            this.hasUnsavedChanges = true;
+            this.debouncedSave();
+        }
+    }
+
+    addPanelDynamicElement() {
+        if (this.selectedElement === null) return;
+        
+        const element = this.formData.pages[this.currentPageIndex].elements[this.selectedElement];
+        if (!element.templateElements) element.templateElements = [];
+        
+        // Show element type selector dialog
+        const dialog = this.createElementTypeDialog((type) => {
+            const newElement = this.createDefaultElement(type);
+            element.templateElements.push(newElement);
+            this.showElementProperties();
+            this.hasUnsavedChanges = true;
+            this.debouncedSave();
+        });
+        
+        document.body.appendChild(dialog);
     }
 
     moveElement(index, direction) {
@@ -4180,6 +4781,349 @@ class IPLCFormBuilder {
             return true;
         }
         return false;
+    }
+
+    // Helper method to create element type selection dialog
+    createElementTypeDialog(callback) {
+        const types = [
+            { value: 'text', label: 'Text Field' },
+            { value: 'dropdown', label: 'Dropdown' },
+            { value: 'radiogroup', label: 'Radio Buttons' },
+            { value: 'checkbox', label: 'Checkboxes' },
+            { value: 'comment', label: 'Text Area' },
+            { value: 'boolean', label: 'Yes/No' },
+            { value: 'rating', label: 'Rating Scale' },
+            { value: 'html', label: 'HTML Content' },
+            { value: 'signaturepad', label: 'Signature Pad' },
+            { value: 'panel', label: 'Panel' },
+            { value: 'paneldynamic', label: 'Dynamic Panel' },
+            { value: 'matrix', label: 'Matrix' },
+            { value: 'matrixdynamic', label: 'Dynamic Matrix' }
+        ];
+
+        const dialog = document.createElement('div');
+        dialog.className = 'modal fade';
+        dialog.innerHTML = `
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Select Element Type</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <select class="form-select" id="elementTypeSelect">
+                            ${types.map(t => `<option value="${t.value}">${t.label}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="confirmElementType">Add Element</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(dialog);
+        const modal = new bootstrap.Modal(dialog);
+
+        dialog.querySelector('#confirmElementType').addEventListener('click', () => {
+            const type = dialog.querySelector('#elementTypeSelect').value;
+            modal.hide();
+            dialog.addEventListener('hidden.bs.modal', () => {
+                document.body.removeChild(dialog);
+                callback(type);
+            }, { once: true });
+        });
+
+        modal.show();
+    }
+
+    // Helper method to create element edit dialog
+    createElementEditDialog(element, type, callback) {
+        const dialog = document.createElement('div');
+        dialog.className = 'modal fade';
+        dialog.innerHTML = `
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit ${type.charAt(0).toUpperCase() + type.slice(1)} Element</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="elementEditForm">
+                            <div class="mb-3">
+                                <label for="elementName" class="form-label">Name:</label>
+                                <input type="text" class="form-control" id="elementName" value="${element.name || ''}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="elementTitle" class="form-label">Title:</label>
+                                <input type="text" class="form-control" id="elementTitle" value="${element.title || ''}">
+                            </div>
+                            <div id="elementSpecificProperties"></div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="saveElementChanges">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(dialog);
+        const modal = new bootstrap.Modal(dialog);
+
+        // Add type-specific properties
+        const specificProps = dialog.querySelector('#elementSpecificProperties');
+        specificProps.innerHTML = this.getTypeSpecificFormFields(element, type);
+
+        dialog.querySelector('#saveElementChanges').addEventListener('click', () => {
+            const updatedElement = {
+                ...element,
+                name: dialog.querySelector('#elementName').value,
+                title: dialog.querySelector('#elementTitle').value
+            };
+
+            // Gather type-specific properties
+            this.gatherTypeSpecificProperties(updatedElement, type, dialog);
+
+            modal.hide();
+            dialog.addEventListener('hidden.bs.modal', () => {
+                document.body.removeChild(dialog);
+                callback(updatedElement);
+            }, { once: true });
+        });
+
+        modal.show();
+    }
+
+    // Get type-specific form fields for the edit dialog
+    getTypeSpecificFormFields(element, type) {
+        switch (type) {
+            case 'text':
+            case 'comment':
+                return `
+                    <div class="mb-3">
+                        <label for="elementPlaceholder" class="form-label">Placeholder:</label>
+                        <input type="text" class="form-control" id="elementPlaceholder" value="${element.placeholder || ''}">
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="elementRequired" ${element.isRequired ? 'checked' : ''}>
+                        <label class="form-check-label" for="elementRequired">Required</label>
+                    </div>
+                `;
+
+            case 'dropdown':
+            case 'radiogroup':
+            case 'checkbox':
+                return `
+                    <div class="mb-3">
+                        <label class="form-label">Choices (one per line):</label>
+                        <textarea class="form-control" id="elementChoices" rows="5">${
+                            element.choices ? element.choices.map(c => c.text || c).join('\n') : ''
+                        }</textarea>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="elementRequired" ${element.isRequired ? 'checked' : ''}>
+                        <label class="form-check-label" for="elementRequired">Required</label>
+                    </div>
+                `;
+
+            case 'rating':
+                return `
+                    <div class="mb-3">
+                        <label for="elementRateMin" class="form-label">Minimum Rating:</label>
+                        <input type="number" class="form-control" id="elementRateMin" value="${element.rateMin || 1}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="elementRateMax" class="form-label">Maximum Rating:</label>
+                        <input type="number" class="form-control" id="elementRateMax" value="${element.rateMax || 5}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="elementMinRateDescription" class="form-label">Min Description:</label>
+                        <input type="text" class="form-control" id="elementMinRateDescription" value="${element.minRateDescription || ''}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="elementMaxRateDescription" class="form-label">Max Description:</label>
+                        <input type="text" class="form-control" id="elementMaxRateDescription" value="${element.maxRateDescription || ''}">
+                    </div>
+                `;
+
+            case 'html':
+                return `
+                    <div class="mb-3">
+                        <label for="elementHtml" class="form-label">HTML Content:</label>
+                        <textarea class="form-control" id="elementHtml" rows="5">${element.html || ''}</textarea>
+                    </div>
+                `;
+
+            default:
+                return '';
+        }
+    }
+
+    // Gather type-specific properties from the edit dialog
+    gatherTypeSpecificProperties(element, type, dialog) {
+        switch (type) {
+            case 'text':
+            case 'comment':
+                element.placeholder = dialog.querySelector('#elementPlaceholder')?.value || '';
+                element.isRequired = dialog.querySelector('#elementRequired')?.checked || false;
+                break;
+
+            case 'dropdown':
+            case 'radiogroup':
+            case 'checkbox':
+                const choicesText = dialog.querySelector('#elementChoices')?.value || '';
+                element.choices = choicesText.split('\n').filter(c => c.trim()).map(c => ({ text: c.trim(), value: c.trim() }));
+                element.isRequired = dialog.querySelector('#elementRequired')?.checked || false;
+                break;
+
+            case 'rating':
+                element.rateMin = parseInt(dialog.querySelector('#elementRateMin')?.value) || 1;
+                element.rateMax = parseInt(dialog.querySelector('#elementRateMax')?.value) || 5;
+                element.minRateDescription = dialog.querySelector('#elementMinRateDescription')?.value || '';
+                element.maxRateDescription = dialog.querySelector('#elementMaxRateDescription')?.value || '';
+                break;
+
+            case 'html':
+                element.html = dialog.querySelector('#elementHtml')?.value || '';
+                break;
+        }
+    }
+
+    // Add complex editor styles
+    addComplexEditorStyles() {
+        if (document.getElementById('complex-editor-styles')) return;
+
+        const styles = document.createElement('style');
+        styles.id = 'complex-editor-styles';
+        styles.innerHTML = `
+            .element-properties-panel {
+                background: #f8f9fa;
+                border: 1px solid #dee2e6;
+                border-radius: 0.375rem;
+                padding: 1rem;
+                margin-top: 1rem;
+            }
+
+            .property-section {
+                background: white;
+                border: 1px solid #e9ecef;
+                border-radius: 0.25rem;
+                padding: 0.75rem;
+                margin-bottom: 0.75rem;
+            }
+
+            .property-section h6 {
+                color: #495057;
+                font-size: 0.875rem;
+                font-weight: 600;
+                margin-bottom: 0.5rem;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+
+            .nested-element-item {
+                background: #f8f9fa;
+                border: 1px solid #dee2e6;
+                border-radius: 0.25rem;
+                padding: 0.5rem;
+                margin-bottom: 0.5rem;
+                position: relative;
+            }
+
+            .nested-element-item:hover {
+                background: #e9ecef;
+            }
+
+            .element-action-buttons {
+                position: absolute;
+                top: 0.5rem;
+                right: 0.5rem;
+                display: flex;
+                gap: 0.25rem;
+            }
+
+            .element-action-buttons button {
+                padding: 0.125rem 0.375rem;
+                font-size: 0.75rem;
+            }
+
+            .matrix-editor table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            .matrix-editor th,
+            .matrix-editor td {
+                border: 1px solid #dee2e6;
+                padding: 0.5rem;
+            }
+
+            .matrix-editor th {
+                background: #f8f9fa;
+                font-weight: 600;
+            }
+
+            .matrix-editor input {
+                width: 100%;
+                border: none;
+                background: transparent;
+                padding: 0.25rem;
+            }
+
+            .matrix-editor input:focus {
+                outline: 2px solid #0d6efd;
+                outline-offset: -2px;
+            }
+
+            .add-element-dropdown {
+                position: relative;
+                display: inline-block;
+            }
+
+            .add-element-dropdown-content {
+                display: none;
+                position: absolute;
+                background-color: white;
+                min-width: 200px;
+                box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+                border: 1px solid #dee2e6;
+                border-radius: 0.25rem;
+                z-index: 1000;
+            }
+
+            .add-element-dropdown-content.show {
+                display: block;
+            }
+
+            .add-element-dropdown-content a {
+                color: #212529;
+                padding: 0.5rem 1rem;
+                text-decoration: none;
+                display: block;
+            }
+
+            .add-element-dropdown-content a:hover {
+                background-color: #f8f9fa;
+            }
+
+            .dynamic-panel-template {
+                background: #fff3cd;
+                border: 1px solid #ffeaa7;
+                border-radius: 0.25rem;
+                padding: 1rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .dynamic-panel-template h6 {
+                color: #856404;
+                margin-bottom: 0.5rem;
+            }
+        `;
+
+        document.head.appendChild(styles);
     }
 
     // Register custom question types with Survey.js
