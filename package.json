@@ -12,7 +12,8 @@
     "db:init": "wrangler d1 execute iplc-eval-db --env production --remote --file=schema.sql",
     "db:reset": "wrangler d1 execute iplc-eval-db --env production --remote --command=\"DROP TABLE IF EXISTS users; DROP TABLE IF EXISTS form_templates; DROP TABLE IF EXISTS form_submissions; DROP TABLE IF EXISTS user_sessions; DROP TABLE IF EXISTS form_analytics; DROP TABLE IF EXISTS ai_summaries; DROP TABLE IF EXISTS ai_feedback;\" && npm run db:init",
     "chat:load": "node scripts/loadChatData.js",
-    "chat:load:prod": "API_ENDPOINT=https://articeval.iplc.legal/api/ai/chat/load node scripts/loadChatData.js"
+    "chat:load:prod": "API_ENDPOINT=https://articeval.pages.dev/api/ai/chat/load node scripts/loadChatData.js",
+    "chat:verify": "node scripts/verify-chat.js"
   },
   "dependencies": {
     "@langchain/cloudflare": "^0.1.0",

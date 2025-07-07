@@ -583,7 +583,6 @@
         .notification.info {
             background-color: #17a2b8;
         }
-        
         @keyframes slideIn {
             from {
                 transform: translateX(100%);
@@ -593,6 +592,47 @@
                 transform: translateX(0);
                 opacity: 1;
             }
+        }
+        
+        /* Ensure SurveyJS dropdown and date picker overlays appear above modal */
+        .sv-popup,
+        .sv-popup__container,
+        .sd-dropdown__filter-string-input,
+        .sd-dropdown-popup,
+        .flatpickr-calendar,
+        .sv-popup--dropdown,
+        .sv-list__container,
+        .sv-popup--modal {
+            z-index: 2000 !important;
+        }
+        
+        /* Ensure preview modal has proper z-index hierarchy */
+        #preview-modal {
+            z-index: 1050 !important;
+        }
+        
+        #preview-modal .preview-content {
+            z-index: 1051 !important;
+        }
+        
+        /* Ensure all survey elements in preview are interactive */
+        #preview-survey * {
+            pointer-events: auto !important;
+        }
+        
+        /* Specifically ensure dropdowns and date inputs are interactive */
+        #preview-survey .sd-dropdown,
+        #preview-survey .sd-dropdown__value,
+        #preview-survey input[type="date"],
+        #preview-survey .sd-input,
+        #preview-survey select {
+            pointer-events: auto !important;
+            cursor: pointer !important;
+        }
+        
+        /* Fix for flatpickr calendar specifically */
+        .flatpickr-calendar {
+            z-index: 2001 !important;
         }
     </style>
 </head>
