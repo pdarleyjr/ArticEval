@@ -196,48 +196,58 @@ class IPLCFormBuilder {
                 ]
             },
             {
-                name: 'Clinical Header/Info',
+                name: 'Patient Info',
                 elements: [
-                    { type: 'iplc-logo', icon: '🏥', label: 'IPLC Logo', custom: true },
-                    { type: 'iplc-header', icon: '🏥', label: 'IPLC Header', custom: true },
-                    { type: 'patient-info', icon: '👤', label: 'Patient Demographics', custom: true },
-                    { type: 'referral-info', icon: '📋', label: 'Referral Information', custom: true }
+                    { type: 'patient-info', icon: '👤', label: 'Patient Demographics', custom: true, category: 'patient-info' },
+                    { type: 'referral-info', icon: '📋', label: 'Referral Information', custom: true, category: 'patient-info' },
+                    { type: 'insurance-info', icon: '🏥', label: 'Insurance Information', custom: true, category: 'patient-info' },
+                    { type: 'parent-caregiver', icon: '👥', label: 'Parent/Caregiver Info', custom: true, category: 'patient-info' },
+                    { type: 'medical-history', icon: '📑', label: 'Medical History', custom: true, category: 'patient-info' }
                 ]
             },
             {
                 name: 'SLP Components',
                 elements: [
-                    { type: 'oral-mechanism', icon: '👄', label: 'Oral Mechanism Exam', custom: true },
-                    { type: 'language-assessment', icon: '💬', label: 'Language Assessment', custom: true },
-                    { type: 'articulation-assessment', icon: '🗣️', label: 'Articulation Assessment', custom: true },
-                    { type: 'fluency-voice', icon: '🎵', label: 'Fluency & Voice', custom: true },
-                    { type: 'test-scores', icon: '📊', label: 'Test Scores Section', custom: true }
+                    { type: 'oral-mechanism', icon: '👄', label: 'Oral Mechanism Exam', custom: true, category: 'slp' },
+                    { type: 'language-assessment', icon: '💬', label: 'Language Assessment', custom: true, category: 'slp' },
+                    { type: 'articulation-assessment', icon: '🗣️', label: 'Articulation Assessment', custom: true, category: 'slp' },
+                    { type: 'fluency-voice', icon: '🎵', label: 'Fluency & Voice', custom: true, category: 'slp' },
+                    { type: 'pragmatic-skills', icon: '🤝', label: 'Pragmatic Skills', custom: true, category: 'slp' },
+                    { type: 'feeding-swallowing', icon: '🥄', label: 'Feeding/Swallowing', custom: true, category: 'slp' },
+                    { type: 'test-scores', icon: '📊', label: 'Test Scores Section', custom: true, category: 'slp' }
                 ]
             },
             {
                 name: 'OT Components',
                 elements: [
-                    { type: 'adl-skills', icon: '🚿', label: 'ADL Skills', custom: true },
-                    { type: 'sensory-processing', icon: '✋', label: 'Sensory Processing', custom: true },
-                    { type: 'motor-skills', icon: '🏃', label: 'Motor Skills', custom: true },
-                    { type: 'visual-perceptual', icon: '👁️', label: 'Visual Perceptual', custom: true }
+                    { type: 'adl-skills', icon: '🚿', label: 'ADL Skills', custom: true, category: 'ot' },
+                    { type: 'sensory-processing', icon: '✋', label: 'Sensory Processing', custom: true, category: 'ot' },
+                    { type: 'motor-skills', icon: '🏃', label: 'Motor Skills', custom: true, category: 'ot' },
+                    { type: 'visual-perceptual', icon: '👁️', label: 'Visual Perceptual', custom: true, category: 'ot' },
+                    { type: 'fine-motor', icon: '✊', label: 'Fine Motor Skills', custom: true, category: 'ot' },
+                    { type: 'gross-motor', icon: '🏃‍♂️', label: 'Gross Motor Skills', custom: true, category: 'ot' },
+                    { type: 'handwriting', icon: '✏️', label: 'Handwriting Assessment', custom: true, category: 'ot' }
                 ]
             },
             {
                 name: 'Clinical Documentation',
                 elements: [
-                    { type: 'background-history', icon: '📚', label: 'Background History', custom: true },
-                    { type: 'behavioral-observations', icon: '👀', label: 'Behavioral Observations', custom: true },
-                    { type: 'clinical-impressions', icon: '🔍', label: 'Clinical Impressions', custom: true },
-                    { type: 'goals-objectives', icon: '🎯', label: 'Goals & Objectives', custom: true },
-                    { type: 'recommendations', icon: '💡', label: 'Recommendations', custom: true },
-                    { type: 'signature-section', icon: '✍️', label: 'Signatures & Consent', custom: true }
+                    { type: 'iplc-logo', icon: '🏥', label: 'IPLC Logo', custom: true, category: 'clinical-doc' },
+                    { type: 'iplc-header', icon: '🏥', label: 'IPLC Header', custom: true, category: 'clinical-doc' },
+                    { type: 'background-history', icon: '📚', label: 'Background History', custom: true, category: 'clinical-doc' },
+                    { type: 'behavioral-observations', icon: '👀', label: 'Behavioral Observations', custom: true, category: 'clinical-doc' },
+                    { type: 'clinical-impressions', icon: '🔍', label: 'Clinical Impressions', custom: true, category: 'clinical-doc' },
+                    { type: 'goals-objectives', icon: '🎯', label: 'Goals & Objectives', custom: true, category: 'clinical-doc' },
+                    { type: 'recommendations', icon: '💡', label: 'Recommendations', custom: true, category: 'clinical-doc' },
+                    { type: 'signature-section', icon: '✍️', label: 'Signatures & Consent', custom: true, category: 'clinical-doc' }
                 ]
             },
             {
                 name: 'AI Features',
                 elements: [
-                    { type: 'ai-summary', icon: '🤖', label: 'AI Summary', custom: true }
+                    { type: 'ai-summary', icon: '🤖', label: 'AI Summary', custom: true, category: 'ai' },
+                    { type: 'ai-goals', icon: '🎯', label: 'AI Goal Generator', custom: true, category: 'ai' },
+                    { type: 'ai-recommendations', icon: '💡', label: 'AI Recommendations', custom: true, category: 'ai' }
                 ]
             }
         ];
@@ -658,6 +668,7 @@ class IPLCFormBuilder {
                 e.dataTransfer.effectAllowed = 'copy';
                 e.dataTransfer.setData('elementType', newDraggable.dataset.type);
                 e.dataTransfer.setData('isCustom', newDraggable.dataset.custom || 'false');
+                e.dataTransfer.setData('category', newDraggable.dataset.category || '');
                 newDraggable.classList.add('dragging');
             });
 
@@ -695,11 +706,12 @@ class IPLCFormBuilder {
                 
                 const elementType = e.dataTransfer.getData('elementType');
                 const isCustom = e.dataTransfer.getData('isCustom') === 'true';
+                const category = e.dataTransfer.getData('category');
                 
-                console.log('FormBuilder: Dropped element type:', elementType, 'isCustom:', isCustom);
+                console.log('FormBuilder: Dropped element type:', elementType, 'isCustom:', isCustom, 'category:', category);
                 
                 if (elementType) {
-                    this.addElement(elementType, isCustom);
+                    this.addElement(elementType, isCustom, category);
                 }
             });
         } else {
@@ -707,14 +719,14 @@ class IPLCFormBuilder {
         }
     }
 
-    addElement(type, isCustom = false) {
+    addElement(type, isCustom = false, category = '') {
         // Check if form is locked
         if (this.checkFormLocked()) {
             return;
         }
         
         this.saveToHistory();
-        const element = isCustom ? this.createCustomElement(type) : this.createDefaultElement(type);
+        const element = isCustom ? this.createCustomElement(type, category) : this.createDefaultElement(type, category);
         const currentPage = this.formData.pages[this.currentPageIndex];
         
         if (!currentPage.elements) {
@@ -728,7 +740,7 @@ class IPLCFormBuilder {
         this.debouncedSave();
     }
 
-    createDefaultElement(type) {
+    createDefaultElement(type, category = '') {
         const baseElement = {
             type: type,
             name: `${type}_${Date.now()}`,
@@ -757,10 +769,138 @@ class IPLCFormBuilder {
                 break;
         }
 
+        // Add category-based auto-seeding
+        if (category) {
+            this.applyCategoryDefaults(baseElement, type, category);
+        }
+
         return baseElement;
     }
 
-    createCustomElement(type) {
+    applyCategoryDefaults(element, type, category) {
+        // Apply category-specific defaults based on evidence-based practices
+        switch (category) {
+            case 'patient-info':
+                switch (type) {
+                    case 'text':
+                        // Auto-seed text fields based on common patient info patterns
+                        if (element.title.toLowerCase().includes('name')) {
+                            element.placeholder = 'Enter full name';
+                            element.isRequired = true;
+                        } else if (element.title.toLowerCase().includes('phone')) {
+                            element.inputType = 'tel';
+                            element.placeholder = '(XXX) XXX-XXXX';
+                        } else if (element.title.toLowerCase().includes('email')) {
+                            element.inputType = 'email';
+                            element.placeholder = 'email@example.com';
+                        } else if (element.title.toLowerCase().includes('date') || element.title.toLowerCase().includes('dob')) {
+                            element.inputType = 'date';
+                        }
+                        break;
+                    case 'dropdown':
+                        if (element.title.toLowerCase().includes('gender')) {
+                            element.choices = ['Male', 'Female', 'Non-binary', 'Prefer not to say'];
+                        } else if (element.title.toLowerCase().includes('state')) {
+                            element.choices = ['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD', 'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ', 'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'];
+                        }
+                        break;
+                }
+                break;
+            
+            case 'slp':
+                switch (type) {
+                    case 'rating':
+                        element.rateMax = 5;
+                        element.rateMin = 1;
+                        element.title = element.title || 'Severity Rating';
+                        element.minRateDescription = 'WNL/Normal';
+                        element.maxRateDescription = 'Severe';
+                        break;
+                    case 'radiogroup':
+                        if (element.title.toLowerCase().includes('severity')) {
+                            element.choices = ['Within Normal Limits', 'Mild', 'Moderate', 'Severe', 'Profound'];
+                        }
+                        break;
+                    case 'checkbox':
+                        if (element.title.toLowerCase().includes('concern')) {
+                            element.choices = [
+                                'Articulation',
+                                'Language Comprehension',
+                                'Language Expression',
+                                'Fluency/Stuttering',
+                                'Voice Quality',
+                                'Pragmatic/Social Skills',
+                                'Feeding/Swallowing'
+                            ];
+                        }
+                        break;
+                }
+                break;
+            
+            case 'ot':
+                switch (type) {
+                    case 'dropdown':
+                        if (element.title.toLowerCase().includes('hand')) {
+                            element.choices = ['Right', 'Left', 'Ambidextrous'];
+                        }
+                        break;
+                    case 'rating':
+                        element.rateMax = 10;
+                        element.title = element.title || 'Functional Level';
+                        element.minRateDescription = 'Unable';
+                        element.maxRateDescription = 'Independent';
+                        break;
+                    case 'checkbox':
+                        if (element.title.toLowerCase().includes('skill')) {
+                            element.choices = [
+                                'Fine Motor Coordination',
+                                'Gross Motor Coordination',
+                                'Bilateral Coordination',
+                                'Motor Planning',
+                                'Sensory Processing',
+                                'Visual-Motor Integration',
+                                'Strength and Endurance'
+                            ];
+                        }
+                        break;
+                }
+                break;
+            
+            case 'clinical-doc':
+                switch (type) {
+                    case 'comment':
+                        element.rows = 5;
+                        element.placeholder = 'Enter detailed observations...';
+                        if (element.title.toLowerCase().includes('recommendation')) {
+                            element.placeholder = 'Enter specific recommendations based on assessment findings...';
+                            element.rows = 6;
+                        } else if (element.title.toLowerCase().includes('goal')) {
+                            element.placeholder = 'Enter SMART goals (Specific, Measurable, Achievable, Relevant, Time-bound)...';
+                        }
+                        break;
+                    case 'text':
+                        if (element.title.toLowerCase().includes('date')) {
+                            element.inputType = 'date';
+                            element.defaultValueExpression = 'today()';
+                        }
+                        break;
+                }
+                break;
+            
+            case 'ai':
+                switch (type) {
+                    case 'comment':
+                        element.rows = 8;
+                        element.readOnly = true;
+                        element.placeholder = 'AI-generated content will appear here...';
+                        element.description = 'This field will be populated by AI based on your form responses';
+                        break;
+                }
+                break;
+        }
+    }
+
+    createCustomElement(type, category = '') {
         const customElements = {
             'iplc-logo': {
                 type: 'html',
@@ -783,12 +923,66 @@ class IPLCFormBuilder {
                 name: 'patient_demographics',
                 title: 'Patient Information',
                 elements: [
-                    { type: 'text', name: 'patient_name', title: 'Patient Name', isRequired: true },
+                    { type: 'text', name: 'patient_name', title: 'Patient Name', isRequired: true, placeholder: 'Enter full name' },
                     { type: 'text', name: 'date_of_birth', title: 'Date of Birth', inputType: 'date', isRequired: true },
                     { type: 'expression', name: 'age', title: 'Age', expression: 'calculateAge({date_of_birth})' },
-                    { type: 'dropdown', name: 'gender', title: 'Gender', choices: ['Male', 'Female', 'Other'] },
-                    { type: 'text', name: 'diagnosis', title: 'Primary Diagnosis' },
-                    { type: 'text', name: 'insurance', title: 'Insurance Provider' }
+                    { type: 'dropdown', name: 'gender', title: 'Gender', choices: ['Male', 'Female', 'Non-binary', 'Prefer not to say'], isRequired: true },
+                    { type: 'text', name: 'diagnosis', title: 'Primary Diagnosis', placeholder: 'ICD-10 code or description' },
+                    { type: 'text', name: 'mrn', title: 'Medical Record Number', placeholder: 'MRN#' }
+                ]
+            },
+            'insurance-info': {
+                type: 'panel',
+                name: 'insurance_information',
+                title: 'Insurance Information',
+                elements: [
+                    { type: 'text', name: 'insurance_provider', title: 'Insurance Provider', isRequired: true, placeholder: 'e.g., BCBS, United Healthcare' },
+                    { type: 'text', name: 'policy_number', title: 'Policy Number', isRequired: true, placeholder: 'Policy #' },
+                    { type: 'text', name: 'group_number', title: 'Group Number', placeholder: 'Group #' },
+                    { type: 'text', name: 'subscriber_name', title: 'Subscriber Name', placeholder: 'Policy holder name' },
+                    { type: 'dropdown', name: 'relationship_to_patient', title: 'Relationship to Patient', choices: ['Self', 'Parent', 'Spouse', 'Child', 'Other'] },
+                    { type: 'text', name: 'authorization_number', title: 'Authorization Number', placeholder: 'Auth #' },
+                    { type: 'text', name: 'auth_visits', title: 'Authorized Visits', inputType: 'number', placeholder: 'Number of visits' }
+                ]
+            },
+            'parent-caregiver': {
+                type: 'panel',
+                name: 'parent_caregiver_info',
+                title: 'Parent/Caregiver Information',
+                elements: [
+                    { type: 'text', name: 'parent1_name', title: 'Parent/Guardian 1 Name', isRequired: true, placeholder: 'Full name' },
+                    { type: 'text', name: 'parent1_phone', title: 'Phone Number', inputType: 'tel', isRequired: true, placeholder: '(XXX) XXX-XXXX' },
+                    { type: 'text', name: 'parent1_email', title: 'Email Address', inputType: 'email', placeholder: 'email@example.com' },
+                    { type: 'dropdown', name: 'parent1_relationship', title: 'Relationship', choices: ['Mother', 'Father', 'Guardian', 'Foster Parent', 'Grandparent', 'Other'] },
+                    { type: 'text', name: 'parent2_name', title: 'Parent/Guardian 2 Name', placeholder: 'Full name' },
+                    { type: 'text', name: 'parent2_phone', title: 'Phone Number', inputType: 'tel', placeholder: '(XXX) XXX-XXXX' },
+                    { type: 'dropdown', name: 'preferred_contact', title: 'Preferred Contact Method', choices: ['Phone', 'Email', 'Text', 'In-Person'] }
+                ]
+            },
+            'medical-history': {
+                type: 'panel',
+                name: 'medical_history_section',
+                title: 'Medical History',
+                elements: [
+                    { type: 'checkbox', name: 'medical_conditions', title: 'Current Medical Conditions',
+                      choices: ['Autism Spectrum Disorder', 'ADHD', 'Cerebral Palsy', 'Down Syndrome', 'Epilepsy', 'Hearing Loss', 'Vision Problems', 'Developmental Delay', 'Genetic Syndrome', 'Prematurity', 'Other'] },
+                    { type: 'comment', name: 'medications', title: 'Current Medications', rows: 3, placeholder: 'List all current medications with dosages' },
+                    { type: 'comment', name: 'allergies', title: 'Known Allergies', rows: 2, placeholder: 'List any medication, food, or environmental allergies' },
+                    { type: 'comment', name: 'hospitalizations', title: 'Previous Hospitalizations/Surgeries', rows: 3, placeholder: 'Include dates and reasons' },
+                    { type: 'radiogroup', name: 'birth_history', title: 'Birth History Complications', choices: ['None', 'Premature Birth', 'NICU Stay', 'Complications During Delivery', 'Other'] },
+                    { type: 'text', name: 'gestational_age', title: 'Gestational Age at Birth (weeks)', inputType: 'number', min: 20, max: 45 }
+                ]
+            },
+            'referral-info': {
+                type: 'panel',
+                name: 'referral_information',
+                title: 'Referral Information',
+                elements: [
+                    { type: 'text', name: 'referring_physician', title: 'Referring Physician', isRequired: true },
+                    { type: 'text', name: 'physician_phone', title: 'Physician Phone', inputType: 'tel' },
+                    { type: 'text', name: 'referral_date', title: 'Referral Date', inputType: 'date' },
+                    { type: 'checkbox', name: 'referral_reason', title: 'Reason for Referral',
+                      choices: ['Speech Delay', 'Language Delay', 'Articulation', 'Fluency', 'Voice', 'Feeding/Swallowing', 'Motor Delays', 'Sensory Processing', 'Handwriting', 'ADL Skills'] }
                 ]
             },
             'oral-mechanism': {
@@ -800,35 +994,409 @@ class IPLCFormBuilder {
                         type: 'matrix',
                         name: 'oral_structures',
                         title: 'Oral Structures Assessment',
-                        columns: ['Normal', 'Abnormal', 'Not Assessed'],
-                        rows: ['Lips', 'Tongue', 'Teeth', 'Hard Palate', 'Soft Palate', 'Uvula', 'Tonsils']
+                        columns: ['WNL', 'Concern', 'Unable to Assess'],
+                        rows: ['Lips (Symmetry/Strength)', 'Tongue (Movement/Strength)', 'Teeth/Dentition', 'Hard Palate', 'Soft Palate/Velum', 'Uvula', 'Tonsils', 'Jaw (ROM/Strength)']
+                    },
+                    {
+                        type: 'radiogroup',
+                        name: 'oral_motor_function',
+                        title: 'Overall Oral Motor Function',
+                        choices: ['Within Normal Limits', 'Mild Impairment', 'Moderate Impairment', 'Severe Impairment'],
+                        isRequired: true
                     },
                     {
                         type: 'comment',
-                        name: 'oral_notes',
-                        title: 'Additional Observations',
-                        rows: 3
+                        name: 'oral_mechanism_notes',
+                        title: 'Clinical Observations',
+                        rows: 4,
+                        placeholder: 'Describe specific concerns, asymmetries, or functional limitations observed during oral mechanism exam...'
                     }
                 ]
             },
             'language-assessment': {
                 type: 'panel',
-                name: 'language_skills',
-                title: 'Language Skills Assessment',
+                name: 'language_assessment',
+                title: 'Language Assessment',
                 elements: [
                     {
                         type: 'matrix',
                         name: 'receptive_language',
-                        title: 'Receptive Language',
-                        columns: ['WNL', 'Mild', 'Moderate', 'Severe'],
-                        rows: ['Following Directions', 'Understanding Questions', 'Vocabulary', 'Concepts']
+                        title: 'Receptive Language Skills',
+                        columns: ['Age Appropriate', 'Mild Delay', 'Moderate Delay', 'Severe Delay'],
+                        rows: [
+                            'Following 1-step directions',
+                            'Following 2-3 step directions',
+                            'Following complex directions',
+                            'Understanding questions (who/what/where)',
+                            'Understanding questions (when/why/how)',
+                            'Understanding spatial concepts',
+                            'Understanding temporal concepts',
+                            'Receptive vocabulary',
+                            'Understanding grammar structures',
+                            'Understanding figurative language'
+                        ]
                     },
                     {
                         type: 'matrix',
                         name: 'expressive_language',
-                        title: 'Expressive Language',
+                        title: 'Expressive Language Skills',
+                        columns: ['Age Appropriate', 'Mild Delay', 'Moderate Delay', 'Severe Delay'],
+                        rows: [
+                            'Vocabulary size/diversity',
+                            'Word retrieval',
+                            'Sentence length (MLU)',
+                            'Sentence complexity',
+                            'Grammar/syntax',
+                            'Verb tense usage',
+                            'Pronoun usage',
+                            'Question formulation',
+                            'Narrative skills',
+                            'Topic maintenance'
+                        ]
+                    },
+                    {
+                        type: 'text',
+                        name: 'mlu_calculation',
+                        title: 'Mean Length of Utterance (MLU)',
+                        inputType: 'number',
+                        placeholder: 'Calculate MLU from language sample',
+                        description: 'Total morphemes ÷ Total utterances'
+                    },
+                    {
+                        type: 'comment',
+                        name: 'language_sample',
+                        title: 'Language Sample',
+                        rows: 6,
+                        placeholder: 'Document representative language sample with context (play, conversation, narrative retell)...'
+                    },
+                    {
+                        type: 'dropdown',
+                        name: 'primary_language',
+                        title: 'Primary Language',
+                        choices: ['English', 'Spanish', 'English/Spanish Bilingual', 'Other'],
+                        isRequired: true
+                    }
+                ]
+            },
+            'articulation-assessment': {
+                type: 'panel',
+                name: 'articulation_assessment',
+                title: 'Articulation/Phonology Assessment',
+                elements: [
+                    {
+                        type: 'matrix',
+                        name: 'speech_sound_errors',
+                        title: 'Speech Sound Error Patterns',
+                        columns: ['Not Present', 'Inconsistent', 'Consistent', 'Stimulable'],
+                        rows: [
+                            'Initial consonant deletion',
+                            'Final consonant deletion',
+                            'Cluster reduction',
+                            'Fronting (k→t, g→d)',
+                            'Backing',
+                            'Stopping (fricatives→stops)',
+                            'Gliding (r→w, l→w/j)',
+                            'Vocalization (er→uh)',
+                            'Deaffrication',
+                            'Assimilation',
+                            'Syllable deletion'
+                        ]
+                    },
+                    {
+                        type: 'matrix',
+                        name: 'sound_production',
+                        title: 'Individual Sound Production',
+                        columns: ['Correct', 'Substitution', 'Omission', 'Distortion', 'Addition'],
+                        rows: [
+                            '/p/, /b/, /m/',
+                            '/t/, /d/, /n/',
+                            '/k/, /g/, /ŋ/',
+                            '/f/, /v/',
+                            '/θ/ (th), /ð/ (th)',
+                            '/s/, /z/',
+                            '/ʃ/ (sh), /ʒ/ (zh)',
+                            '/tʃ/ (ch), /dʒ/ (j)',
+                            '/r/, /ɝ/ (er)',
+                            '/l/',
+                            '/w/, /j/ (y)',
+                            '/h/',
+                            'Blends (st, sp, sk, etc.)'
+                        ]
+                    },
+                    {
+                        type: 'dropdown',
+                        name: 'speech_intelligibility',
+                        title: 'Overall Speech Intelligibility',
+                        choices: [
+                            '90-100% - Fully intelligible',
+                            '75-90% - Mostly intelligible',
+                            '50-75% - Moderately intelligible',
+                            '25-50% - Limited intelligibility',
+                            '<25% - Severely limited'
+                        ],
+                        isRequired: true
+                    },
+                    {
+                        type: 'radiogroup',
+                        name: 'stimulability',
+                        title: 'Overall Stimulability',
+                        choices: [
+                            'Highly stimulable - Easily imitates correct productions',
+                            'Moderately stimulable - Imitates with cues',
+                            'Minimally stimulable - Difficulty with imitation',
+                            'Not stimulable - Unable to imitate'
+                        ]
+                    },
+                    {
+                        type: 'comment',
+                        name: 'articulation_notes',
+                        title: 'Clinical Observations',
+                        rows: 4,
+                        placeholder: 'Document specific error patterns, stimulability for individual sounds, contextual variations, and notable observations...'
+                    }
+                ]
+            },
+            'fluency-voice': {
+                type: 'panel',
+                name: 'fluency_voice_assessment',
+                title: 'Fluency & Voice Assessment',
+                elements: [
+                    {
+                        type: 'matrix',
+                        name: 'fluency_behaviors',
+                        title: 'Fluency Behaviors',
+                        columns: ['Not Observed', 'Rare (<3%)', 'Occasional (3-10%)', 'Frequent (>10%)'],
+                        rows: [
+                            'Sound repetitions',
+                            'Syllable repetitions',
+                            'Word repetitions',
+                            'Phrase repetitions',
+                            'Prolongations',
+                            'Blocks',
+                            'Interjections',
+                            'Revisions',
+                            'Circumlocutions'
+                        ]
+                    },
+                    {
+                        type: 'matrix',
+                        name: 'secondary_behaviors',
+                        title: 'Secondary Behaviors',
+                        columns: ['Not Present', 'Mild', 'Moderate', 'Severe'],
+                        rows: [
+                            'Eye blinking/squeezing',
+                            'Facial tension',
+                            'Head movements',
+                            'Body movements',
+                            'Audible breathing',
+                            'Pitch rise',
+                            'Avoidance behaviors'
+                        ]
+                    },
+                    {
+                        type: 'rating',
+                        name: 'stuttering_severity',
+                        title: 'Overall Stuttering Severity',
+                        rateMin: 0,
+                        rateMax: 7,
+                        minRateDescription: 'No stuttering',
+                        maxRateDescription: 'Very severe'
+                    },
+                    {
+                        type: 'matrix',
+                        name: 'voice_characteristics',
+                        title: 'Voice Characteristics',
                         columns: ['WNL', 'Mild', 'Moderate', 'Severe'],
-                        rows: ['Vocabulary', 'Sentence Structure', 'Grammar', 'Narrative Skills']
+                        rows: [
+                            'Pitch (too high/low)',
+                            'Loudness (too loud/soft)',
+                            'Quality - Hoarse',
+                            'Quality - Breathy',
+                            'Quality - Strained',
+                            'Quality - Rough',
+                            'Nasal resonance'
+                        ]
+                    },
+                    {
+                        type: 'comment',
+                        name: 'fluency_voice_notes',
+                        title: 'Clinical Observations',
+                        rows: 4,
+                        placeholder: 'Document speaking rate, environmental factors, emotional impact, coping strategies, and voice use patterns...'
+                    }
+                ]
+            },
+            'pragmatic-skills': {
+                type: 'panel',
+                name: 'pragmatic_skills_assessment',
+                title: 'Pragmatic Skills Assessment',
+                elements: [
+                    {
+                        type: 'matrix',
+                        name: 'communicative_functions',
+                        title: 'Communicative Functions',
+                        columns: ['Not Observed', 'Emerging', 'Inconsistent', 'Consistent'],
+                        rows: [
+                            'Requesting (objects/actions)',
+                            'Requesting information',
+                            'Commenting/labeling',
+                            'Greeting/leave-taking',
+                            'Protesting/rejecting',
+                            'Responding to questions',
+                            'Initiating interaction',
+                            'Maintaining topic',
+                            'Turn-taking',
+                            'Repairing breakdowns'
+                        ]
+                    },
+                    {
+                        type: 'matrix',
+                        name: 'social_communication',
+                        title: 'Social Communication Skills',
+                        columns: ['Never', 'Rarely', 'Sometimes', 'Often', 'Always'],
+                        rows: [
+                            'Eye contact during interaction',
+                            'Joint attention',
+                            'Facial expressions match context',
+                            'Body language appropriate',
+                            'Respects personal space',
+                            'Understands nonverbal cues',
+                            'Uses gestures appropriately',
+                            'Adjusts to listener needs',
+                            'Follows social rules',
+                            'Shows empathy/perspective'
+                        ]
+                    },
+                    {
+                        type: 'matrix',
+                        name: 'conversational_skills',
+                        title: 'Conversational Skills',
+                        columns: ['Significant Difficulty', 'Some Difficulty', 'Adequate', 'Good'],
+                        rows: [
+                            'Topic initiation',
+                            'Topic maintenance',
+                            'Topic shifts',
+                            'Relevance of comments',
+                            'Providing background info',
+                            'Clarification strategies',
+                            'Narrative skills',
+                            'Understanding humor/sarcasm',
+                            'Register variation'
+                        ]
+                    },
+                    {
+                        type: 'radiogroup',
+                        name: 'pragmatic_profile',
+                        title: 'Overall Pragmatic Profile',
+                        choices: [
+                            'Age-appropriate pragmatic skills',
+                            'Mild pragmatic difficulties',
+                            'Moderate pragmatic difficulties',
+                            'Severe pragmatic difficulties',
+                            'Social communication disorder suspected'
+                        ]
+                    },
+                    {
+                        type: 'comment',
+                        name: 'pragmatic_observations',
+                        title: 'Clinical Observations',
+                        rows: 4,
+                        placeholder: 'Document specific examples of pragmatic strengths/challenges, contexts where difficulties arise, cultural considerations...'
+                    }
+                ]
+            },
+            'feeding-swallowing': {
+                type: 'panel',
+                name: 'feeding_swallowing_assessment',
+                title: 'Feeding & Swallowing Assessment',
+                elements: [
+                    {
+                        type: 'matrix',
+                        name: 'oral_phase_skills',
+                        title: 'Oral Phase Skills',
+                        columns: ['WNL', 'Mild Impairment', 'Moderate Impairment', 'Severe Impairment'],
+                        rows: [
+                            'Lip closure',
+                            'Lip strength',
+                            'Tongue lateralization',
+                            'Tongue elevation',
+                            'Bolus formation',
+                            'Bolus control',
+                            'Oral transit time',
+                            'Oral residue',
+                            'Chewing pattern'
+                        ]
+                    },
+                    {
+                        type: 'matrix',
+                        name: 'pharyngeal_signs',
+                        title: 'Pharyngeal Phase Signs/Symptoms',
+                        columns: ['Not Observed', 'Occasional', 'Frequent', 'Consistent'],
+                        rows: [
+                            'Coughing during/after',
+                            'Throat clearing',
+                            'Wet vocal quality',
+                            'Multiple swallows',
+                            'Delayed swallow trigger',
+                            'Nasal regurgitation',
+                            'Food refusal/aversion',
+                            'Pocketing food'
+                        ]
+                    },
+                    {
+                        type: 'matrix',
+                        name: 'texture_tolerance',
+                        title: 'Texture Tolerance',
+                        columns: ['Tolerated Well', 'Some Difficulty', 'Significant Difficulty', 'Unable/Unsafe'],
+                        rows: [
+                            'Thin liquids',
+                            'Nectar-thick liquids',
+                            'Honey-thick liquids',
+                            'Puree',
+                            'Minced & moist',
+                            'Soft & bite-sized',
+                            'Regular solids',
+                            'Mixed consistencies'
+                        ]
+                    },
+                    {
+                        type: 'radiogroup',
+                        name: 'diet_level',
+                        title: 'Recommended Diet Level',
+                        choices: [
+                            'Regular diet - no restrictions',
+                            'Soft mechanical diet',
+                            'Minced & moist diet',
+                            'Pureed diet',
+                            'IDDSI Level 4',
+                            'IDDSI Level 5',
+                            'IDDSI Level 6',
+                            'IDDSI Level 7',
+                            'NPO - nothing by mouth'
+                        ]
+                    },
+                    {
+                        type: 'checkbox',
+                        name: 'compensatory_strategies',
+                        title: 'Compensatory Strategies Trialed',
+                        choices: [
+                            'Chin tuck',
+                            'Head turn',
+                            'Effortful swallow',
+                            'Multiple swallows',
+                            'Liquid wash',
+                            'Pacing strategies',
+                            'Smaller bolus size',
+                            'Alternating liquids/solids'
+                        ],
+                        hasOther: true
+                    },
+                    {
+                        type: 'comment',
+                        name: 'feeding_observations',
+                        title: 'Clinical Observations',
+                        rows: 4,
+                        placeholder: 'Document feeding position, duration, caregiver interaction, behavioral responses, safety concerns, instrumental assessment needs...'
                     }
                 ]
             },
@@ -857,14 +1425,991 @@ class IPLCFormBuilder {
             'adl-skills': {
                 type: 'panel',
                 name: 'adl_assessment',
-                title: 'Activities of Daily Living',
+                title: 'Activities of Daily Living (ADL) Assessment',
                 elements: [
                     {
                         type: 'matrix',
-                        name: 'self_care',
+                        name: 'self_care_skills',
                         title: 'Self-Care Skills',
-                        columns: ['Independent', 'Min Assist', 'Mod Assist', 'Max Assist', 'Dependent'],
-                        rows: ['Feeding', 'Dressing', 'Bathing', 'Grooming', 'Toileting']
+                        columns: ['Independent', 'Supervision', 'Min Assist (25%)', 'Mod Assist (50%)', 'Max Assist (75%)', 'Dependent'],
+                        rows: [
+                            'Feeding/Eating',
+                            'Grooming (hair, teeth, face)',
+                            'Bathing/Showering',
+                            'Upper body dressing',
+                            'Lower body dressing',
+                            'Toileting',
+                            'Toilet hygiene',
+                            'Personal device care',
+                            'Functional mobility',
+                            'Sleep/rest patterns'
+                        ]
+                    },
+                    {
+                        type: 'matrix',
+                        name: 'instrumental_adl',
+                        title: 'Instrumental ADL (IADL)',
+                        columns: ['Independent', 'Needs Cueing', 'Needs Assistance', 'Unable', 'N/A'],
+                        rows: [
+                            'Meal preparation',
+                            'Shopping',
+                            'Money management',
+                            'Medication management',
+                            'Home management',
+                            'Communication device use',
+                            'Community mobility',
+                            'Child rearing',
+                            'Pet care',
+                            'Safety procedures'
+                        ]
+                    },
+                    {
+                        type: 'radiogroup',
+                        name: 'adl_performance_pattern',
+                        title: 'Overall ADL Performance Pattern',
+                        choices: [
+                            'Age-appropriate independence',
+                            'Mild delays/difficulties',
+                            'Moderate delays/difficulties',
+                            'Severe delays/difficulties',
+                            'Unable to perform most ADLs'
+                        ]
+                    },
+                    {
+                        type: 'checkbox',
+                        name: 'adl_barriers',
+                        title: 'Barriers to ADL Performance',
+                        choices: [
+                            'Motor planning difficulties',
+                            'Strength/endurance limitations',
+                            'Sensory processing challenges',
+                            'Cognitive/attention issues',
+                            'Behavioral resistance',
+                            'Environmental barriers',
+                            'Lack of practice/experience',
+                            'Fear/anxiety'
+                        ],
+                        hasOther: true
+                    },
+                    {
+                        type: 'comment',
+                        name: 'adl_observations',
+                        title: 'Clinical Observations',
+                        rows: 4,
+                        placeholder: 'Document specific ADL challenges, adaptive strategies used, environmental modifications needed, caregiver involvement...'
+                    }
+                ]
+            },
+            'sensory-processing': {
+                type: 'panel',
+                name: 'sensory_processing_assessment',
+                title: 'Sensory Processing Assessment',
+                elements: [
+                    {
+                        type: 'matrix',
+                        name: 'sensory_systems',
+                        title: 'Sensory Systems Processing',
+                        columns: ['Typical Response', 'Over-Responsive', 'Under-Responsive', 'Sensory Seeking', 'Sensory Avoiding'],
+                        rows: [
+                            'Auditory (sound)',
+                            'Visual (sight)',
+                            'Tactile (touch)',
+                            'Vestibular (movement)',
+                            'Proprioceptive (body awareness)',
+                            'Gustatory (taste)',
+                            'Olfactory (smell)',
+                            'Interoception (internal body signals)'
+                        ]
+                    },
+                    {
+                        type: 'matrix',
+                        name: 'sensory_behaviors',
+                        title: 'Sensory-Related Behaviors',
+                        columns: ['Never', 'Rarely', 'Sometimes', 'Often', 'Always'],
+                        rows: [
+                            'Covers ears to sounds',
+                            'Seeks/avoids certain textures',
+                            'Difficulty with clothing/tags',
+                            'Seeks intense movement',
+                            'Avoids playground equipment',
+                            'Crashes into things',
+                            'Poor awareness of body in space',
+                            'Picky eater (textures/tastes)',
+                            'Sensitive to lights',
+                            'Difficulty sitting still'
+                        ]
+                    },
+                    {
+                        type: 'matrix',
+                        name: 'sensory_modulation',
+                        title: 'Sensory Modulation in Daily Activities',
+                        columns: ['No Issues', 'Mild Issues', 'Moderate Issues', 'Severe Issues'],
+                        rows: [
+                            'Self-care routines',
+                            'Meal times',
+                            'Play activities',
+                            'Social participation',
+                            'Learning/attention',
+                            'Sleep patterns',
+                            'Transitions',
+                            'Community outings'
+                        ]
+                    },
+                    {
+                        type: 'radiogroup',
+                        name: 'sensory_profile_pattern',
+                        title: 'Primary Sensory Profile Pattern',
+                        choices: [
+                            'Typical sensory processing',
+                            'Sensory sensitivity/over-responsivity',
+                            'Sensory under-responsivity',
+                            'Sensory seeking',
+                            'Sensory avoiding',
+                            'Mixed pattern',
+                            'Fluctuating pattern'
+                        ],
+                        isRequired: true
+                    },
+                    {
+                        type: 'dropdown',
+                        name: 'sensory_assessment_tool',
+                        title: 'Formal Assessment Tool Used',
+                        choices: [
+                            'Sensory Profile 2',
+                            'Sensory Processing Measure (SPM)',
+                            'Sensory Integration and Praxis Tests (SIPT)',
+                            'Clinical Observations',
+                            'Other standardized tool',
+                            'Informal assessment only'
+                        ]
+                    },
+                    {
+                        type: 'comment',
+                        name: 'sensory_impact',
+                        title: 'Functional Impact',
+                        rows: 4,
+                        placeholder: 'Describe how sensory processing differences impact daily functioning, participation, and quality of life...'
+                    }
+                ]
+            },
+            'motor-skills': {
+                type: 'panel',
+                name: 'motor_skills_assessment',
+                title: 'Motor Skills Assessment',
+                elements: [
+                    {
+                        type: 'matrix',
+                        name: 'gross_motor_skills',
+                        title: 'Gross Motor Skills',
+                        columns: ['Age Appropriate', 'Mild Delay', 'Moderate Delay', 'Severe Delay', 'Unable'],
+                        rows: [
+                            'Static balance (standing)',
+                            'Dynamic balance (walking)',
+                            'Running',
+                            'Jumping',
+                            'Hopping (one foot)',
+                            'Skipping',
+                            'Ball skills (throw/catch)',
+                            'Climbing stairs',
+                            'Coordination (bilateral)',
+                            'Motor planning'
+                        ]
+                    },
+                    {
+                        type: 'matrix',
+                        name: 'fine_motor_skills',
+                        title: 'Fine Motor Skills',
+                        columns: ['Age Appropriate', 'Mild Delay', 'Moderate Delay', 'Severe Delay', 'Unable'],
+                        rows: [
+                            'Grasp patterns',
+                            'In-hand manipulation',
+                            'Bilateral hand use',
+                            'Tool use (scissors, utensils)',
+                            'Precision/dexterity',
+                            'Hand strength',
+                            'Visual-motor control',
+                            'Speed of manipulation'
+                        ]
+                    },
+                    {
+                        type: 'matrix',
+                        name: 'postural_control',
+                        title: 'Postural Control & Core Stability',
+                        columns: ['WNL', 'Mild Deficit', 'Moderate Deficit', 'Severe Deficit'],
+                        rows: [
+                            'Head control',
+                            'Trunk control',
+                            'Sitting posture',
+                            'Standing posture',
+                            'Protective reactions',
+                            'Righting reactions',
+                            'Core strength',
+                            'Endurance'
+                        ]
+                    },
+                    {
+                        type: 'dropdown',
+                        name: 'motor_assessment_tool',
+                        title: 'Standardized Assessment Used',
+                        choices: [
+                            'Peabody Developmental Motor Scales-2 (PDMS-2)',
+                            'Bruininks-Oseretsky Test of Motor Proficiency-3 (BOT-3)',
+                            'Movement Assessment Battery for Children-2 (MABC-2)',
+                            'School Function Assessment (SFA)',
+                            'Clinical observations only',
+                            'Other'
+                        ]
+                    },
+                    {
+                        type: 'radiogroup',
+                        name: 'motor_coordination_level',
+                        title: 'Overall Motor Coordination',
+                        choices: [
+                            'Well-coordinated movements',
+                            'Mild incoordination',
+                            'Moderate incoordination',
+                            'Severe incoordination',
+                            'Dyspraxia suspected'
+                        ]
+                    },
+                    {
+                        type: 'comment',
+                        name: 'motor_observations',
+                        title: 'Clinical Observations',
+                        rows: 4,
+                        placeholder: 'Document quality of movement, compensatory patterns, fatigue, motor planning difficulties, environmental factors...'
+                    }
+                ]
+            },
+            'visual-perceptual': {
+                type: 'panel',
+                name: 'visual_perceptual_assessment',
+                title: 'Visual Perceptual Assessment',
+                elements: [
+                    {
+                        type: 'matrix',
+                        name: 'visual_perceptual_skills',
+                        title: 'Visual Perceptual Skills',
+                        columns: ['Age Appropriate', 'Mild Difficulty', 'Moderate Difficulty', 'Severe Difficulty'],
+                        rows: [
+                            'Visual discrimination',
+                            'Visual memory',
+                            'Visual sequential memory',
+                            'Visual figure-ground',
+                            'Visual closure',
+                            'Visual spatial relations',
+                            'Form constancy',
+                            'Visual attention',
+                            'Visual scanning'
+                        ]
+                    },
+                    {
+                        type: 'matrix',
+                        name: 'visual_motor_integration',
+                        title: 'Visual Motor Integration',
+                        columns: ['WNL', 'Below Average', 'Poor', 'Very Poor'],
+                        rows: [
+                            'Copying shapes',
+                            'Drawing skills',
+                            'Writing/pre-writing',
+                            'Cutting skills',
+                            'Constructional skills',
+                            'Eye-hand coordination',
+                            'Spatial organization',
+                            'Line orientation'
+                        ]
+                    },
+                    {
+                        type: 'matrix',
+                        name: 'ocular_motor_skills',
+                        title: 'Ocular Motor Skills',
+                        columns: ['Intact', 'Mild Difficulty', 'Moderate Difficulty', 'Severe Difficulty'],
+                        rows: [
+                            'Visual tracking (smooth pursuits)',
+                            'Saccades (eye jumps)',
+                            'Convergence/divergence',
+                            'Visual fixation',
+                            'Peripheral vision awareness',
+                            'Depth perception'
+                        ]
+                    },
+                    {
+                        type: 'dropdown',
+                        name: 'vp_assessment_tool',
+                        title: 'Assessment Tool Used',
+                        choices: [
+                            'Beery VMI-6',
+                            'Test of Visual Perceptual Skills-4 (TVPS-4)',
+                            'Motor-Free Visual Perception Test-4 (MVPT-4)',
+                            'Developmental Test of Visual Perception-3 (DTVP-3)',
+                            'Clinical observations only',
+                            'Other'
+                        ]
+                    },
+                    {
+                        type: 'checkbox',
+                        name: 'functional_vision_concerns',
+                        title: 'Functional Vision Concerns',
+                        choices: [
+                            'Difficulty copying from board',
+                            'Loses place when reading',
+                            'Poor spacing in writing',
+                            'Difficulty with puzzles',
+                            'Trouble finding items',
+                            'Bumps into objects',
+                            'Difficulty catching balls',
+                            'Eye fatigue/headaches'
+                        ],
+                        hasOther: true
+                    },
+                    {
+                        type: 'comment',
+                        name: 'vp_observations',
+                        title: 'Clinical Observations',
+                        rows: 4,
+                        placeholder: 'Document compensatory strategies, environmental modifications, impact on academic/functional tasks...'
+                    }
+                ]
+            },
+            'fine-motor': {
+                type: 'panel',
+                name: 'fine_motor_assessment',
+                title: 'Fine Motor Skills Assessment',
+                elements: [
+                    {
+                        type: 'matrix',
+                        name: 'grasp_patterns',
+                        title: 'Grasp Pattern Development',
+                        columns: ['Present', 'Emerging', 'Not Present', 'Atypical'],
+                        rows: [
+                            'Palmar grasp',
+                            'Radial palmar grasp',
+                            'Radial digital grasp',
+                            'Static tripod grasp',
+                            'Dynamic tripod grasp',
+                            'Lateral tripod grasp',
+                            'Quadrupod grasp',
+                            'Hook grasp',
+                            'Power grasp'
+                        ]
+                    },
+                    {
+                        type: 'matrix',
+                        name: 'manipulation_skills',
+                        title: 'In-Hand Manipulation Skills',
+                        columns: ['Proficient', 'Functional', 'Emerging', 'Unable'],
+                        rows: [
+                            'Translation (finger to palm)',
+                            'Translation (palm to finger)',
+                            'Shift',
+                            'Simple rotation',
+                            'Complex rotation',
+                            'Stabilization'
+                        ]
+                    },
+                    {
+                        type: 'matrix',
+                        name: 'fine_motor_tasks',
+                        title: 'Functional Fine Motor Tasks',
+                        columns: ['Independent', 'Min Difficulty', 'Mod Difficulty', 'Max Difficulty', 'Unable'],
+                        rows: [
+                            'Buttons',
+                            'Zippers',
+                            'Snaps',
+                            'Shoe tying',
+                            'Opening containers',
+                            'Using utensils',
+                            'Turning pages',
+                            'Using scissors',
+                            'Stringing beads',
+                            'Building with blocks'
+                        ]
+                    },
+                    {
+                        type: 'radiogroup',
+                        name: 'hand_dominance',
+                        title: 'Hand Dominance',
+                        choices: [
+                            'Right hand dominant',
+                            'Left hand dominant',
+                            'Mixed dominance',
+                            'Not yet established'
+                        ]
+                    },
+                    {
+                        type: 'matrix',
+                        name: 'hand_strength',
+                        title: 'Hand Strength & Endurance',
+                        columns: ['WNL', 'Mild Weakness', 'Moderate Weakness', 'Severe Weakness'],
+                        rows: [
+                            'Grip strength',
+                            'Pinch strength (lateral)',
+                            'Pinch strength (tip)',
+                            'Pinch strength (3-jaw)',
+                            'Hand endurance',
+                            'Finger isolation'
+                        ]
+                    },
+                    {
+                        type: 'comment',
+                        name: 'fine_motor_notes',
+                        title: 'Clinical Observations',
+                        rows: 4,
+                        placeholder: 'Document hand preference, compensatory patterns, fatigue, tremor, associated movements...'
+                    }
+                ]
+            },
+            'gross-motor': {
+                type: 'panel',
+                name: 'gross_motor_assessment',
+                title: 'Gross Motor Skills Assessment',
+                elements: [
+                    {
+                        type: 'matrix',
+                        name: 'locomotor_skills',
+                        title: 'Locomotor Skills',
+                        columns: ['Typical', '1-3 mo Delay', '3-6 mo Delay', '>6 mo Delay', 'Unable'],
+                        rows: [
+                            'Rolling',
+                            'Crawling',
+                            'Creeping on hands/knees',
+                            'Cruising',
+                            'Walking independently',
+                            'Running',
+                            'Jumping (2 feet)',
+                            'Hopping (1 foot)',
+                            'Galloping',
+                            'Skipping'
+                        ]
+                    },
+                    {
+                        type: 'matrix',
+                        name: 'ball_skills',
+                        title: 'Ball Skills',
+                        columns: ['Age Appropriate', 'Emerging', 'Delayed', 'Significantly Delayed'],
+                        rows: [
+                            'Rolling ball',
+                            'Throwing overhand',
+                            'Throwing underhand',
+                            'Catching large ball',
+                            'Catching small ball',
+                            'Kicking stationary ball',
+                            'Kicking rolling ball',
+                            'Bouncing ball',
+                            'Hitting ball with bat'
+                        ]
+                    },
+                    {
+                        type: 'matrix',
+                        name: 'balance_skills',
+                        title: 'Balance & Coordination',
+                        columns: ['WNL', 'Mild Impairment', 'Moderate Impairment', 'Severe Impairment'],
+                        rows: [
+                            'Static balance (eyes open)',
+                            'Static balance (eyes closed)',
+                            'Single leg stance',
+                            'Tandem walking',
+                            'Walking on tiptoes',
+                            'Walking on heels',
+                            'Balance beam walking',
+                            'Jumping jacks',
+                            'Cross-lateral movements'
+                        ]
+                    },
+                    {
+                        type: 'matrix',
+                        name: 'playground_skills',
+                        title: 'Playground Skills',
+                        columns: ['Independent', 'Supervision', 'Physical Assist', 'Unable', 'Fearful'],
+                        rows: [
+                            'Climbing stairs',
+                            'Climbing ladder',
+                            'Sliding',
+                            'Swinging (pumping legs)',
+                            'Climbing structures',
+                            'Navigating obstacles',
+                            'Playing on equipment'
+                        ]
+                    },
+                    {
+                        type: 'radiogroup',
+                        name: 'gross_motor_quality',
+                        title: 'Overall Movement Quality',
+                        choices: [
+                            'Smooth, coordinated movements',
+                            'Mild awkwardness/clumsiness',
+                            'Moderate coordination difficulties',
+                            'Severe coordination impairment',
+                            'Significant motor planning issues'
+                        ]
+                    },
+                    {
+                        type: 'comment',
+                        name: 'gross_motor_notes',
+                        title: 'Clinical Observations',
+                        rows: 4,
+                        placeholder: 'Document gait pattern, muscle tone, range of motion, endurance, safety awareness, fear/confidence levels...'
+                    }
+                ]
+            },
+            'handwriting': {
+                type: 'panel',
+                name: 'handwriting_assessment',
+                title: 'Handwriting Assessment',
+                elements: [
+                    {
+                        type: 'matrix',
+                        name: 'prewriting_skills',
+                        title: 'Pre-Writing Skills',
+                        columns: ['Mastered', 'Emerging', 'Difficulty', 'Unable'],
+                        rows: [
+                            'Vertical line',
+                            'Horizontal line',
+                            'Circle',
+                            'Cross (+)',
+                            'Square',
+                            'Diagonal lines',
+                            'Triangle',
+                            'Diamond'
+                        ]
+                    },
+                    {
+                        type: 'matrix',
+                        name: 'letter_formation',
+                        title: 'Letter Formation',
+                        columns: ['Correct', 'Minor Errors', 'Major Errors', 'Illegible'],
+                        rows: [
+                            'Uppercase letters',
+                            'Lowercase letters',
+                            'Letter reversals',
+                            'Number formation',
+                            'Consistent size',
+                            'Consistent slant',
+                            'Starting points',
+                            'Directionality'
+                        ]
+                    },
+                    {
+                        type: 'matrix',
+                        name: 'handwriting_components',
+                        title: 'Handwriting Components',
+                        columns: ['Good', 'Fair', 'Poor', 'Very Poor'],
+                        rows: [
+                            'Line adherence',
+                            'Letter spacing',
+                            'Word spacing',
+                            'Margin use',
+                            'Overall legibility',
+                            'Writing speed',
+                            'Writing pressure',
+                            'Pencil control'
+                        ]
+                    },
+                    {
+                        type: 'radiogroup',
+                        name: 'pencil_grip',
+                        title: 'Pencil Grip Pattern',
+                        choices: [
+                            'Dynamic tripod',
+                            'Lateral tripod',
+                            'Dynamic quadrupod',
+                            'Lateral quadrupod',
+                            'Fisted grasp',
+                            'Thumb wrap',
+                            'Other atypical pattern'
+                        ]
+                    },
+                    {
+                        type: 'radiogroup',
+                        name: 'writing_posture',
+                        title: 'Writing Posture',
+                        choices: [
+                            'Appropriate sitting posture',
+                            'Slouches in chair',
+                            'Leans on desk/table',
+                            'Head too close to paper',
+                            'Unusual paper position',
+                            'Excessive body movements'
+                        ]
+                    },
+                    {
+                        type: 'checkbox',
+                        name: 'handwriting_difficulties',
+                        title: 'Specific Difficulties Observed',
+                        choices: [
+                            'Poor letter memory',
+                            'Slow writing speed',
+                            'Hand fatigue',
+                            'Difficulty copying',
+                            'Poor near/far point copying',
+                            'Avoidance of writing tasks',
+                            'Frustration with writing',
+                            'Difficulty with cursive'
+                        ],
+                        hasOther: true
+                    },
+                    {
+                        type: 'dropdown',
+                        name: 'handwriting_program',
+                        title: 'Handwriting Program/Approach',
+                        choices: [
+                            'Handwriting Without Tears',
+                            'Zaner-Bloser',
+                            "D'Nealian",
+                            'Cursive First',
+                            'School curriculum',
+                            'Other structured program',
+                            'No specific program'
+                        ]
+                    },
+                    {
+                        type: 'comment',
+                        name: 'handwriting_notes',
+                        title: 'Clinical Observations',
+                        rows: 4,
+                        placeholder: 'Document writing samples collected, environmental factors, adaptive equipment needs, motivation level...'
+                    }
+                ]
+            },
+            'background-history': {
+                type: 'panel',
+                name: 'background_history',
+                title: 'Background & Developmental History',
+                elements: [
+                    {
+                        type: 'matrix',
+                        name: 'developmental_milestones',
+                        title: 'Developmental Milestones',
+                        columns: ['On Time', 'Early', 'Delayed', 'Not Yet Achieved', 'Unknown'],
+                        rows: [
+                            'Smiled socially (2-3 months)',
+                            'Rolled over (4-6 months)',
+                            'Sat without support (6-8 months)',
+                            'Crawled (7-10 months)',
+                            'Walked independently (12-15 months)',
+                            'First words (12-18 months)',
+                            'Two-word phrases (18-24 months)',
+                            'Toilet trained (2-3 years)',
+                            'Dressed independently (3-4 years)',
+                            'Rode bicycle (5-7 years)'
+                        ]
+                    },
+                    {
+                        type: 'panel',
+                        name: 'educational_history',
+                        title: 'Educational History',
+                        elements: [
+                            { type: 'text', name: 'current_school', title: 'Current School/Program', placeholder: 'School name and location' },
+                            { type: 'dropdown', name: 'grade_level', title: 'Current Grade/Level',
+                              choices: ['Early Intervention', 'Preschool', 'Pre-K', 'Kindergarten', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 11', 'Grade 12', 'Post-Secondary', 'Other'] },
+                            { type: 'radiogroup', name: 'educational_setting', title: 'Educational Setting',
+                              choices: ['General Education', 'Inclusion with Support', 'Resource Room', 'Self-Contained', 'Special School', 'Home School', 'Virtual/Online'] },
+                            { type: 'checkbox', name: 'support_services', title: 'Current Support Services',
+                              choices: ['IEP', '504 Plan', 'Speech Therapy', 'Occupational Therapy', 'Physical Therapy', 'Behavioral Support', 'Academic Tutoring', 'Aide/Paraprofessional', 'Counseling', 'Other'],
+                              hasOther: true },
+                            { type: 'comment', name: 'academic_concerns', title: 'Academic Concerns', rows: 3,
+                              placeholder: 'Describe any academic challenges, strengths, or specific concerns...' }
+                        ]
+                    },
+                    {
+                        type: 'panel',
+                        name: 'therapy_history',
+                        title: 'Previous Therapy History',
+                        elements: [
+                            { type: 'matrix', name: 'previous_therapies', title: 'Previous Therapy Services',
+                              columns: ['Never', 'Currently', 'Past (Discontinued)', 'Recommended but Not Received'],
+                              rows: ['Speech-Language Therapy', 'Occupational Therapy', 'Physical Therapy', 'ABA Therapy', 'Psychological/Counseling', 'Social Skills Group', 'Feeding Therapy', 'Other Specialty Services'] },
+                            { type: 'comment', name: 'therapy_details', title: 'Previous Therapy Details', rows: 4,
+                              placeholder: 'Include dates, duration, frequency, provider names, and outcomes of previous therapies...' }
+                        ]
+                    },
+                    {
+                        type: 'panel',
+                        name: 'family_dynamics',
+                        title: 'Family & Social History',
+                        elements: [
+                            { type: 'dropdown', name: 'family_structure', title: 'Family Structure',
+                              choices: ['Two-parent household', 'Single parent', 'Joint custody', 'Guardian/Relative care', 'Foster care', 'Group home', 'Other'] },
+                            { type: 'text', name: 'siblings', title: 'Number of Siblings', inputType: 'number', min: 0 },
+                            { type: 'text', name: 'languages_home', title: 'Languages Spoken at Home', placeholder: 'List all languages' },
+                            { type: 'radiogroup', name: 'family_history_delays', title: 'Family History of Speech/Language/Learning Delays',
+                              choices: ['Yes - Immediate family', 'Yes - Extended family', 'No', 'Unknown'] },
+                            { type: 'comment', name: 'family_concerns', title: 'Family Concerns & Priorities', rows: 3,
+                              placeholder: 'What are the family\'s main concerns and goals for therapy?' }
+                        ]
+                    }
+                ]
+            },
+            'behavioral-observations': {
+                type: 'panel',
+                name: 'behavioral_observations',
+                title: 'Behavioral Observations',
+                elements: [
+                    {
+                        type: 'matrix',
+                        name: 'attention_behaviors',
+                        title: 'Attention & Engagement',
+                        columns: ['Always', 'Often', 'Sometimes', 'Rarely', 'Never'],
+                        rows: [
+                            'Maintains attention to task',
+                            'Follows multi-step directions',
+                            'Transitions between activities',
+                            'Sits appropriately during activities',
+                            'Participates willingly',
+                            'Shows interest in materials',
+                            'Completes tasks independently',
+                            'Requires redirection',
+                            'Demonstrates task persistence'
+                        ]
+                    },
+                    {
+                        type: 'matrix',
+                        name: 'behavioral_regulation',
+                        title: 'Behavioral Regulation',
+                        columns: ['Not Observed', 'Mild', 'Moderate', 'Severe', 'Constant'],
+                        rows: [
+                            'Tantrums/meltdowns',
+                            'Physical aggression',
+                            'Verbal aggression',
+                            'Self-injurious behavior',
+                            'Property destruction',
+                            'Elopement/running',
+                            'Withdrawal/shutdown',
+                            'Repetitive behaviors',
+                            'Sensory seeking',
+                            'Avoidance behaviors'
+                        ]
+                    },
+                    {
+                        type: 'panel',
+                        name: 'cooperation_rapport',
+                        title: 'Cooperation & Rapport',
+                        elements: [
+                            { type: 'rating', name: 'cooperation_level', title: 'Overall Cooperation Level',
+                              rateMin: 1, rateMax: 5,
+                              minRateDescription: 'Uncooperative', maxRateDescription: 'Highly Cooperative' },
+                            { type: 'rating', name: 'rapport_establishment', title: 'Ease of Rapport Establishment',
+                              rateMin: 1, rateMax: 5,
+                              minRateDescription: 'Very Difficult', maxRateDescription: 'Very Easy' },
+                            { type: 'checkbox', name: 'motivators_observed', title: 'Effective Motivators/Reinforcers',
+                              choices: ['Verbal praise', 'Stickers/tokens', 'Preferred toys', 'Movement breaks', 'Food items', 'Technology/screens', 'Social interaction', 'Preferred topics', 'Choice-making', 'Other'],
+                              hasOther: true }
+                        ]
+                    },
+                    {
+                        type: 'matrix',
+                        name: 'communication_behaviors',
+                        title: 'Communication Behaviors During Assessment',
+                        columns: ['Consistently', 'Frequently', 'Occasionally', 'Rarely', 'Never'],
+                        rows: [
+                            'Made eye contact',
+                            'Responded to name',
+                            'Initiated communication',
+                            'Used gestures',
+                            'Demonstrated joint attention',
+                            'Showed communicative intent',
+                            'Protested appropriately',
+                            'Requested assistance',
+                            'Commented on activities',
+                            'Engaged in reciprocal interaction'
+                        ]
+                    },
+                    {
+                        type: 'panel',
+                        name: 'environmental_factors',
+                        title: 'Environmental Factors',
+                        elements: [
+                            { type: 'checkbox', name: 'environmental_supports', title: 'Environmental Supports Needed',
+                              choices: ['Reduced distractions', 'Visual supports', 'Movement breaks', 'Sensory tools', 'Preferred seating', 'Adjusted lighting', 'Noise reduction', 'Structured schedule', 'Clear boundaries', 'Other'],
+                              hasOther: true },
+                            { type: 'comment', name: 'behavioral_notes', title: 'Additional Behavioral Observations', rows: 4,
+                              placeholder: 'Document specific behaviors, triggers, successful strategies, and other relevant observations...' }
+                        ]
+                    }
+                ]
+            },
+            'clinical-impressions': {
+                type: 'panel',
+                name: 'clinical_impressions',
+                title: 'Clinical Impressions & Diagnosis',
+                elements: [
+                    {
+                        type: 'panel',
+                        name: 'diagnostic_impressions',
+                        title: 'Diagnostic Impressions',
+                        elements: [
+                            { type: 'text', name: 'primary_diagnosis', title: 'Primary Diagnosis', placeholder: 'ICD-10 code and description', isRequired: true },
+                            { type: 'text', name: 'secondary_diagnosis', title: 'Secondary Diagnosis', placeholder: 'ICD-10 code and description' },
+                            { type: 'text', name: 'tertiary_diagnosis', title: 'Additional Diagnosis', placeholder: 'ICD-10 code and description' },
+                            { type: 'dropdown', name: 'severity_rating', title: 'Overall Severity Rating',
+                              choices: ['Mild', 'Mild-Moderate', 'Moderate', 'Moderate-Severe', 'Severe', 'Profound'],
+                              isRequired: true }
+                        ]
+                    },
+                    {
+                        type: 'matrix',
+                        name: 'differential_considerations',
+                        title: 'Differential Diagnostic Considerations',
+                        columns: ['Primary Concern', 'Rule Out', 'Contributing Factor', 'Not Applicable'],
+                        rows: [
+                            'Language Disorder',
+                            'Speech Sound Disorder',
+                            'Childhood Apraxia of Speech',
+                            'Autism Spectrum Disorder',
+                            'ADHD',
+                            'Intellectual Disability',
+                            'Hearing Loss',
+                            'Social Communication Disorder',
+                            'Selective Mutism',
+                            'Developmental Coordination Disorder',
+                            'Learning Disability',
+                            'Anxiety Disorder'
+                        ]
+                    },
+                    {
+                        type: 'panel',
+                        name: 'prognostic_indicators',
+                        title: 'Prognostic Indicators',
+                        elements: [
+                            { type: 'radiogroup', name: 'prognosis', title: 'Overall Prognosis for Improvement',
+                              choices: ['Excellent', 'Good', 'Fair', 'Guarded', 'Poor'],
+                              isRequired: true },
+                            { type: 'checkbox', name: 'positive_prognostic_factors', title: 'Positive Prognostic Factors',
+                              choices: ['Young age', 'High motivation', 'Family support', 'Cognitive strengths', 'Good attention', 'Previous therapy success', 'Stimulability', 'Social engagement', 'No comorbidities', 'Consistent attendance expected'],
+                              hasOther: true },
+                            { type: 'checkbox', name: 'negative_prognostic_factors', title: 'Factors That May Impact Progress',
+                              choices: ['Multiple diagnoses', 'Severe presentation', 'Limited family support', 'Inconsistent attendance', 'Cognitive limitations', 'Behavioral challenges', 'Medical complications', 'Limited stimulability', 'Previous therapy plateau', 'Environmental barriers'],
+                              hasOther: true }
+                        ]
+                    },
+                    {
+                        type: 'panel',
+                        name: 'clinical_summary',
+                        title: 'Clinical Summary',
+                        elements: [
+                            { type: 'comment', name: 'strengths_summary', title: 'Summary of Strengths', rows: 3,
+                              placeholder: 'Summarize the client\'s strengths and assets...' },
+                            { type: 'comment', name: 'concerns_summary', title: 'Summary of Concerns', rows: 3,
+                              placeholder: 'Summarize primary areas of concern...' },
+                            { type: 'comment', name: 'clinical_rationale', title: 'Clinical Rationale', rows: 4,
+                              placeholder: 'Provide clinical reasoning for diagnosis and treatment recommendations...' }
+                        ]
+                    }
+                ]
+            },
+            'recommendations': {
+                type: 'panel',
+                name: 'recommendations_section',
+                title: 'Recommendations',
+                elements: [
+                    {
+                        type: 'panel',
+                        name: 'service_recommendations',
+                        title: 'Recommended Services',
+                        elements: [
+                            { type: 'radiogroup', name: 'therapy_recommended', title: 'Is therapy recommended?',
+                              choices: ['Yes - Immediate start', 'Yes - Within 3 months', 'Yes - Monitor and re-evaluate', 'No - Not needed at this time', 'No - Discharge'],
+                              isRequired: true },
+                            { type: 'dropdown', name: 'service_delivery_model', title: 'Service Delivery Model',
+                              choices: ['Individual therapy', 'Group therapy', 'Individual + Group combination', 'Consultative model', 'Parent training/coaching', 'Intensive program', 'Teletherapy', 'Hybrid (in-person + tele)'] },
+                            { type: 'dropdown', name: 'frequency_recommendation', title: 'Recommended Frequency',
+                              choices: ['5x per week', '3x per week', '2x per week', '1x per week', '2x per month', '1x per month', 'As needed', 'Other'] },
+                            { type: 'dropdown', name: 'session_duration', title: 'Recommended Session Duration',
+                              choices: ['15 minutes', '30 minutes', '45 minutes', '60 minutes', '90 minutes'] },
+                            { type: 'dropdown', name: 'service_setting', title: 'Recommended Setting',
+                              choices: ['Clinic', 'School', 'Home', 'Community', 'Daycare/Preschool', 'Teletherapy', 'Multiple settings'] },
+                            { type: 'text', name: 'duration_recommendation', title: 'Recommended Duration of Services',
+                              placeholder: 'e.g., 6 months with re-evaluation' }
+                        ]
+                    },
+                    {
+                        type: 'checkbox',
+                        name: 'therapy_approaches',
+                        title: 'Recommended Therapy Approaches',
+                        choices: [
+                            'Traditional articulation therapy',
+                            'Phonological approach',
+                            'Motor-based approach (PROMPT, DTTC)',
+                            'Language stimulation techniques',
+                            'Social communication intervention',
+                            'AAC implementation',
+                            'Fluency shaping techniques',
+                            'Voice therapy techniques',
+                            'Oral motor exercises',
+                            'Sensory integration techniques',
+                            'Cognitive-communication strategies',
+                            'Parent/caregiver training',
+                            'Collaborative consultation',
+                            'Other evidence-based approach'
+                        ],
+                        hasOther: true
+                    },
+                    {
+                        type: 'panel',
+                        name: 'referral_recommendations',
+                        title: 'Referral Recommendations',
+                        elements: [
+                            { type: 'checkbox', name: 'referrals_needed', title: 'Additional Evaluations/Referrals Recommended',
+                              choices: [
+                                  'Audiological evaluation',
+                                  'Psychological/neuropsychological evaluation',
+                                  'Occupational therapy evaluation',
+                                  'Physical therapy evaluation',
+                                  'Developmental pediatrician',
+                                  'Neurologist',
+                                  'ENT/Otolaryngologist',
+                                  'Feeding team evaluation',
+                                  'Assistive technology evaluation',
+                                  'Educational evaluation',
+                                  'ABA assessment',
+                                  'Genetic testing',
+                                  'Vision screening',
+                                  'Dental evaluation'
+                              ],
+                              hasOther: true },
+                            { type: 'comment', name: 'referral_rationale', title: 'Referral Rationale', rows: 3,
+                              placeholder: 'Explain the rationale for each referral recommendation...' }
+                        ]
+                    },
+                    {
+                        type: 'panel',
+                        name: 'home_program',
+                        title: 'Home Program Recommendations',
+                        elements: [
+                            { type: 'checkbox', name: 'home_strategies', title: 'Recommended Home Strategies',
+                              choices: [
+                                  'Daily reading activities',
+                                  'Language expansion techniques',
+                                  'Speech sound practice',
+                                  'Oral motor exercises',
+                                  'Social skills practice',
+                                  'Visual schedules/supports',
+                                  'Sensory diet activities',
+                                  'Communication temptations',
+                                  'Play-based interventions',
+                                  'Technology/app support',
+                                  'Behavior management strategies',
+                                  'Environmental modifications'
+                              ],
+                              hasOther: true },
+                            { type: 'comment', name: 'parent_education_topics', title: 'Parent Education Topics', rows: 3,
+                              placeholder: 'List specific topics for parent education and training...' },
+                            { type: 'comment', name: 'home_program_details', title: 'Specific Home Program Activities', rows: 4,
+                              placeholder: 'Provide detailed home activity recommendations...' }
+                        ]
+                    },
+                    {
+                        type: 'panel',
+                        name: 'follow_up_plan',
+                        title: 'Follow-Up Plan',
+                        elements: [
+                            { type: 'dropdown', name: 'follow_up_timeline', title: 'Recommended Follow-Up',
+                              choices: ['1 month', '3 months', '6 months', '1 year', 'As needed', 'Upon completion of therapy', 'No follow-up needed'] },
+                            { type: 'comment', name: 'follow_up_instructions', title: 'Follow-Up Instructions', rows: 3,
+                              placeholder: 'Specific instructions for follow-up, re-evaluation criteria, or discharge planning...' },
+                            { type: 'comment', name: 'additional_recommendations', title: 'Additional Recommendations', rows: 4,
+                              placeholder: 'Any other recommendations, considerations, or important information...' }
+                        ]
                     }
                 ]
             },
@@ -896,6 +2441,237 @@ class IPLCFormBuilder {
                     { type: 'text', name: 'therapist_name', title: 'Therapist Name (Print)', isRequired: true },
                     { type: 'text', name: 'license_number', title: 'License Number', isRequired: true },
                     { type: 'text', name: 'signature_date', title: 'Date', inputType: 'date', isRequired: true }
+                ]
+            },
+            'ai-goals': {
+                type: 'panel',
+                name: 'ai_goals_generator',
+                title: 'AI Goal Generator',
+                elements: [
+                    {
+                        type: 'panel',
+                        name: 'goal_parameters',
+                        title: 'Goal Generation Parameters',
+                        elements: [
+                            { type: 'dropdown', name: 'goal_type', title: 'Goal Type',
+                              choices: ['Long-term goals', 'Short-term objectives', 'Both goals and objectives'],
+                              isRequired: true },
+                            { type: 'dropdown', name: 'goal_framework', title: 'Goal Framework',
+                              choices: ['SMART goals', 'GAS (Goal Attainment Scaling)', 'Functional outcomes', 'Academic standards-based', 'Developmental milestones'],
+                              isRequired: true },
+                            { type: 'text', name: 'number_of_goals', title: 'Number of Goals to Generate',
+                              inputType: 'number', min: 1, max: 10, defaultValue: '3' },
+                            { type: 'checkbox', name: 'goal_areas', title: 'Areas to Address',
+                              choices: [
+                                  'Articulation/Speech Sounds',
+                                  'Expressive Language',
+                                  'Receptive Language',
+                                  'Pragmatic/Social Language',
+                                  'Fluency',
+                                  'Voice',
+                                  'Feeding/Swallowing',
+                                  'AAC Use',
+                                  'Literacy/Pre-literacy',
+                                  'Executive Function',
+                                  'Fine Motor Skills',
+                                  'Gross Motor Skills',
+                                  'Sensory Processing',
+                                  'Activities of Daily Living',
+                                  'Handwriting',
+                                  'Visual Perceptual Skills',
+                                  'Play Skills',
+                                  'Self-Regulation'
+                              ],
+                              isRequired: true }
+                        ]
+                    },
+                    {
+                        type: 'panel',
+                        name: 'goal_customization',
+                        title: 'Goal Customization',
+                        elements: [
+                            { type: 'dropdown', name: 'measurement_method', title: 'Preferred Measurement Method',
+                              choices: ['Percentage accuracy', 'Frequency count', 'Duration measure', 'Likert scale', 'Task analysis', 'Rubric-based', 'Mixed methods'] },
+                            { type: 'dropdown', name: 'goal_timeframe', title: 'Goal Timeframe',
+                              choices: ['4 weeks', '6 weeks', '3 months', '6 months', '1 year', 'IEP annual', 'Insurance authorization period'] },
+                            { type: 'radiogroup', name: 'baseline_included', title: 'Include Baseline Data in Goals?',
+                              choices: ['Yes - Use assessment data', 'Yes - Estimate baseline', 'No - Goals only'] },
+                            { type: 'dropdown', name: 'goal_complexity', title: 'Goal Complexity Level',
+                              choices: ['Basic/Foundational', 'Intermediate', 'Advanced', 'Mixed levels based on assessment'] }
+                        ]
+                    },
+                    {
+                        type: 'panel',
+                        name: 'goal_context',
+                        title: 'Contextual Factors',
+                        elements: [
+                            { type: 'checkbox', name: 'goal_settings', title: 'Settings for Goal Implementation',
+                              choices: ['Therapy room', 'Classroom', 'Home', 'Community', 'Playground', 'Cafeteria', 'All settings'],
+                              hasOther: true },
+                            { type: 'checkbox', name: 'goal_partners', title: 'Communication Partners',
+                              choices: ['Therapist', 'Parents/Caregivers', 'Teachers', 'Peers', 'Siblings', 'Unfamiliar adults', 'All partners'],
+                              hasOther: true },
+                            { type: 'comment', name: 'special_considerations', title: 'Special Considerations for Goals',
+                              rows: 3, placeholder: 'Cultural factors, family priorities, medical considerations, etc.' }
+                        ]
+                    },
+                    {
+                        type: 'panel',
+                        name: 'goal_bank_integration',
+                        title: 'Goal Bank Integration',
+                        elements: [
+                            { type: 'radiogroup', name: 'use_goal_bank', title: 'Reference Goal Bank?',
+                              choices: ['Yes - Match to standardized goals', 'Yes - Adapt from goal bank', 'No - Generate unique goals'] },
+                            { type: 'checkbox', name: 'goal_categories', title: 'Goal Bank Categories to Include',
+                              choices: ['Early intervention (0-3)', 'Preschool (3-5)', 'School-age (5-12)', 'Adolescent (12-18)', 'Adult (18+)', 'Geriatric (65+)'],
+                              visibleIf: "{use_goal_bank} != 'No - Generate unique goals'" }
+                        ]
+                    },
+                    {
+                        type: 'comment',
+                        name: 'generated_goals_output',
+                        title: 'AI-Generated Goals',
+                        rows: 12,
+                        readOnly: true,
+                        placeholder: 'Goals will be generated based on assessment data and selected parameters...',
+                        description: 'Click "Generate Goals" button to create customized goals based on your specifications'
+                    },
+                    {
+                        type: 'html',
+                        name: 'generate_button',
+                        html: '<div style="text-align: center; margin: 20px 0;"><button type="button" class="btn btn-primary" onclick="generateAIGoals()">🎯 Generate Goals</button></div>'
+                    },
+                    {
+                        type: 'panel',
+                        name: 'goal_editing',
+                        title: 'Goal Refinement',
+                        elements: [
+                            { type: 'rating', name: 'goal_satisfaction', title: 'Satisfaction with Generated Goals',
+                              rateMin: 1, rateMax: 5,
+                              minRateDescription: 'Needs Major Revision', maxRateDescription: 'Excellent' },
+                            { type: 'comment', name: 'goal_modifications', title: 'Goal Modifications/Edits',
+                              rows: 8, placeholder: 'Copy generated goals here to edit and customize further...' }
+                        ]
+                    }
+                ]
+            },
+            'ai-recommendations': {
+                type: 'panel',
+                name: 'ai_recommendations_generator',
+                title: 'AI Recommendations Generator',
+                elements: [
+                    {
+                        type: 'panel',
+                        name: 'recommendation_scope',
+                        title: 'Recommendation Scope',
+                        elements: [
+                            { type: 'checkbox', name: 'recommendation_types', title: 'Types of Recommendations to Generate',
+                              choices: [
+                                  'Service delivery recommendations',
+                                  'Frequency and duration',
+                                  'Therapy approaches/techniques',
+                                  'Home program activities',
+                                  'School/classroom strategies',
+                                  'Environmental modifications',
+                                  'Adaptive equipment/tools',
+                                  'Referrals to other professionals',
+                                  'Parent/caregiver training topics',
+                                  'Progress monitoring methods',
+                                  'Discharge criteria'
+                              ],
+                              isRequired: true },
+                            { type: 'radiogroup', name: 'recommendation_detail', title: 'Level of Detail',
+                              choices: ['Brief bullet points', 'Detailed explanations', 'Mixed based on type'] },
+                            { type: 'radiogroup', name: 'evidence_level', title: 'Include Evidence Base?',
+                              choices: ['Yes - Include research support', 'Yes - Include clinical rationale', 'No - Recommendations only'] }
+                        ]
+                    },
+                    {
+                        type: 'panel',
+                        name: 'recommendation_customization',
+                        title: 'Customization Parameters',
+                        elements: [
+                            { type: 'checkbox', name: 'consider_factors', title: 'Factors to Consider',
+                              choices: [
+                                  'Age/developmental level',
+                                  'Severity of impairment',
+                                  'Cognitive abilities',
+                                  'Physical/medical factors',
+                                  'Family resources',
+                                  'Cultural background',
+                                  'Previous therapy response',
+                                  'School/work demands',
+                                  'Insurance limitations',
+                                  'Geographic location/access'
+                              ] },
+                            { type: 'dropdown', name: 'recommendation_priority', title: 'Prioritization Method',
+                              choices: ['Severity-based', 'Functional impact', 'Family priorities', 'School/work priorities', 'Developmental sequence', 'Mixed approach'] },
+                            { type: 'radiogroup', name: 'recommendation_format', title: 'Output Format',
+                              choices: ['Narrative paragraphs', 'Bulleted lists', 'Numbered priorities', 'Categorized sections'] }
+                        ]
+                    },
+                    {
+                        type: 'panel',
+                        name: 'therapy_approach_selection',
+                        title: 'Therapy Approach Preferences',
+                        elements: [
+                            { type: 'checkbox', name: 'preferred_approaches', title: 'Preferred Intervention Approaches',
+                              choices: [
+                                  'Evidence-based practice only',
+                                  'Traditional/conventional methods',
+                                  'Neurodevelopmental approaches',
+                                  'Sensory integration-based',
+                                  'Technology-assisted intervention',
+                                  'Play-based/naturalistic',
+                                  'Structured/behavioral approaches',
+                                  'Family-centered practice',
+                                  'Collaborative/consultative',
+                                  'Intensive/massed practice',
+                                  'Distributed practice',
+                                  'Telepractice compatible'
+                              ] },
+                            { type: 'comment', name: 'approach_notes', title: 'Specific Approach Preferences/Restrictions',
+                              rows: 3, placeholder: 'Note any specific approaches to include or avoid...' }
+                        ]
+                    },
+                    {
+                        type: 'panel',
+                        name: 'recommendation_library',
+                        title: 'Recommendation Library Options',
+                        elements: [
+                            { type: 'radiogroup', name: 'use_templates', title: 'Use Recommendation Templates?',
+                              choices: ['Yes - Best practice templates', 'Yes - Facility-specific templates', 'No - Generate unique recommendations'] },
+                            { type: 'checkbox', name: 'include_resources', title: 'Include Resource Links?',
+                              choices: ['Parent handouts', 'Video demonstrations', 'App recommendations', 'Book/material suggestions', 'Website resources', 'Community resources'] }
+                        ]
+                    },
+                    {
+                        type: 'comment',
+                        name: 'generated_recommendations_output',
+                        title: 'AI-Generated Recommendations',
+                        rows: 15,
+                        readOnly: true,
+                        placeholder: 'Recommendations will be generated based on assessment findings and selected parameters...',
+                        description: 'Click "Generate Recommendations" button to create customized recommendations'
+                    },
+                    {
+                        type: 'html',
+                        name: 'generate_recommendations_button',
+                        html: '<div style="text-align: center; margin: 20px 0;"><button type="button" class="btn btn-primary" onclick="generateAIRecommendations()">💡 Generate Recommendations</button></div>'
+                    },
+                    {
+                        type: 'panel',
+                        name: 'recommendation_refinement',
+                        title: 'Recommendation Refinement',
+                        elements: [
+                            { type: 'radiogroup', name: 'recommendation_completeness', title: 'Are recommendations comprehensive?',
+                              choices: ['Yes - Ready to use', 'Mostly - Minor edits needed', 'Partially - Significant additions needed', 'No - Major revision required'] },
+                            { type: 'comment', name: 'recommendation_edits', title: 'Edited Recommendations',
+                              rows: 10, placeholder: 'Copy and edit recommendations here for final version...' },
+                            { type: 'comment', name: 'additional_recommendations', title: 'Additional Recommendations to Add',
+                              rows: 5, placeholder: 'Add any recommendations not captured by AI...' }
+                        ]
+                    }
                 ]
             },
             'ai-summary': {
