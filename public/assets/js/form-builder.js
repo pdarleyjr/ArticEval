@@ -1472,8 +1472,8 @@ class IPLCFormBuilder {
             // Apply default logo configuration
             formData.logo = "/assets/images/iplc-logo.png";
             formData.logoWidth = "800px";
-            formData.logoPosition = "right";
-            formData.logoFit = "contain";
+            formData.logoHeight = "auto";
+            formData.logoPosition = "left";
         }
         
         return formData;
