@@ -9,9 +9,27 @@ binding = "DB"
 database_name = "iplc-eval-db"
 database_id = "690d60be-7ba3-4a2c-8de9-4cd8f034430e"
 
+# Vectorize binding for chat knowledge base
+[[vectorize]]
+binding = "VECTORIZE"
+index_name = "chat-knowledge-index"
+
+# KV namespace for chat metadata
+[[kv_namespaces]]
+binding = "chat_metadata"
+id = "29cc6219f29d48d1a5ddd38dcda1a0f0"
+
 # Production environment
 [env.production]
 [[env.production.d1_databases]]
 binding = "DB"
 database_name = "iplc-eval-db"
 database_id = "690d60be-7ba3-4a2c-8de9-4cd8f034430e"
+
+[[env.production.vectorize]]
+binding = "VECTORIZE"
+index_name = "chat-knowledge-index"
+
+[[env.production.kv_namespaces]]
+binding = "chat_metadata"
+id = "29cc6219f29d48d1a5ddd38dcda1a0f0"

@@ -60,6 +60,7 @@ class IPLCFormBuilder {
         this.registerCustomQuestionTypes();
         this.addComplexEditorStyles();
         this.restorePanelState();
+        this.setupTouchGestures();
     }
     
     // Restore properties panel state from localStorage
@@ -806,8 +807,11 @@ class IPLCFormBuilder {
             this.renderFormElement(element, index)
         ).join('');
     }
-
     renderFormElement(element, index) {
+        // Check if this is a panel with sub-elements
+        const isPanelType = element.type === 'panel' || element.type === 'paneldynamic';
+        const hasSubElements = isPanelType && element.elements && element.elements.length > 0;
+        
         return `
             <div class="form-element ${this.selectedElement === index ? 'selected' : ''}"
                  data-index="${index}"
@@ -816,6 +820,7 @@ class IPLCFormBuilder {
                  title="Double-click to edit">
                 <div class="element-header">
                     <span class="element-type">${element.title || element.name || 'Untitled'}</span>
+                    ${hasSubElements ? '<span class="sub-element-indicator" style="font-size: 0.8em; color: #666; margin-left: 0.5rem;">(Panel with ' + element.elements.length + ' elements)</span>' : ''}
                     <div class="element-actions">
                         <button onclick="formBuilder.editElement(${index}); event.stopPropagation();" title="Edit">✏️</button>
                         <button onclick="formBuilder.moveElement(${index}, -1); event.stopPropagation();" title="Move Up">↑</button>
@@ -4157,6 +4162,563 @@ class IPLCFormBuilder {
         this.renderFormElements();
     }
 
+    // Special method for editing panel elements with sub-elements
+    editPanelElement(panelIndex) {
+        const panel = this.formData.pages[this.currentPageIndex].elements[panelIndex];
+        
+        // Create a special dialog for panel editing
+        const backdrop = document.createElement('div');
+        backdrop.className = 'custom-modal-backdrop';
+        backdrop.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1040;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        `;
+
+        const dialog = document.createElement('div');
+        dialog.className = 'custom-modal-dialog';
+        dialog.style.cssText = `
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            max-width: 900px;
+            width: 90%;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        `;
+
+        dialog.innerHTML = `
+            <div class="modal-header" style="padding: 1rem 1.5rem; border-bottom: 1px solid #dee2e6; flex-shrink: 0;">
+                <h5 class="modal-title" style="margin: 0; font-size: 1.25rem; font-weight: 500;">
+                    Edit Panel: ${panel.title || panel.name}
+                </h5>
+                <button type="button" class="btn-close" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; opacity: 0.5;">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem; overflow-y: auto; flex: 1;">
+                <div class="panel-basic-props" style="margin-bottom: 1.5rem;">
+                    <h6 style="color: #495057; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem;">Panel Properties</h6>
+                    <div class="mb-3">
+                        <label class="form-label">Panel Name (ID):</label>
+                        <input type="text" class="form-control" id="panelName" value="${panel.name || ''}"
+                               style="width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem;">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Panel Title:</label>
+                        <input type="text" class="form-control" id="panelTitle" value="${panel.title || ''}"
+                               style="width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem;">
+                    </div>
+                </div>
+                
+                <div class="panel-elements-section">
+                    <h6 style="color: #495057; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem;">Panel Elements</h6>
+                    <div id="panelElementsList">
+                        ${panel.elements.map((el, idx) => `
+                            <div class="panel-element-item" data-index="${idx}" style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 0.25rem; padding: 0.75rem; margin-bottom: 0.5rem;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <strong>${el.title || el.name || 'Untitled'}</strong>
+                                        <span style="color: #6c757d; font-size: 0.875rem; margin-left: 0.5rem;">(${el.type})</span>
+                                    </div>
+                                    <div>
+                                        <button class="btn btn-sm btn-primary edit-sub-element" data-index="${idx}" style="margin-right: 0.25rem;">Edit</button>
+                                        <button class="btn btn-sm btn-danger remove-sub-element" data-index="${idx}">Remove</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button class="btn btn-sm btn-success" id="addSubElement" style="margin-top: 0.5rem;">
+                        <span>➕</span> Add Element
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 1rem 1.5rem; border-top: 1px solid #dee2e6; display: flex; justify-content: flex-end; gap: 0.5rem; flex-shrink: 0;">
+                <button type="button" class="btn btn-secondary" id="cancelPanelEdit">Cancel</button>
+                <button type="button" class="btn btn-primary" id="savePanelChanges">Save Changes</button>
+            </div>
+        `;
+
+        backdrop.appendChild(dialog);
+        document.body.appendChild(backdrop);
+
+        // Function to close modal
+        const closeModal = () => {
+            backdrop.remove();
+        };
+
+        // Event handlers
+        dialog.querySelector('.btn-close').addEventListener('click', closeModal);
+        dialog.querySelector('#cancelPanelEdit').addEventListener('click', closeModal);
+
+        // Save changes handler
+        dialog.querySelector('#savePanelChanges').addEventListener('click', () => {
+            // Save to history
+            this.saveToHistory();
+            
+            // Update panel properties
+            panel.name = dialog.querySelector('#panelName').value;
+            panel.title = dialog.querySelector('#panelTitle').value;
+            
+            // Update the form data
+            this.formData.pages[this.currentPageIndex].elements[panelIndex] = panel;
+            
+            // Re-render and mark as changed
+            this.renderFormElements();
+            this.selectElement(panelIndex);
+            this.hasUnsavedChanges = true;
+            this.debouncedSave();
+            
+            this.showNotification('Panel updated successfully');
+            closeModal();
+        });
+
+        // Edit sub-element handlers
+        dialog.querySelectorAll('.edit-sub-element').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const subIndex = parseInt(e.target.dataset.index);
+                const subElement = panel.elements[subIndex];
+                
+                // Create edit dialog for sub-element
+                const subDialog = this.createElementEditDialog(subElement, subElement.type, (updatedElement) => {
+                    panel.elements[subIndex] = updatedElement;
+                    
+                    // Refresh the panel elements list
+                    const listContainer = dialog.querySelector('#panelElementsList');
+                    listContainer.innerHTML = panel.elements.map((el, idx) => `
+                        <div class="panel-element-item" data-index="${idx}" style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 0.25rem; padding: 0.75rem; margin-bottom: 0.5rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong>${el.title || el.name || 'Untitled'}</strong>
+                                    <span style="color: #6c757d; font-size: 0.875rem; margin-left: 0.5rem;">(${el.type})</span>
+                                </div>
+                                <div>
+                                    <button class="btn btn-sm btn-primary edit-sub-element" data-index="${idx}" style="margin-right: 0.25rem;">Edit</button>
+                                    <button class="btn btn-sm btn-danger remove-sub-element" data-index="${idx}">Remove</button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    // Re-attach event handlers
+                    this.attachPanelElementHandlers(dialog, panel);
+                });
+                
+                document.body.appendChild(subDialog);
+            });
+        });
+
+        // Remove sub-element handlers
+        dialog.querySelectorAll('.remove-sub-element').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const subIndex = parseInt(e.target.dataset.index);
+                if (confirm('Are you sure you want to remove this element?')) {
+                    panel.elements.splice(subIndex, 1);
+                    
+                    // Refresh the panel elements list
+                    const listContainer = dialog.querySelector('#panelElementsList');
+                    listContainer.innerHTML = panel.elements.map((el, idx) => `
+                        <div class="panel-element-item" data-index="${idx}" style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 0.25rem; padding: 0.75rem; margin-bottom: 0.5rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong>${el.title || el.name || 'Untitled'}</strong>
+                                    <span style="color: #6c757d; font-size: 0.875rem; margin-left: 0.5rem;">(${el.type})</span>
+                                </div>
+                                <div>
+                                    <button class="btn btn-sm btn-primary edit-sub-element" data-index="${idx}" style="margin-right: 0.25rem;">Edit</button>
+                                    <button class="btn btn-sm btn-danger remove-sub-element" data-index="${idx}">Remove</button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    // Re-attach event handlers
+                    this.attachPanelElementHandlers(dialog, panel);
+                }
+            });
+        });
+
+        // Add new element handler
+        dialog.querySelector('#addSubElement').addEventListener('click', () => {
+            this.createElementTypeDialog((type) => {
+                const newElement = this.createDefaultElement(type);
+                panel.elements.push(newElement);
+                
+                // Refresh the panel elements list
+                const listContainer = dialog.querySelector('#panelElementsList');
+                listContainer.innerHTML = panel.elements.map((el, idx) => `
+                    <div class="panel-element-item" data-index="${idx}" style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 0.25rem; padding: 0.75rem; margin-bottom: 0.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>${el.title || el.name || 'Untitled'}</strong>
+                                <span style="color: #6c757d; font-size: 0.875rem; margin-left: 0.5rem;">(${el.type})</span>
+                            </div>
+                            <div>
+                                <button class="btn btn-sm btn-primary edit-sub-element" data-index="${idx}" style="margin-right: 0.25rem;">Edit</button>
+                                <button class="btn btn-sm btn-danger remove-sub-element" data-index="${idx}">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                // Re-attach event handlers
+                this.attachPanelElementHandlers(dialog, panel);
+            });
+        });
+    }
+
+    // Helper method to create element type selection dialog
+    createElementTypeDialog(callback) {
+        const backdrop = document.createElement('div');
+        backdrop.className = 'custom-modal-backdrop';
+        backdrop.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1050;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        `;
+
+        const dialog = document.createElement('div');
+        dialog.className = 'custom-modal-dialog';
+        dialog.style.cssText = `
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            max-width: 500px;
+            width: 90%;
+        `;
+
+        const elementTypes = [
+            { value: 'text', label: 'Single Line Text', icon: '📝' },
+            { value: 'comment', label: 'Multi-line Text', icon: '📄' },
+            { value: 'checkbox', label: 'Checkbox', icon: '☑️' },
+            { value: 'radiogroup', label: 'Radio Group', icon: '🔘' },
+            { value: 'dropdown', label: 'Dropdown', icon: '📋' },
+            { value: 'rating', label: 'Rating Scale', icon: '⭐' },
+            { value: 'boolean', label: 'Yes/No', icon: '✅' },
+            { value: 'matrix', label: 'Matrix', icon: '📊' },
+            { value: 'panel', label: 'Panel/Section', icon: '📦' }
+        ];
+
+        dialog.innerHTML = `
+            <div class="modal-header" style="padding: 1rem 1.5rem; border-bottom: 1px solid #dee2e6;">
+                <h5 class="modal-title" style="margin: 0; font-size: 1.25rem; font-weight: 500;">
+                    Select Element Type
+                </h5>
+                <button type="button" class="btn-close" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; opacity: 0.5;">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem;">
+                <div class="element-type-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.5rem;">
+                    ${elementTypes.map(type => `
+                        <button class="element-type-btn" data-type="${type.value}" style="
+                            padding: 1rem;
+                            border: 1px solid #dee2e6;
+                            border-radius: 0.25rem;
+                            background: #f8f9fa;
+                            cursor: pointer;
+                            text-align: center;
+                            transition: all 0.2s;
+                        " onmouseover="this.style.background='#e9ecef'" onmouseout="this.style.background='#f8f9fa'">
+                            <div style="font-size: 1.5rem; margin-bottom: 0.25rem;">${type.icon}</div>
+                            <div style="font-size: 0.875rem;">${type.label}</div>
+                        </button>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+
+        backdrop.appendChild(dialog);
+        document.body.appendChild(backdrop);
+
+        const closeModal = () => {
+            backdrop.remove();
+        };
+
+        dialog.querySelector('.btn-close').addEventListener('click', closeModal);
+        backdrop.addEventListener('click', (e) => {
+            if (e.target === backdrop) closeModal();
+        });
+
+        dialog.querySelectorAll('.element-type-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const type = btn.dataset.type;
+                closeModal();
+                if (callback) callback(type);
+            });
+        });
+    }
+
+    // Helper method to create element edit dialog
+    createElementEditDialog(element, type, callback) {
+        const backdrop = document.createElement('div');
+        backdrop.className = 'custom-modal-backdrop';
+        backdrop.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1060;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        `;
+
+        const dialog = document.createElement('div');
+        dialog.className = 'custom-modal-dialog';
+        dialog.style.cssText = `
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        `;
+
+        let fieldsHtml = `
+            <div class="mb-3">
+                <label class="form-label">Element Name (ID):</label>
+                <input type="text" class="form-control" id="elementName" value="${element.name || ''}"
+                       style="width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem;">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Element Title:</label>
+                <input type="text" class="form-control" id="elementTitle" value="${element.title || ''}"
+                       style="width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem;">
+            </div>
+        `;
+
+        // Add type-specific fields
+        if (type === 'radiogroup' || type === 'dropdown' || type === 'checkbox') {
+            const choices = element.choices || [];
+            fieldsHtml += `
+                <div class="mb-3">
+                    <label class="form-label">Choices:</label>
+                    <div id="choicesList">
+                        ${choices.map((choice, idx) => `
+                            <div class="choice-item mb-2" style="display: flex; gap: 0.5rem;">
+                                <input type="text" class="form-control choice-value" value="${typeof choice === 'string' ? choice : choice.value || ''}"
+                                       placeholder="Value" style="flex: 1;">
+                                <input type="text" class="form-control choice-text" value="${typeof choice === 'string' ? choice : choice.text || ''}"
+                                       placeholder="Display Text" style="flex: 1;">
+                                <button class="btn btn-sm btn-danger remove-choice">&times;</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <button class="btn btn-sm btn-success" id="addChoice">Add Choice</button>
+                </div>
+            `;
+        }
+
+        if (type === 'rating') {
+            fieldsHtml += `
+                <div class="mb-3">
+                    <label class="form-label">Rate Max:</label>
+                    <input type="number" class="form-control" id="rateMax" value="${element.rateMax || 5}"
+                           min="2" max="10" style="width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem;">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Min Rate Description:</label>
+                    <input type="text" class="form-control" id="minRateDescription" value="${element.minRateDescription || ''}"
+                           style="width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem;">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Max Rate Description:</label>
+                    <input type="text" class="form-control" id="maxRateDescription" value="${element.maxRateDescription || ''}"
+                           style="width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem;">
+                </div>
+            `;
+        }
+
+        if (type === 'comment' || type === 'text') {
+            fieldsHtml += `
+                <div class="mb-3">
+                    <label class="form-label">Placeholder:</label>
+                    <input type="text" class="form-control" id="placeholder" value="${element.placeholder || ''}"
+                           style="width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem;">
+                </div>
+            `;
+        }
+
+        fieldsHtml += `
+            <div class="mb-3">
+                <label>
+                    <input type="checkbox" id="isRequired" ${element.isRequired ? 'checked' : ''}>
+                    Required Field
+                </label>
+            </div>
+        `;
+
+        dialog.innerHTML = `
+            <div class="modal-header" style="padding: 1rem 1.5rem; border-bottom: 1px solid #dee2e6; flex-shrink: 0;">
+                <h5 class="modal-title" style="margin: 0; font-size: 1.25rem; font-weight: 500;">
+                    Edit ${type.charAt(0).toUpperCase() + type.slice(1)} Element
+                </h5>
+                <button type="button" class="btn-close" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; opacity: 0.5;">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem; overflow-y: auto; flex: 1;">
+                ${fieldsHtml}
+            </div>
+            <div class="modal-footer" style="padding: 1rem 1.5rem; border-top: 1px solid #dee2e6; display: flex; justify-content: flex-end; gap: 0.5rem; flex-shrink: 0;">
+                <button type="button" class="btn btn-secondary" id="cancelElementEdit">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveElementChanges">Save Changes</button>
+            </div>
+        `;
+
+        backdrop.appendChild(dialog);
+
+        const closeModal = () => {
+            backdrop.remove();
+        };
+
+        dialog.querySelector('.btn-close').addEventListener('click', closeModal);
+        dialog.querySelector('#cancelElementEdit').addEventListener('click', closeModal);
+
+        // Add choice management handlers if applicable
+        if (type === 'radiogroup' || type === 'dropdown' || type === 'checkbox') {
+            dialog.querySelector('#addChoice')?.addEventListener('click', () => {
+                const choicesList = dialog.querySelector('#choicesList');
+                const newChoice = document.createElement('div');
+                newChoice.className = 'choice-item mb-2';
+                newChoice.style = 'display: flex; gap: 0.5rem;';
+                newChoice.innerHTML = `
+                    <input type="text" class="form-control choice-value" placeholder="Value" style="flex: 1;">
+                    <input type="text" class="form-control choice-text" placeholder="Display Text" style="flex: 1;">
+                    <button class="btn btn-sm btn-danger remove-choice">&times;</button>
+                `;
+                choicesList.appendChild(newChoice);
+                
+                newChoice.querySelector('.remove-choice').addEventListener('click', () => {
+                    newChoice.remove();
+                });
+            });
+
+            dialog.querySelectorAll('.remove-choice').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    btn.parentElement.remove();
+                });
+            });
+        }
+
+        dialog.querySelector('#saveElementChanges').addEventListener('click', () => {
+            const updatedElement = { ...element };
+            
+            updatedElement.name = dialog.querySelector('#elementName').value;
+            updatedElement.title = dialog.querySelector('#elementTitle').value;
+            updatedElement.isRequired = dialog.querySelector('#isRequired').checked;
+
+            if (type === 'radiogroup' || type === 'dropdown' || type === 'checkbox') {
+                const choiceItems = dialog.querySelectorAll('.choice-item');
+                updatedElement.choices = Array.from(choiceItems).map(item => {
+                    const value = item.querySelector('.choice-value').value;
+                    const text = item.querySelector('.choice-text').value;
+                    return text && text !== value ? { value, text } : value;
+                });
+            }
+
+            if (type === 'rating') {
+                updatedElement.rateMax = parseInt(dialog.querySelector('#rateMax').value);
+                updatedElement.minRateDescription = dialog.querySelector('#minRateDescription').value;
+                updatedElement.maxRateDescription = dialog.querySelector('#maxRateDescription').value;
+            }
+
+            if (type === 'comment' || type === 'text') {
+                updatedElement.placeholder = dialog.querySelector('#placeholder').value;
+            }
+
+            closeModal();
+            if (callback) callback(updatedElement);
+        });
+
+        return backdrop;
+    }
+
+    // Helper method to re-attach event handlers for panel elements
+    attachPanelElementHandlers(dialog, panel) {
+        // Edit sub-element handlers
+        dialog.querySelectorAll('.edit-sub-element').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const subIndex = parseInt(e.target.dataset.index);
+                const subElement = panel.elements[subIndex];
+                
+                // Create edit dialog for sub-element
+                const subDialog = this.createElementEditDialog(subElement, subElement.type, (updatedElement) => {
+                    panel.elements[subIndex] = updatedElement;
+                    
+                    // Refresh the panel elements list
+                    const listContainer = dialog.querySelector('#panelElementsList');
+                    listContainer.innerHTML = panel.elements.map((el, idx) => `
+                        <div class="panel-element-item" data-index="${idx}" style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 0.25rem; padding: 0.75rem; margin-bottom: 0.5rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong>${el.title || el.name || 'Untitled'}</strong>
+                                    <span style="color: #6c757d; font-size: 0.875rem; margin-left: 0.5rem;">(${el.type})</span>
+                                </div>
+                                <div>
+                                    <button class="btn btn-sm btn-primary edit-sub-element" data-index="${idx}" style="margin-right: 0.25rem;">Edit</button>
+                                    <button class="btn btn-sm btn-danger remove-sub-element" data-index="${idx}">Remove</button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    // Re-attach event handlers
+                    this.attachPanelElementHandlers(dialog, panel);
+                });
+                
+                document.body.appendChild(subDialog);
+            });
+        });
+
+        // Remove sub-element handlers
+        dialog.querySelectorAll('.remove-sub-element').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const subIndex = parseInt(e.target.dataset.index);
+                if (confirm('Are you sure you want to remove this element?')) {
+                    panel.elements.splice(subIndex, 1);
+                    
+                    // Refresh the panel elements list
+                    const listContainer = dialog.querySelector('#panelElementsList');
+                    listContainer.innerHTML = panel.elements.map((el, idx) => `
+                        <div class="panel-element-item" data-index="${idx}" style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 0.25rem; padding: 0.75rem; margin-bottom: 0.5rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong>${el.title || el.name || 'Untitled'}</strong>
+                                    <span style="color: #6c757d; font-size: 0.875rem; margin-left: 0.5rem;">(${el.type})</span>
+                                </div>
+                                <div>
+                                    <button class="btn btn-sm btn-primary edit-sub-element" data-index="${idx}" style="margin-right: 0.25rem;">Edit</button>
+                                    <button class="btn btn-sm btn-danger remove-sub-element" data-index="${idx}">Remove</button>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    // Re-attach event handlers
+                    this.attachPanelElementHandlers(dialog, panel);
+                }
+            });
+        });
+    }
+
     deleteElement(index) {
         // Check if form is locked
         if (this.checkFormLocked()) {
@@ -4195,6 +4757,13 @@ class IPLCFormBuilder {
         }
 
         const element = this.formData.pages[this.currentPageIndex].elements[index];
+        
+        // Check if this is a panel with sub-elements that needs special handling
+        if (element.type === 'panel' && element.elements && element.elements.length > 0) {
+            // Use special panel editing method
+            this.editPanelElement(index);
+            return;
+        }
         
         // Create edit dialog based on element type
         const dialog = this.createElementEditDialog(element, element.type, (updatedElement) => {

@@ -100,7 +100,7 @@ main {
     padding: 2rem;
     margin: 0 auto;
     width: 100%;
-    max-width: 1754px; /* Match PDF width */
+    max-width: 1200px; /* Standard page width with margins for 8.5" x 11" paper */
 }
 
 /* Section Styles */
@@ -197,6 +197,84 @@ p {
     width: 100%;
     margin-bottom: 1rem;
     font-size: 12pt;
+}
+
+/* Form Builder Specific Constraints */
+.form-builder-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.builder-canvas {
+    max-width: 100%;
+}
+
+.form-page {
+    max-width: 100%;
+}
+
+/* Ensure all form elements respect page width */
+.form-element,
+.sv_main,
+.sv_container,
+.sv_body,
+.sv_page,
+.sv_row,
+.sv_qstn,
+.sv_q_panel {
+    max-width: 100% !important;
+    box-sizing: border-box;
+}
+
+/* Panel elements should not exceed page width */
+.sv_p_container,
+.sv_panel,
+.panel {
+    max-width: 100% !important;
+    overflow-x: hidden;
+}
+
+/* Table elements constraint */
+.sv_matrix,
+.sv_q_matrix table,
+.sv_q_matrixdynamic table,
+.sv_q_matrixdropdown table {
+    max-width: 100% !important;
+    table-layout: fixed;
+}
+
+/* Responsive table cells */
+.sv_matrix td,
+.sv_matrix th {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Print-specific width constraints */
+@media print {
+    body,
+    main,
+    .form-builder-container,
+    .builder-canvas,
+    .form-page,
+    .sv_main,
+    .sv_container {
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0.5in !important;
+    }
+    
+    /* Ensure tables fit on page */
+    table {
+        max-width: 100% !important;
+        font-size: 10pt !important;
+    }
+    
+    /* Adjust cell padding for print */
+    td, th {
+        padding: 4pt !important;
+        font-size: 10pt !important;
+    }
 }
 
 /* Tables */
