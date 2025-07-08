@@ -331,23 +331,121 @@ async function refineAISummary(summaryId, feedback, refinementRequest) {
     }
 }
 
-// Store summary in IndexedDB (no changes needed here)
+// Store summary in IndexedDB - Optimized with Nolan Lawson's techniques
 async function storeSummary(data, sections, fullSummary) {
     try {
-        const transaction = db.transaction(['samples'], 'readwrite');
-        const store = transaction.objectStore('samples');
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction(['samples'], 'readwrite');
+            const store = transaction.objectStore('samples');
 
-        await store.add({
-            data,
-            sections,
-            fullSummary,
-            score: parseInt(data.tl_standard_score),
-            severity: getSeverityLevel(parseInt(data.tl_standard_score)),
-            dateCreated: new Date()
+            // Apply explicit transaction completion handling (Nolan Lawson technique)
+            transaction.oncomplete = () => {
+                console.log('Summary stored successfully');
+                resolve();
+            };
+            
+            transaction.onerror = () => {
+                console.error('Transaction failed:', transaction.error);
+                reject(new Error('Failed to store summary'));
+            };
+            
+            transaction.onabort = () => {
+                console.error('Transaction aborted');
+                reject(new Error('Transaction aborted'));
+            };
+
+            const summaryData = {
+                data,
+                sections,
+                fullSummary,
+                score: parseInt(data.tl_standard_score),
+                severity: getSeverityLevel(parseInt(data.tl_standard_score)),
+                dateCreated: new Date()
+            };
+
+            const request = store.add(summaryData);
+            
+            request.onsuccess = () => {
+                // Transaction will complete automatically after this
+                console.log('Summary data added with ID:', request.result);
+            };
+            
+            request.onerror = () => {
+                console.error('Failed to add summary data:', request.error);
+                reject(new Error('Failed to add summary data'));
+            };
         });
     } catch (error) {
         console.error('Error storing summary:', error);
+        throw error;
     }
+}
+
+// Batch store multiple summaries - New optimized function using Nolan Lawson's techniques
+async function storeSummariesBatch(summariesData) {
+    if (!summariesData || summariesData.length === 0) return [];
+    
+    // Use batch processing for optimal performance (100-1000 items per batch)
+    const batchSize = Math.min(500, summariesData.length); // Mobile-optimized batch size
+    const results = [];
+    
+    for (let i = 0; i < summariesData.length; i += batchSize) {
+        const batch = summariesData.slice(i, i + batchSize);
+        const batchResults = await processSummaryBatch(batch);
+        results.push(...batchResults);
+    }
+    
+    return results;
+}
+
+// Process a single batch of summaries with optimized transaction handling
+async function processSummaryBatch(batch) {
+    return new Promise((resolve, reject) => {
+        const transaction = db.transaction(['samples'], 'readwrite');
+        const store = transaction.objectStore('samples');
+        const results = [];
+        let completed = 0;
+        
+        // Explicit transaction completion handling
+        transaction.oncomplete = () => {
+            console.log(`Batch of ${batch.length} summaries stored successfully`);
+            resolve(results);
+        };
+        
+        transaction.onerror = () => {
+            reject(new Error(`Batch transaction failed: ${transaction.error?.message}`));
+        };
+        
+        transaction.onabort = () => {
+            reject(new Error('Batch transaction aborted'));
+        };
+        
+        // Process all items in the batch
+        batch.forEach((summaryData, index) => {
+            const request = store.add({
+                ...summaryData,
+                dateCreated: new Date(),
+                batchId: Date.now() + index
+            });
+            
+            request.onsuccess = () => {
+                results[index] = request.result;
+                completed++;
+                
+                if (completed === batch.length) {
+                    // All requests completed, transaction will auto-commit
+                    console.log(`Processed ${completed}/${batch.length} items in batch`);
+                }
+            };
+            
+            request.onerror = () => {
+                console.error(`Failed to store summary ${index}:`, request.error);
+                // Continue with other items even if one fails
+                completed++;
+                results[index] = null;
+            };
+        });
+    });
 }
 
 
@@ -469,7 +567,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
             const button = document.getElementById('generateReport');
             if (button) {
-                button.onclick = handleReportGeneration;
+                button.addEventListener('pointerdown', (e) => {
+                    e.preventDefault();
+                    handleReportGeneration(e);
+                });
             }
         }).catch(error => {
             console.error('Error initializing summarizer:', error);

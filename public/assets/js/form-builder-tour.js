@@ -69,7 +69,10 @@ class FormBuilderTour {
     createOverlay() {
         this.overlay = document.createElement('div');
         this.overlay.className = 'tour-overlay';
-        this.overlay.addEventListener('click', () => this.endTour());
+        this.overlay.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            this.endTour();
+        });
     }
     
     createTooltip() {
@@ -94,12 +97,27 @@ class FormBuilderTour {
             </div>
         `;
         
-        // Add event listeners
-        this.tooltip.querySelector('.tour-close-btn').addEventListener('click', () => this.endTour());
-        this.tooltip.querySelector('.tour-skip-btn').addEventListener('click', () => this.endTour());
-        this.tooltip.querySelector('.tour-prev-btn').addEventListener('click', () => this.previousStep());
-        this.tooltip.querySelector('.tour-next-btn').addEventListener('click', () => this.nextStep());
-        this.tooltip.querySelector('.tour-finish-btn').addEventListener('click', () => this.endTour());
+        // Add event listeners using pointer events for unified touch/mouse/pen support
+        this.tooltip.querySelector('.tour-close-btn').addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            this.endTour();
+        });
+        this.tooltip.querySelector('.tour-skip-btn').addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            this.endTour();
+        });
+        this.tooltip.querySelector('.tour-prev-btn').addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            this.previousStep();
+        });
+        this.tooltip.querySelector('.tour-next-btn').addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            this.nextStep();
+        });
+        this.tooltip.querySelector('.tour-finish-btn').addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            this.endTour();
+        });
     }
     
     createHelpPanel() {
@@ -165,7 +183,10 @@ class FormBuilderTour {
             </div>
         `;
         
-        this.helpPanel.querySelector('.help-close-btn').addEventListener('click', () => this.hideHelp());
+        this.helpPanel.querySelector('.help-close-btn').addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            this.hideHelp();
+        });
         document.body.appendChild(this.helpPanel);
     }
     

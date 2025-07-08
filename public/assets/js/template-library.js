@@ -666,23 +666,26 @@ function initializeTemplateLibrary() {
 
     if (!templateLibraryBtn || !templateModal) return;
 
-    templateLibraryBtn.addEventListener('click', () => {
+    templateLibraryBtn.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
         templateModal.style.display = 'block';
         loadTemplates('healthcare');
     });
 
-    closeModalBtn?.addEventListener('click', () => {
+    closeModalBtn?.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
         templateModal.style.display = 'none';
     });
 
-    window.addEventListener('click', (event) => {
+    window.addEventListener('pointerdown', (event) => {
         if (event.target === templateModal) {
             templateModal.style.display = 'none';
         }
     });
 
     categoryBtns?.forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
             categoryBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             const category = btn.dataset.category;
@@ -732,7 +735,10 @@ function createTemplateCard(template) {
     `;
 
     const useBtn = card.querySelector('.use-template-btn');
-    useBtn.addEventListener('click', () => useTemplate(template));
+    useBtn.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        useTemplate(template);
+    });
 
     return card;
 }
@@ -781,8 +787,15 @@ function showNotification(message, type = 'info') {
     notification.className = `template-notification ${type}`;
     notification.innerHTML = `
         <span>${message}</span>
-        <button class="close-notification" onclick="this.parentElement.remove()">×</button>
+        <button class="close-notification" data-action="close-notification">×</button>
     `;
+    
+    // Add event listener for close button
+    const closeBtn = notification.querySelector('.close-notification');
+    closeBtn?.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        notification.remove();
+    });
     
     // Add to page
     document.body.appendChild(notification);

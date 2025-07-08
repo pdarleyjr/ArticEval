@@ -131,27 +131,27 @@ class IPLCFormBuilder {
                 <div class="builder-header">
                     <h2>${this.options.mode === 'edit' ? 'Edit Form' : 'Create New Form'}</h2>
                     <div class="builder-actions">
-                        <button class="btn btn-secondary btn-sm" onclick="formBuilder.undo()" title="Undo (Ctrl+Z)">
+                        <button class="btn btn-secondary btn-sm" data-action="undo" title="Undo (Ctrl+Z)">
                             <span class="icon">↶</span>
                         </button>
-                        <button class="btn btn-secondary btn-sm" onclick="formBuilder.redo()" title="Redo (Ctrl+Y)">
+                        <button class="btn btn-secondary btn-sm" data-action="redo" title="Redo (Ctrl+Y)">
                             <span class="icon">↷</span>
                         </button>
                         <span style="width: 1px; height: 24px; background: #ddd; margin: 0 0.5rem;"></span>
-                        <button class="btn btn-secondary" onclick="formBuilder.tour.startTour()" title="Start Tour (?)">
+                        <button class="btn btn-secondary" data-action="startTour" title="Start Tour (?)">
                             <span class="icon">🎓</span> Tour
                         </button>
-                        <button class="btn btn-secondary" onclick="formBuilder.tour.showHelp()" title="Help (F1)">
+                        <button class="btn btn-secondary" data-action="showHelp" title="Help (F1)">
                             <span class="icon">❓</span> Help
                         </button>
                         <span style="width: 1px; height: 24px; background: #ddd; margin: 0 0.5rem;"></span>
-                        <button class="btn btn-secondary" onclick="formBuilder.preview()">
+                        <button class="btn btn-secondary" data-action="preview">
                             <span class="icon">👁️</span> Preview
                         </button>
-                        <button class="btn btn-warning" onclick="formBuilder.toggleFormLock()" title="Lock/Unlock Form">
+                        <button class="btn btn-warning" data-action="toggleFormLock" title="Lock/Unlock Form">
                             <span class="icon" id="lockIcon">🔓</span> <span id="lockText">Lock Form</span>
                         </button>
-                        <button class="btn btn-primary" onclick="formBuilder.save()">
+                        <button class="btn btn-primary" data-action="save">
                             <span class="icon">💾</span> Save Form
                         </button>
                     </div>
@@ -193,7 +193,7 @@ class IPLCFormBuilder {
 
                         <div class="page-navigation">
                             <div class="page-tabs" id="pageTabs"></div>
-                            <button class="btn btn-sm btn-secondary" onclick="formBuilder.addPage()">
+                            <button class="btn btn-sm btn-secondary" data-action="addPage">
                                 <span class="icon">➕</span> Add Page
                             </button>
                         </div>
@@ -213,7 +213,7 @@ class IPLCFormBuilder {
 
                     <!-- Right Panel: Properties -->
                     <div class="builder-properties" id="builderProperties">
-                        <button class="properties-toggle" onclick="formBuilder.togglePropertiesPanel()" title="Toggle Properties Panel">
+                        <button class="properties-toggle" data-action="togglePropertiesPanel" title="Toggle Properties Panel">
                             <span id="toggleIcon">◀</span>
                         </button>
                         <h3>Element Properties</h3>
@@ -1093,11 +1093,20 @@ class IPLCFormBuilder {
     renderPageTabs() {
         const tabsContainer = document.getElementById('pageTabs');
         tabsContainer.innerHTML = this.formData.pages.map((page, index) => `
-            <div class="page-tab ${index === this.currentPageIndex ? 'active' : ''}" 
-                 onclick="formBuilder.switchPage(${index})">
+            <div class="page-tab ${index === this.currentPageIndex ? 'active' : ''}"
+                 data-page-index="${index}">
                 ${page.title || `Page ${index + 1}`}
             </div>
         `).join('');
+        
+        // Add pointer event handlers for page tabs
+        tabsContainer.querySelectorAll('.page-tab').forEach(tab => {
+            tab.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                const pageIndex = parseInt(tab.dataset.pageIndex);
+                this.switchPage(pageIndex);
+            });
+        });
     }
 
     renderFormElements() {
@@ -1150,8 +1159,7 @@ class IPLCFormBuilder {
         return `
             <div class="form-element ${this.selectedElement === index ? 'selected' : ''} ${isPanelType ? 'panel-element' : ''} ${isPreConfigured ? 'pre-configured' : ''}"
                  data-index="${index}"
-                 onclick="formBuilder.selectElement(${index})"
-                 ondblclick="formBuilder.editElement(${index}); event.stopPropagation();"
+                 data-action="selectElement"
                  title="${isPanelType ? 'Double-click to edit panel and its elements' : 'Double-click to edit'}">
                 <div class="element-header">
                     <div class="element-info">
@@ -1161,13 +1169,13 @@ class IPLCFormBuilder {
                         ${isPreConfigured ? '<span class="pre-configured-badge" style="font-size: 0.7em; background: #28a745; color: white; padding: 2px 6px; border-radius: 3px; margin-left: 0.5rem;">Pre-configured</span>' : ''}
                     </div>
                     <div class="element-actions">
-                        <button onclick="formBuilder.editElement(${index}); event.stopPropagation();" title="${isPanelType ? 'Edit Panel & Elements' : 'Edit'}" class="edit-btn ${isPanelType ? 'panel-edit' : ''}">
+                        <button data-action="editElement" data-index="${index}" title="${isPanelType ? 'Edit Panel & Elements' : 'Edit'}" class="edit-btn ${isPanelType ? 'panel-edit' : ''}">
                             ${isPanelType ? '⚙️' : '✏️'}
                         </button>
-                        <button onclick="formBuilder.moveElement(${index}, -1); event.stopPropagation();" title="Move Up">↑</button>
-                        <button onclick="formBuilder.moveElement(${index}, 1); event.stopPropagation();" title="Move Down">↓</button>
-                        <button onclick="formBuilder.duplicateElement(${index}); event.stopPropagation();" title="Duplicate">📋</button>
-                        <button onclick="formBuilder.deleteElement(${index}); event.stopPropagation();" title="Delete">🗑️</button>
+                        <button data-action="moveElement" data-index="${index}" data-direction="-1" title="Move Up">↑</button>
+                        <button data-action="moveElement" data-index="${index}" data-direction="1" title="Move Down">↓</button>
+                        <button data-action="duplicateElement" data-index="${index}" title="Duplicate">📋</button>
+                        <button data-action="deleteElement" data-index="${index}" title="Delete">🗑️</button>
                     </div>
                 </div>
                 ${hasSubElements ? this.renderPanelPreview(element) : ''}
@@ -1266,8 +1274,77 @@ class IPLCFormBuilder {
                 }
             }
         });
+
+        // Add event delegation for form elements
+        this.setupFormElementEventDelegation();
     }
-    // Setup touch gestures for mobile devices
+
+    // Setup event delegation for form elements using Pointer Events API
+    setupFormElementEventDelegation() {
+            const dropZone = document.getElementById('dropZone');
+            if (!dropZone) return;
+    
+            let lastPointerDownTime = 0;
+            let lastPointerDownTarget = null;
+            const DOUBLE_TAP_THRESHOLD = 300; // milliseconds
+    
+            // Handle pointer down events on form elements
+            dropZone.addEventListener('pointerdown', (e) => {
+                e.preventDefault(); // Prevent default touch behavior
+                
+                const formElement = e.target.closest('.form-element');
+                if (!formElement) return;
+                
+                const index = parseInt(formElement.dataset.index);
+                if (isNaN(index)) return;
+    
+                const currentTime = Date.now();
+                
+                // Check for double-tap/double-click
+                if (lastPointerDownTarget === formElement &&
+                    (currentTime - lastPointerDownTime) < DOUBLE_TAP_THRESHOLD) {
+                    // Double-tap/double-click detected
+                    this.editElement(index);
+                    e.stopPropagation();
+                    // Reset to prevent triple tap
+                    lastPointerDownTime = 0;
+                    lastPointerDownTarget = null;
+                } else {
+                    // Single tap/click
+                    this.selectElement(index);
+                    lastPointerDownTime = currentTime;
+                    lastPointerDownTarget = formElement;
+                }
+            });
+    
+            // Handle button clicks within form elements using event delegation
+            dropZone.addEventListener('pointerdown', (e) => {
+                const button = e.target.closest('button[data-action]');
+                if (!button) return;
+                
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const action = button.dataset.action;
+                const index = parseInt(button.dataset.index);
+                const direction = button.dataset.direction ? parseInt(button.dataset.direction) : null;
+                
+                switch (action) {
+                    case 'editElement':
+                        this.editElement(index);
+                        break;
+                    case 'moveElement':
+                        this.moveElement(index, direction);
+                        break;
+                    case 'duplicateElement':
+                        this.duplicateElement(index);
+                        break;
+                    case 'deleteElement':
+                        this.deleteElement(index);
+                        break;
+                }
+            });
+        }
     setupTouchGestures() {
         const propertiesPanel = document.getElementById('builderProperties');
         if (!propertiesPanel) return;
@@ -1303,14 +1380,26 @@ class IPLCFormBuilder {
     }
     
     setupDragAndDrop() {
-        console.log('FormBuilder: setupDragAndDrop() called');
+        console.log('FormBuilder: setupDragAndDrop() called - Using Pointer Events API');
         const draggables = document.querySelectorAll('.draggable-element');
         const dropZone = document.getElementById('dropZone');
         
         console.log('FormBuilder: Found', draggables.length, 'draggable elements');
         console.log('FormBuilder: Drop zone found:', !!dropZone);
 
-        // Clear any existing drag event listeners to prevent duplicates
+        // Initialize drag state
+        this.dragState = {
+            isDragging: false,
+            dragElement: null,
+            dragClone: null,
+            startX: 0,
+            startY: 0,
+            offsetX: 0,
+            offsetY: 0,
+            elementData: null
+        };
+
+        // Setup draggable elements with Pointer Events
         draggables.forEach((draggable, index) => {
             console.log(`FormBuilder: Setting up draggable element ${index}:`, draggable.dataset.type);
             
@@ -1318,59 +1407,204 @@ class IPLCFormBuilder {
             const newDraggable = draggable.cloneNode(true);
             draggable.parentNode.replaceChild(newDraggable, draggable);
             
-            newDraggable.addEventListener('dragstart', (e) => {
-                console.log('FormBuilder: Drag started for:', newDraggable.dataset.type);
-                e.dataTransfer.effectAllowed = 'copy';
-                e.dataTransfer.setData('elementType', newDraggable.dataset.type);
-                e.dataTransfer.setData('isCustom', newDraggable.dataset.custom || 'false');
-                e.dataTransfer.setData('category', newDraggable.dataset.category || '');
+            // Make element unselectable during drag
+            newDraggable.style.userSelect = 'none';
+            newDraggable.style.webkitUserSelect = 'none';
+            newDraggable.style.msUserSelect = 'none';
+            
+            // Add touch-action CSS to prevent scrolling during drag
+            newDraggable.style.touchAction = 'none';
+            
+            // Pointer down - start drag
+            newDraggable.addEventListener('pointerdown', (e) => {
+                if (this.formData.isFormLocked) return;
+                
+                console.log('FormBuilder: Pointer down on:', newDraggable.dataset.type);
+                
+                // Prevent default touch behaviors
+                e.preventDefault();
+                
+                // Store drag data
+                this.dragState.isDragging = true;
+                this.dragState.dragElement = newDraggable;
+                this.dragState.startX = e.clientX;
+                this.dragState.startY = e.clientY;
+                this.dragState.elementData = {
+                    elementType: newDraggable.dataset.type,
+                    isCustom: newDraggable.dataset.custom === 'true',
+                    category: newDraggable.dataset.category || ''
+                };
+                
+                // Create visual clone for dragging
+                const clone = newDraggable.cloneNode(true);
+                clone.style.position = 'fixed';
+                clone.style.pointerEvents = 'none';
+                clone.style.zIndex = '9999';
+                clone.style.opacity = '0.8';
+                clone.style.transform = 'scale(1.05)';
+                clone.style.transition = 'transform 0.2s';
+                clone.style.width = newDraggable.offsetWidth + 'px';
+                
+                // Position clone at pointer
+                const rect = newDraggable.getBoundingClientRect();
+                this.dragState.offsetX = e.clientX - rect.left;
+                this.dragState.offsetY = e.clientY - rect.top;
+                clone.style.left = (e.clientX - this.dragState.offsetX) + 'px';
+                clone.style.top = (e.clientY - this.dragState.offsetY) + 'px';
+                
+                document.body.appendChild(clone);
+                this.dragState.dragClone = clone;
+                
+                // Add dragging class to original element
                 newDraggable.classList.add('dragging');
+                
+                // Capture pointer for consistent tracking
+                newDraggable.setPointerCapture(e.pointerId);
             });
-
-            newDraggable.addEventListener('dragend', (e) => {
-                console.log('FormBuilder: Drag ended');
-                newDraggable.classList.remove('dragging');
+            
+            // Pointer move - handle drag
+            newDraggable.addEventListener('pointermove', (e) => {
+                if (!this.dragState.isDragging || !this.dragState.dragClone) return;
+                
+                // Prevent default to avoid scrolling on touch devices
+                e.preventDefault();
+                
+                // Update clone position
+                this.dragState.dragClone.style.left = (e.clientX - this.dragState.offsetX) + 'px';
+                this.dragState.dragClone.style.top = (e.clientY - this.dragState.offsetY) + 'px';
+                
+                // Check if over drop zone
+                const dropZone = document.getElementById('dropZone');
+                if (dropZone) {
+                    const dropRect = dropZone.getBoundingClientRect();
+                    const isOverDropZone = e.clientX >= dropRect.left &&
+                                          e.clientX <= dropRect.right &&
+                                          e.clientY >= dropRect.top &&
+                                          e.clientY <= dropRect.bottom;
+                    
+                    if (isOverDropZone) {
+                        dropZone.classList.add('drag-over');
+                    } else {
+                        dropZone.classList.remove('drag-over');
+                    }
+                }
+            });
+            
+            // Pointer up - end drag
+            newDraggable.addEventListener('pointerup', (e) => {
+                if (!this.dragState.isDragging) return;
+                
+                console.log('FormBuilder: Pointer up - ending drag');
+                
+                // Check if dropped on drop zone
+                const dropZone = document.getElementById('dropZone');
+                if (dropZone) {
+                    const dropRect = dropZone.getBoundingClientRect();
+                    const isOverDropZone = e.clientX >= dropRect.left &&
+                                          e.clientX <= dropRect.right &&
+                                          e.clientY >= dropRect.top &&
+                                          e.clientY <= dropRect.bottom;
+                    
+                    if (isOverDropZone && this.dragState.elementData) {
+                        console.log('FormBuilder: Dropped element:', this.dragState.elementData);
+                        this.addElement(
+                            this.dragState.elementData.elementType,
+                            this.dragState.elementData.isCustom,
+                            this.dragState.elementData.category
+                        );
+                    }
+                    
+                    dropZone.classList.remove('drag-over');
+                }
+                
+                // Clean up
+                if (this.dragState.dragClone) {
+                    this.dragState.dragClone.remove();
+                }
+                if (this.dragState.dragElement) {
+                    this.dragState.dragElement.classList.remove('dragging');
+                    this.dragState.dragElement.releasePointerCapture(e.pointerId);
+                }
+                
+                // Reset drag state
+                this.dragState = {
+                    isDragging: false,
+                    dragElement: null,
+                    dragClone: null,
+                    startX: 0,
+                    startY: 0,
+                    offsetX: 0,
+                    offsetY: 0,
+                    elementData: null
+                };
+            });
+            
+            // Pointer cancel - handle interruptions
+            newDraggable.addEventListener('pointercancel', (e) => {
+                if (!this.dragState.isDragging) return;
+                
+                console.log('FormBuilder: Pointer cancelled');
+                
+                // Clean up on cancel
+                if (this.dragState.dragClone) {
+                    this.dragState.dragClone.remove();
+                }
+                if (this.dragState.dragElement) {
+                    this.dragState.dragElement.classList.remove('dragging');
+                }
+                
+                const dropZone = document.getElementById('dropZone');
+                if (dropZone) {
+                    dropZone.classList.remove('drag-over');
+                }
+                
+                // Reset drag state
+                this.dragState = {
+                    isDragging: false,
+                    dragElement: null,
+                    dragClone: null,
+                    startX: 0,
+                    startY: 0,
+                    offsetX: 0,
+                    offsetY: 0,
+                    elementData: null
+                };
             });
         });
 
-        if (dropZone) {
-            console.log('FormBuilder: Setting up drop zone event listeners');
-            
-            // Clone and replace drop zone to remove existing listeners
-            const newDropZone = dropZone.cloneNode(true);
-            dropZone.parentNode.replaceChild(newDropZone, dropZone);
-            
-            newDropZone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = 'copy';
-                newDropZone.classList.add('drag-over');
-            });
-
-            newDropZone.addEventListener('dragleave', (e) => {
-                // Only remove the class if we're leaving the drop zone entirely
-                if (e.target === newDropZone) {
-                    newDropZone.classList.remove('drag-over');
+        // Add visual feedback styles if not already present
+        if (!document.getElementById('pointer-drag-styles')) {
+            const styles = document.createElement('style');
+            styles.id = 'pointer-drag-styles';
+            styles.textContent = `
+                .draggable-element {
+                    cursor: grab;
+                    -webkit-touch-callout: none;
+                    -webkit-tap-highlight-color: transparent;
                 }
-            });
-
-            newDropZone.addEventListener('drop', (e) => {
-                console.log('FormBuilder: Drop event triggered');
-                e.preventDefault();
-                e.stopPropagation();
-                newDropZone.classList.remove('drag-over');
                 
-                const elementType = e.dataTransfer.getData('elementType');
-                const isCustom = e.dataTransfer.getData('isCustom') === 'true';
-                const category = e.dataTransfer.getData('category');
-                
-                console.log('FormBuilder: Dropped element type:', elementType, 'isCustom:', isCustom, 'category:', category);
-                
-                if (elementType) {
-                    this.addElement(elementType, isCustom, category);
+                .draggable-element:active {
+                    cursor: grabbing;
                 }
-            });
-        } else {
-            console.error('FormBuilder: Drop zone element not found!');
+                
+                .draggable-element.dragging {
+                    opacity: 0.5;
+                    cursor: grabbing;
+                }
+                
+                @media (hover: none) and (pointer: coarse) {
+                    /* Touch device styles */
+                    .draggable-element {
+                        cursor: pointer;
+                        -webkit-user-drag: none;
+                        -khtml-user-drag: none;
+                        -moz-user-drag: none;
+                        -o-user-drag: none;
+                        user-drag: none;
+                    }
+                }
+            `;
+            document.head.appendChild(styles);
         }
     }
 
@@ -3194,7 +3428,7 @@ class IPLCFormBuilder {
                     {
                         type: 'html',
                         name: 'generate_button',
-                        html: '<div style="text-align: center; margin: 20px 0;"><button type="button" class="btn btn-primary" onclick="generateAIGoals()">🎯 Generate Goals</button></div>'
+                        html: '<div style="text-align: center; margin: 20px 0;"><button type="button" class="btn btn-primary" data-action="generateAIGoals">🎯 Generate Goals</button></div>'
                     },
                     {
                         type: 'panel',
@@ -3312,7 +3546,7 @@ class IPLCFormBuilder {
                     {
                         type: 'html',
                         name: 'generate_recommendations_button',
-                        html: '<div style="text-align: center; margin: 20px 0;"><button type="button" class="btn btn-primary" onclick="generateAIRecommendations()">💡 Generate Recommendations</button></div>'
+                        html: '<div style="text-align: center; margin: 20px 0;"><button type="button" class="btn btn-primary" data-action="generateAIRecommendations">💡 Generate Recommendations</button></div>'
                     },
                     {
                         type: 'panel',
@@ -3486,7 +3720,7 @@ class IPLCFormBuilder {
         propertiesHTML += `
             <div class="property-group">
                 <h4 style="margin-bottom: 0.5rem;">Conditional Logic</h4>
-                <button class="btn btn-sm btn-secondary conditional-logic-btn" onclick="formBuilder.showConditionalLogicEditor()">
+                <button class="btn btn-sm btn-secondary conditional-logic-btn" data-action="showConditionalLogicEditor">
                     <span class="icon">⚙️</span> Configure Conditions
                 </button>
                 ${element.visibleIf ? `<div class="current-condition-preview">Current: <code>${element.visibleIf}</code></div>` : ''}
@@ -3505,10 +3739,10 @@ class IPLCFormBuilder {
                         <div class="choice-item">
                             <input type="text" class="property-input" value="${this.escapeHtml(choice)}"
                                    onchange="formBuilder.updateChoice(${i}, this.value)">
-                            <button onclick="formBuilder.removeChoice(${i})" class="remove-btn">×</button>
+                            <button data-action="removeChoice" data-index="${i}" class="remove-btn">×</button>
                         </div>
                     `).join('')}
-                    <button class="btn btn-sm add-choice" onclick="formBuilder.addChoice()">
+                    <button class="btn btn-sm add-choice" data-action="addChoice">
                         <span class="icon">➕</span> Add Choice
                     </button>
                 </div>
@@ -3537,15 +3771,15 @@ class IPLCFormBuilder {
                                 <span class="element-type-badge">${el.type}</span>
                                 <span class="element-name">${el.title || el.name || 'Untitled'}</span>
                                 <div class="element-actions">
-                                    <button onclick="formBuilder.editPanelElement(${i})" class="edit-btn" title="Edit">✏️</button>
-                                    <button onclick="formBuilder.movePanelElement(${i}, -1)" class="move-btn" title="Move Up">↑</button>
-                                    <button onclick="formBuilder.movePanelElement(${i}, 1)" class="move-btn" title="Move Down">↓</button>
-                                    <button onclick="formBuilder.removePanelElement(${i})" class="remove-btn" title="Remove">🗑️</button>
+                                    <button data-action="editPanelElement" data-index="${i}" class="edit-btn" title="Edit">✏️</button>
+                                    <button data-action="movePanelElement" data-index="${i}" data-direction="-1" class="move-btn" title="Move Up">↑</button>
+                                    <button data-action="movePanelElement" data-index="${i}" data-direction="1" class="move-btn" title="Move Down">↓</button>
+                                    <button data-action="removePanelElement" data-index="${i}" class="remove-btn" title="Remove">🗑️</button>
                                 </div>
                             </div>
                         </div>
                     `).join('')}
-                    <button class="btn btn-sm add-panel-element" onclick="formBuilder.addPanelElement()">
+                    <button class="btn btn-sm add-panel-element" data-action="addPanelElement">
                         <span class="icon">➕</span> Add Element to Panel
                     </button>
                 </div>
@@ -3565,10 +3799,10 @@ class IPLCFormBuilder {
                         <div class="matrix-item">
                             <input type="text" class="property-input" value="${this.escapeHtml(col)}"
                                    onchange="formBuilder.updateMatrixColumn(${i}, this.value)">
-                            <button onclick="formBuilder.removeMatrixColumn(${i})" class="remove-btn">×</button>
+                            <button data-action="removeMatrixColumn" data-index="${i}" class="remove-btn">×</button>
                         </div>
                     `).join('')}
-                    <button class="btn btn-sm" onclick="formBuilder.addMatrixColumn()">
+                    <button class="btn btn-sm" data-action="addMatrixColumn">
                         <span class="icon">➕</span> Add Column
                     </button>
                 </div>
@@ -3579,10 +3813,10 @@ class IPLCFormBuilder {
                         <div class="matrix-item">
                             <input type="text" class="property-input" value="${this.escapeHtml(row)}"
                                    onchange="formBuilder.updateMatrixRow(${i}, this.value)">
-                            <button onclick="formBuilder.removeMatrixRow(${i})" class="remove-btn">×</button>
+                            <button data-action="removeMatrixRow" data-index="${i}" class="remove-btn">×</button>
                         </div>
                     `).join('')}
-                    <button class="btn btn-sm" onclick="formBuilder.addMatrixRow()">
+                    <button class="btn btn-sm" data-action="addMatrixRow">
                         <span class="icon">➕</span> Add Row
                     </button>
                 </div>
@@ -3633,10 +3867,10 @@ class IPLCFormBuilder {
                                 <option value="radiogroup" ${col.cellType === 'radiogroup' ? 'selected' : ''}>Radio</option>
                                 <option value="boolean" ${col.cellType === 'boolean' ? 'selected' : ''}>Yes/No</option>
                             </select>
-                            <button onclick="formBuilder.removeMatrixDynamicColumn(${i})" class="remove-btn">×</button>
+                            <button data-action="removeMatrixDynamicColumn" data-index="${i}" class="remove-btn">×</button>
                         </div>
                     `).join('')}
-                    <button class="btn btn-sm" onclick="formBuilder.addMatrixDynamicColumn()">
+                    <button class="btn btn-sm" data-action="addMatrixDynamicColumn">
                         <span class="icon">➕</span> Add Column
                     </button>
                 </div>
@@ -3676,15 +3910,15 @@ class IPLCFormBuilder {
                                 <span class="element-type-badge">${el.type}</span>
                                 <span class="element-name">${el.title || el.name || 'Untitled'}</span>
                                 <div class="element-actions">
-                                    <button onclick="formBuilder.editPanelDynamicElement(${i})" class="edit-btn" title="Edit">✏️</button>
-                                    <button onclick="formBuilder.movePanelDynamicElement(${i}, -1)" class="move-btn" title="Move Up">↑</button>
-                                    <button onclick="formBuilder.movePanelDynamicElement(${i}, 1)" class="move-btn" title="Move Down">↓</button>
-                                    <button onclick="formBuilder.removePanelDynamicElement(${i})" class="remove-btn" title="Remove">🗑️</button>
+                                    <button data-action="editPanelDynamicElement" data-index="${i}" class="edit-btn" title="Edit">✏️</button>
+                                    <button data-action="movePanelDynamicElement" data-index="${i}" data-direction="-1" class="move-btn" title="Move Up">↑</button>
+                                    <button data-action="movePanelDynamicElement" data-index="${i}" data-direction="1" class="move-btn" title="Move Down">↓</button>
+                                    <button data-action="removePanelDynamicElement" data-index="${i}" class="remove-btn" title="Remove">🗑️</button>
                                 </div>
                             </div>
                         </div>
                     `).join('')}
-                    <button class="btn btn-sm" onclick="formBuilder.addPanelDynamicElement()">
+                    <button class="btn btn-sm" data-action="addPanelDynamicElement">
                         <span class="icon">➕</span> Add Template Element
                     </button>
                 </div>
@@ -3920,7 +4154,7 @@ class IPLCFormBuilder {
             <div class="conditional-logic-content">
                 <div class="conditional-logic-header">
                     <h3>Conditional Logic for: ${element.title || element.name}</h3>
-                    <button class="close-button" onclick="this.closest('.conditional-logic-modal').remove()">×</button>
+                    <button class="close-button" data-action="closeModal">×</button>
                 </div>
                 <div class="conditional-logic-body">
                     <div class="enable-conditional">
@@ -3964,10 +4198,10 @@ class IPLCFormBuilder {
                     </div>
                 </div>
                 <div class="conditional-logic-footer">
-                    <button class="btn btn-secondary" onclick="this.closest('.conditional-logic-modal').remove()">
+                    <button class="btn btn-secondary" data-action="closeModal">
                         Cancel
                     </button>
-                    <button class="btn btn-primary" onclick="formBuilder.saveConditionalLogic()">
+                    <button class="btn btn-primary" data-action="saveConditionalLogic">
                         Save Condition
                     </button>
                 </div>
@@ -4622,12 +4856,19 @@ class IPLCFormBuilder {
             backdrop.remove();
         };
 
-        // Event handlers
-        dialog.querySelector('.btn-close').addEventListener('click', closeModal);
-        dialog.querySelector('#cancelPanelEdit').addEventListener('click', closeModal);
+        // Event handlers - Using Pointer Events API for unified touch/mouse/pen input
+        dialog.querySelector('.btn-close').addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            closeModal();
+        });
+        dialog.querySelector('#cancelPanelEdit').addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            closeModal();
+        });
 
         // Save changes handler
-        dialog.querySelector('#savePanelChanges').addEventListener('click', () => {
+        dialog.querySelector('#savePanelChanges').addEventListener('pointerdown', (e) => {
+            e.preventDefault();
             // Save to history
             this.saveToHistory();
             
@@ -4648,9 +4889,10 @@ class IPLCFormBuilder {
             closeModal();
         });
 
-        // Edit sub-element handlers
+        // Edit sub-element handlers - Using Pointer Events API
         dialog.querySelectorAll('.edit-sub-element').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+            btn.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
                 const subIndex = parseInt(e.target.dataset.index);
                 const subElement = panel.elements[subIndex];
                 
@@ -4683,9 +4925,10 @@ class IPLCFormBuilder {
             });
         });
 
-        // Remove sub-element handlers
+        // Remove sub-element handlers - Using Pointer Events API
         dialog.querySelectorAll('.remove-sub-element').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+            btn.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
                 const subIndex = parseInt(e.target.dataset.index);
                 if (confirm('Are you sure you want to remove this element?')) {
                     panel.elements.splice(subIndex, 1);
@@ -4713,8 +4956,9 @@ class IPLCFormBuilder {
             });
         });
 
-        // Add new element handler
-        dialog.querySelector('#addSubElement').addEventListener('click', () => {
+        // Add new element handler - Using Pointer Events API
+        dialog.querySelector('#addSubElement').addEventListener('pointerdown', (e) => {
+            e.preventDefault();
             this.createElementTypeDialog((type) => {
                 const newElement = this.createDefaultElement(type);
                 panel.elements.push(newElement);
@@ -4815,13 +5059,18 @@ class IPLCFormBuilder {
             backdrop.remove();
         };
 
-        dialog.querySelector('.btn-close').addEventListener('click', closeModal);
-        backdrop.addEventListener('click', (e) => {
+        dialog.querySelector('.btn-close').addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            closeModal();
+        });
+        backdrop.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
             if (e.target === backdrop) closeModal();
         });
 
         dialog.querySelectorAll('.element-type-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
+            btn.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
                 const type = btn.dataset.type;
                 closeModal();
                 if (callback) callback(type);
@@ -4956,12 +5205,19 @@ class IPLCFormBuilder {
             backdrop.remove();
         };
 
-        dialog.querySelector('.btn-close').addEventListener('click', closeModal);
-        dialog.querySelector('#cancelElementEdit').addEventListener('click', closeModal);
+        dialog.querySelector('.btn-close').addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            closeModal();
+        });
+        dialog.querySelector('#cancelElementEdit').addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            closeModal();
+        });
 
-        // Add choice management handlers if applicable
+        // Add choice management handlers if applicable - Using Pointer Events API
         if (type === 'radiogroup' || type === 'dropdown' || type === 'checkbox') {
-            dialog.querySelector('#addChoice')?.addEventListener('click', () => {
+            dialog.querySelector('#addChoice')?.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
                 const choicesList = dialog.querySelector('#choicesList');
                 const newChoice = document.createElement('div');
                 newChoice.className = 'choice-item mb-2';
@@ -4973,19 +5229,22 @@ class IPLCFormBuilder {
                 `;
                 choicesList.appendChild(newChoice);
                 
-                newChoice.querySelector('.remove-choice').addEventListener('click', () => {
+                newChoice.querySelector('.remove-choice').addEventListener('pointerdown', (e) => {
+                    e.preventDefault();
                     newChoice.remove();
                 });
             });
 
             dialog.querySelectorAll('.remove-choice').forEach(btn => {
-                btn.addEventListener('click', () => {
+                btn.addEventListener('pointerdown', (e) => {
+                    e.preventDefault();
                     btn.parentElement.remove();
                 });
             });
         }
 
-        dialog.querySelector('#saveElementChanges').addEventListener('click', () => {
+        dialog.querySelector('#saveElementChanges').addEventListener('pointerdown', (e) => {
+            e.preventDefault();
             const updatedElement = { ...element };
             
             updatedElement.name = dialog.querySelector('#elementName').value;
@@ -5022,7 +5281,8 @@ class IPLCFormBuilder {
     attachPanelElementHandlers(dialog, panel) {
         // Edit sub-element handlers
         dialog.querySelectorAll('.edit-sub-element').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+            btn.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
                 const subIndex = parseInt(e.target.dataset.index);
                 const subElement = panel.elements[subIndex];
                 
@@ -5057,7 +5317,8 @@ class IPLCFormBuilder {
 
         // Remove sub-element handlers
         dialog.querySelectorAll('.remove-sub-element').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+            btn.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
                 const subIndex = parseInt(e.target.dataset.index);
                 if (confirm('Are you sure you want to remove this element?')) {
                     panel.elements.splice(subIndex, 1);
@@ -5185,7 +5446,7 @@ class IPLCFormBuilder {
             <div class="preview-content">
                 <div class="preview-header">
                     <h3>Form Preview</h3>
-                    <button class="close-preview" onclick="this.closest('.preview-modal').remove()">×</button>
+                    <button class="close-preview" data-action="closeModal">×</button>
                 </div>
                 <div class="preview-body">
                     <div id="surveyPreview"></div>
@@ -5826,9 +6087,9 @@ class IPLCFormBuilder {
 
     // Update undo/redo button states
     updateUndoRedoButtons() {
-        const undoBtn = document.querySelector('[onclick="formBuilder.undo()"]');
-        const redoBtn = document.querySelector('[onclick="formBuilder.redo()"]');
-        
+        const undoBtn = document.querySelector('[data-action="undo"]');
+        const redoBtn = document.querySelector('[data-action="redo"]');
+
         if (undoBtn) {
             undoBtn.disabled = this.historyIndex <= 0;
             undoBtn.style.opacity = this.historyIndex <= 0 ? '0.5' : '1';
@@ -6191,21 +6452,29 @@ class IPLCFormBuilder {
             }, 300);
         };
 
-        // Handle close button click
-        dialog.querySelector('.btn-close').addEventListener('click', closeModal);
+        // Handle close button click - Using Pointer Events API
+        dialog.querySelector('.btn-close').addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            closeModal();
+        });
 
         // Handle cancel button click
-        dialog.querySelector('.btn-secondary').addEventListener('click', closeModal);
+        dialog.querySelector('.btn-secondary').addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            closeModal();
+        });
 
         // Handle backdrop click
-        backdrop.addEventListener('click', (e) => {
+        backdrop.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
             if (e.target === backdrop) {
                 closeModal();
             }
         });
 
         // Handle confirm button click
-        dialog.querySelector('#confirmElementType').addEventListener('click', () => {
+        dialog.querySelector('#confirmElementType').addEventListener('pointerdown', (e) => {
+            e.preventDefault();
             const type = dialog.querySelector('#elementTypeSelect').value;
             closeModal();
             // Call the callback after modal is closed
@@ -6327,21 +6596,29 @@ class IPLCFormBuilder {
             }, 300);
         };
 
-        // Handle close button click
-        dialog.querySelector('.btn-close').addEventListener('click', closeModal);
+        // Handle close button click - Using Pointer Events API
+        dialog.querySelector('.btn-close').addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            closeModal();
+        });
 
         // Handle cancel button click
-        dialog.querySelector('.btn-secondary').addEventListener('click', closeModal);
+        dialog.querySelector('.btn-secondary').addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            closeModal();
+        });
 
         // Handle backdrop click
-        backdrop.addEventListener('click', (e) => {
+        backdrop.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
             if (e.target === backdrop) {
                 closeModal();
             }
         });
 
         // Handle save button click
-        dialog.querySelector('#saveElementChanges').addEventListener('click', () => {
+        dialog.querySelector('#saveElementChanges').addEventListener('pointerdown', (e) => {
+            e.preventDefault();
             const updatedElement = {
                 ...element,
                 name: dialog.querySelector('#elementName').value,

@@ -2,6 +2,24 @@
 import { dbManager } from './db-utils.js';
 import { templateEngine } from './template-engine.js';
 
+// Mobile-optimized getAllEvaluations helper using Nolan Lawson's techniques
+async function getAllEvaluationsOptimized() {
+    try {
+        // Use mobile-optimized batch size (500 items) for memory constraints
+        const evaluations = await dbManager.getAllEvaluations({
+            limit: 500,
+            keysOnly: false
+        });
+        
+        console.log(`Loaded ${evaluations.length} evaluations using optimized pagination`);
+        return evaluations;
+    } catch (error) {
+        console.warn('Optimized evaluation loading failed, falling back to basic method:', error);
+        // Fallback to basic method if pagination fails
+        return await dbManager.getAllEvaluations();
+    }
+}
+
 export async function generateSummary(formData, useAI = true) {
     try {
         // Try AI-powered summary generation first
@@ -24,9 +42,9 @@ export async function generateSummary(formData, useAI = true) {
             // Try to find similar cases first for better relevance
             sampleEvaluations = await dbManager.findSimilarCases(formData, 10);
             
-            // If not enough similar cases, get all evaluations
+            // If not enough similar cases, get evaluations with mobile-optimized pagination
             if (sampleEvaluations.length < 3) {
-                sampleEvaluations = await dbManager.getAllEvaluations();
+                sampleEvaluations = await getAllEvaluationsOptimized();
             }
             
             console.log(`Found ${sampleEvaluations.length} sample evaluations for comparison`);

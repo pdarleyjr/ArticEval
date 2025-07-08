@@ -303,7 +303,8 @@ class PreviewPage {
     
     <script>
         // PDF generation functionality
-        document.getElementById('generatePDF').addEventListener('click', function() {
+        document.getElementById('generatePDF').addEventListener('pointerdown', function(e) {
+            e.preventDefault();
             // Show loading state
             this.disabled = true;
             this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Generating PDF...';
@@ -536,10 +537,11 @@ class PreviewPage {
                     this.textContent = 'Generate PDF';
                 });
         });
-        
         // Close preview button
-        document.getElementById('closePreview').addEventListener('click', function() {
+        document.getElementById('closePreview').addEventListener('pointerdown', function(e) {
+            e.preventDefault();
             window.close();
+        });
         });
     </script>
 </body>
@@ -584,7 +586,8 @@ class PreviewPage {
                     removeButton.type = 'button';
                     
                     // Add event listener to remove button
-                    removeButton.addEventListener('click', function() {
+                    removeButton.addEventListener('pointerdown', function(e) {
+                        e.preventDefault();
                         if (confirm('Are you sure you want to remove this section? This cannot be undone.')) {
                             section.classList.add('section-removed');
                             section.style.display = 'none';

@@ -255,10 +255,10 @@
             `;
             
             // Attach event listeners
-            el.querySelector('[data-action="select-fields"]')?.addEventListener('click', showFieldSelectionModal);
-            el.querySelector('[data-action="generate"]')?.addEventListener('click', generateSummary);
-            el.querySelector('[data-action="retry"]')?.addEventListener('click', generateSummary);
-            el.querySelector('.ai-summary-header')?.addEventListener('click', toggleCollapse);
+            el.querySelector('[data-action="select-fields"]')?.addEventListener('pointerdown', (e) => { e.preventDefault(); showFieldSelectionModal(); });
+            el.querySelector('[data-action="generate"]')?.addEventListener('pointerdown', (e) => { e.preventDefault(); generateSummary(); });
+            el.querySelector('[data-action="retry"]')?.addEventListener('pointerdown', (e) => { e.preventDefault(); generateSummary(); });
+            el.querySelector('.ai-summary-header')?.addEventListener('pointerdown', (e) => { e.preventDefault(); toggleCollapse(); });
             
             // Initial UI update
             updateUI();

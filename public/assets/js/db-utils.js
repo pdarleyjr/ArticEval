@@ -357,64 +357,149 @@ class EvaluationDatabase {
         }
     }
 
-    // Get all evaluations with filtering options
+    // Get all evaluations with filtering options - Optimized with Nolan Lawson's techniques
     async getAllEvaluations(options = {}) {
         await this.init();
         
         try {
-            // Use Dexie if available
+            const {
+                fromDate,
+                toDate,
+                limit = 1000, // Default batch size for pagination
+                offset = 0,
+                keysOnly = false // New option for getAllKeys() optimization
+            } = options;
+            
+            // Use Dexie if available - Apply pagination optimization
             if (this.db instanceof Dexie) {
                 let collection = this.db.evaluations.toCollection();
                 
-                // Apply filters
-                if (options.fromDate) {
-                    collection = collection.filter(record => 
-                        new Date(record.dateCreated) >= new Date(options.fromDate)
-                    );
+                // Apply filters with optimized approach
+                if (fromDate || toDate) {
+                    // Use index-based filtering for better performance
+                    if (fromDate && toDate) {
+                        collection = collection.where('dateCreated')
+                            .between(new Date(fromDate), new Date(toDate), true, true);
+                    } else if (fromDate) {
+                        collection = collection.where('dateCreated').aboveOrEqual(new Date(fromDate));
+                    } else if (toDate) {
+                        collection = collection.where('dateCreated').belowOrEqual(new Date(toDate));
+                    }
                 }
                 
-                if (options.toDate) {
-                    collection = collection.filter(record => 
-                        new Date(record.dateCreated) <= new Date(options.toDate)
-                    );
+                // Apply pagination for large datasets (Nolan Lawson technique)
+                if (offset > 0) {
+                    collection = collection.offset(offset);
+                }
+                if (limit && limit < 1000) {
+                    collection = collection.limit(limit);
+                }
+                
+                // Use keys-only optimization when appropriate
+                if (keysOnly) {
+                    return await collection.primaryKeys();
                 }
                 
                 return await collection.toArray();
             }
             
-            // Fallback to native IndexedDB
+            // Fallback to native IndexedDB with Nolan Lawson's getAll() optimization
             return new Promise((resolve, reject) => {
                 const transaction = this.db.transaction(['evaluations'], 'readonly');
                 const store = transaction.objectStore('evaluations');
-                const request = store.getAll();
                 
-                request.onsuccess = () => {
-                    let records = request.result;
-                    
-                    // Apply filters
-                    if (options.fromDate) {
-                        records = records.filter(record => 
-                            new Date(record.dateCreated) >= new Date(options.fromDate)
-                        );
-                    }
-                    
-                    if (options.toDate) {
-                        records = records.filter(record => 
-                            new Date(record.dateCreated) <= new Date(options.toDate)
-                        );
-                    }
-                    
-                    resolve(records);
-                };
+                // Use getAllKeys() for keys-only operations (40-50% faster)
+                if (keysOnly) {
+                    const keysRequest = store.getAllKeys();
+                    keysRequest.onsuccess = () => {
+                        let keys = keysRequest.result;
+                        
+                        // Apply pagination to keys
+                        if (offset > 0 || limit < keys.length) {
+                            const end = offset + limit;
+                            keys = keys.slice(offset, end);
+                        }
+                        
+                        resolve(keys);
+                    };
+                    keysRequest.onerror = () => {
+                        reject(new Error('Failed to retrieve evaluation keys'));
+                    };
+                    return;
+                }
                 
-                request.onerror = () => {
-                    reject(new Error('Failed to retrieve evaluations'));
-                };
+                // Use optimized getAll() with pagination for bulk operations
+                if (fromDate || toDate || offset > 0 || limit < 1000) {
+                    // Use cursor with pagination for filtered/limited results
+                    this._getEvaluationsWithCursor(store, { fromDate, toDate, limit, offset })
+                        .then(resolve)
+                        .catch(reject);
+                } else {
+                    // Use direct getAll() for simple bulk operations (Nolan Lawson technique)
+                    const request = store.getAll();
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(new Error('Failed to retrieve evaluations'));
+                }
             });
         } catch (error) {
             console.error('Error retrieving evaluations:', error);
             throw error;
         }
+    }
+
+    // Helper method for paginated cursor operations (Nolan Lawson technique)
+    async _getEvaluationsWithCursor(store, options) {
+        const { fromDate, toDate, limit = 1000, offset = 0 } = options;
+        
+        return new Promise((resolve, reject) => {
+            const results = [];
+            let currentOffset = 0;
+            let range = null;
+            
+            // Create range for date filtering if needed
+            if (fromDate && toDate) {
+                range = IDBKeyRange.bound(new Date(fromDate), new Date(toDate));
+            } else if (fromDate) {
+                range = IDBKeyRange.lowerBound(new Date(fromDate));
+            } else if (toDate) {
+                range = IDBKeyRange.upperBound(new Date(toDate));
+            }
+            
+            // Use date index if filtering by date, otherwise use primary key
+            const index = (fromDate || toDate) ? store.index('dateCreated') : store;
+            const request = index.openCursor(range);
+            
+            request.onsuccess = (event) => {
+                const cursor = event.target.result;
+                
+                if (cursor) {
+                    // Skip records until we reach the offset
+                    if (currentOffset < offset) {
+                        currentOffset++;
+                        cursor.continue();
+                        return;
+                    }
+                    
+                    // Add record to results
+                    results.push(cursor.value);
+                    
+                    // Check if we've reached the limit
+                    if (results.length >= limit) {
+                        resolve(results);
+                        return;
+                    }
+                    
+                    cursor.continue();
+                } else {
+                    // No more records
+                    resolve(results);
+                }
+            };
+            
+            request.onerror = () => {
+                reject(new Error('Failed to retrieve evaluations with cursor'));
+            };
+        });
     }
 
     // Find similar cases based on age and concerns
