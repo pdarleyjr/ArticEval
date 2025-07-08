@@ -649,9 +649,6 @@
             <div id="autoSaveIndicator" style="display: none; color: #28a745; font-size: 0.875rem; margin-right: 1rem; align-self: center;">
                 ✓ Draft saved
             </div>
-            <button class="btn btn-secondary" onclick="previewForm()">
-                Preview
-            </button>
             <button class="btn btn-primary" onclick="saveForm()">
                 Save Template
             </button>
@@ -735,62 +732,6 @@
             }
         }
         
-        // Preview form
-        function previewForm() {
-            if (!formBuilder) return;
-            
-            const formJson = formBuilder.getFormDataWithLogo();
-            const modal = document.getElementById('preview-modal');
-            const surveyContainer = document.getElementById('preview-survey');
-            
-            // Show modal
-            modal.classList.add('active');
-            
-            // Create survey preview
-            const survey = new Survey.Model(formJson);
-            
-            // Keep survey interactive - DO NOT set to display mode
-            survey.showNavigationButtons = true;
-            survey.showProgressBar = "top";
-            survey.showCompletedPage = false;
-            
-            // Remove any design-time elements after render
-            survey.onAfterRenderPage.add((sender, options) => {
-                // Clean up any design/edit controls that shouldn't be in preview
-                const designElements = options.htmlElement.querySelectorAll(
-                    '.sv-action-bar, .sv-designer-button, .sd-element__add-button, ' +
-                    '.sd-page__add-button, .sv-action-bar-item, .sv-add-new-page-btn, ' +
-                    '[class*="designer"], [class*="add-new"], [class*="add-button"]'
-                );
-                designElements.forEach(el => el.remove());
-            });
-            
-            survey.render(surveyContainer);
-            
-            // Additional cleanup after render
-            setTimeout(() => {
-                // Remove any remaining "Add" buttons or editing controls
-                const editControls = surveyContainer.querySelectorAll(
-                    'button, [role="button"]'
-                );
-                editControls.forEach(el => {
-                    const text = el.textContent || el.innerText || '';
-                    if (text.toLowerCase().includes('add') ||
-                        el.classList.toString().toLowerCase().includes('add')) {
-                        el.remove();
-                    }
-                });
-            }, 100);
-        }
-        
-        // Close preview
-        function closePreview() {
-            const modal = document.getElementById('preview-modal');
-            modal.classList.remove('active');
-            
-            // Clear preview
-            document.getElementById('preview-survey').innerHTML = '';
-        }
         
         // Save form
         async function saveForm() {

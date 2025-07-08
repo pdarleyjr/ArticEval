@@ -55,6 +55,7 @@ class IPLCFormBuilder {
         console.log('FormBuilder: init() called');
         this.checkForEditMode();
         this.initializeBuilder();
+        this.loadQuickTemplates();
     }
     
     // Reusable builder initialization method - can be called to reset builder state
@@ -131,27 +132,30 @@ class IPLCFormBuilder {
                 <div class="builder-header">
                     <h2>${this.options.mode === 'edit' ? 'Edit Form' : 'Create New Form'}</h2>
                     <div class="builder-actions">
-                        <button class="btn btn-secondary btn-sm" data-action="undo" title="Undo (Ctrl+Z)">
+                        <button class="btn btn-secondary btn-sm touch-target" data-action="undo" title="Undo (Ctrl+Z)">
                             <span class="icon">↶</span>
                         </button>
-                        <button class="btn btn-secondary btn-sm" data-action="redo" title="Redo (Ctrl+Y)">
+                        <button class="btn btn-secondary btn-sm touch-target" data-action="redo" title="Redo (Ctrl+Y)">
                             <span class="icon">↷</span>
                         </button>
                         <span style="width: 1px; height: 24px; background: #ddd; margin: 0 0.5rem;"></span>
-                        <button class="btn btn-secondary" data-action="startTour" title="Start Tour (?)">
+                        <button class="btn btn-secondary touch-target" data-action="startTour" title="Start Tour (?)">
                             <span class="icon">🎓</span> Tour
                         </button>
-                        <button class="btn btn-secondary" data-action="showHelp" title="Help (F1)">
+                        <button class="btn btn-secondary touch-target" data-action="showHelp" title="Help (F1)">
                             <span class="icon">❓</span> Help
                         </button>
                         <span style="width: 1px; height: 24px; background: #ddd; margin: 0 0.5rem;"></span>
-                        <button class="btn btn-secondary" data-action="preview">
+                        <button class="btn btn-secondary touch-target" data-action="preview">
                             <span class="icon">👁️</span> Preview
                         </button>
-                        <button class="btn btn-warning" data-action="toggleFormLock" title="Lock/Unlock Form">
+                        <button class="btn btn-info touch-target" data-action="saveAsTemplate" title="Save as Template">
+                            <span class="icon">📋</span> Save as Template
+                        </button>
+                        <button class="btn btn-warning touch-target" data-action="toggleFormLock" title="Lock/Unlock Form">
                             <span class="icon" id="lockIcon">🔓</span> <span id="lockText">Lock Form</span>
                         </button>
-                        <button class="btn btn-primary" data-action="save">
+                        <button class="btn btn-primary touch-target" data-action="save">
                             <span class="icon">💾</span> Save Form
                         </button>
                     </div>
@@ -165,11 +169,22 @@ class IPLCFormBuilder {
                             <input type="text" id="creatorName" placeholder="Your name" />
                         </div>
                         
+                        <!-- Quick Templates -->
+                        <div class="quick-templates-section">
+                            <h3>Quick Templates</h3>
+                            <select id="quickTemplateSelect" class="template-select" onchange="formBuilder.loadQuickTemplate(this.value)">
+                                <option value="">Select a template...</option>
+                            </select>
+                            <button class="btn btn-sm btn-secondary touch-target" data-action="refreshTemplates" title="Refresh Templates">
+                                <span class="icon">🔄</span>
+                            </button>
+                        </div>
+                        
                         <!-- Field Templates -->
                         <div class="field-templates-section">
-                            <h3>Quick Templates</h3>
+                            <h3>Field Templates</h3>
                             <select id="fieldTemplateSelect" class="template-select" onchange="formBuilder.insertFieldTemplate(this.value)">
-                                <option value="">Select a template...</option>
+                                <option value="">Select a field template...</option>
                                 ${Object.entries(this.fieldTemplates).map(([key, template]) =>
                                     `<option value="${key}">${template.name}</option>`
                                 ).join('')}
@@ -184,16 +199,23 @@ class IPLCFormBuilder {
 
                     <!-- Center Panel: Form Design Area -->
                     <div class="builder-canvas">
-                        <div class="form-metadata">
-                            <input type="text" id="formTitle" placeholder="Form Title" 
-                                   value="${this.formData.title}" class="form-title-input">
-                            <textarea id="formDescription" placeholder="Form Description" 
-                                      class="form-description-input">${this.formData.description || ''}</textarea>
-                        </div>
+                        <details id="metaDrawer" class="form-metadata-drawer">
+                            <summary class="form-metadata-summary">
+                                <span class="summary-icon">📝</span>
+                                <span class="summary-text">Form Details</span>
+                                <span class="summary-chevron">▶</span>
+                            </summary>
+                            <div class="form-metadata-content">
+                                <input type="text" id="formTitle" placeholder="Form Title"
+                                       value="${this.formData.title}" class="form-title-input">
+                                <textarea id="formDescription" placeholder="Form Description"
+                                          class="form-description-input">${this.formData.description || ''}</textarea>
+                            </div>
+                        </details>
 
                         <div class="page-navigation">
                             <div class="page-tabs" id="pageTabs"></div>
-                            <button class="btn btn-sm btn-secondary" data-action="addPage">
+                            <button class="btn btn-sm btn-secondary touch-target" data-action="addPage">
                                 <span class="icon">➕</span> Add Page
                             </button>
                         </div>
@@ -213,7 +235,7 @@ class IPLCFormBuilder {
 
                     <!-- Right Panel: Properties -->
                     <div class="builder-properties" id="builderProperties">
-                        <button class="properties-toggle" data-action="togglePropertiesPanel" title="Toggle Properties Panel">
+                        <button class="properties-toggle touch-target" data-action="togglePropertiesPanel" title="Toggle Properties Panel">
                             <span id="toggleIcon">◀</span>
                         </button>
                         <h3>Element Properties</h3>
@@ -462,12 +484,100 @@ class IPLCFormBuilder {
                 margin-right: 50px !important;
             }
 
-            .form-metadata {
+            /* Task D: Collapsible Form Metadata Drawer */
+            .form-metadata-drawer {
                 background: white;
                 border-radius: 8px;
-                padding: 1.5rem;
                 margin-bottom: 1rem;
                 box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                border: 1px solid #e1e4e8;
+                overflow: hidden;
+                transition: all 0.3s ease;
+            }
+            
+            .form-metadata-drawer[open] {
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            }
+            
+            .form-metadata-summary {
+                padding: 1rem 1.5rem;
+                cursor: pointer;
+                user-select: none;
+                background: linear-gradient(90deg, #f8f9fa 0%, #ffffff 100%);
+                border-bottom: 1px solid transparent;
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                font-weight: 500;
+                color: #2c3e50;
+                transition: all 0.2s ease;
+                min-height: 44px; /* Touch target compliance */
+            }
+            
+            .form-metadata-summary:hover {
+                background: linear-gradient(90deg, #e9ecef 0%, #f8f9fa 100%);
+                border-bottom-color: #dee2e6;
+            }
+            
+            .form-metadata-summary:focus {
+                outline: 3px solid #0066cc;
+                outline-offset: 2px;
+            }
+            
+            .summary-icon {
+                font-size: 1.1rem;
+                flex-shrink: 0;
+            }
+            
+            .summary-text {
+                flex: 1;
+                font-size: 1rem;
+            }
+            
+            .summary-chevron {
+                font-size: 0.875rem;
+                transition: transform 0.2s ease;
+                flex-shrink: 0;
+            }
+            
+            .form-metadata-drawer[open] .summary-chevron {
+                transform: rotate(90deg);
+            }
+            
+            .form-metadata-drawer[open] .form-metadata-summary {
+                border-bottom-color: #dee2e6;
+                background: linear-gradient(90deg, #e9ecef 0%, #f8f9fa 100%);
+            }
+            
+            .form-metadata-content {
+                padding: 1.5rem;
+                background: #ffffff;
+                border-top: 1px solid #dee2e6;
+                animation: fadeInDown 0.3s ease;
+            }
+            
+            @keyframes fadeInDown {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            
+            /* Remove default details/summary styling */
+            .form-metadata-summary {
+                list-style: none;
+            }
+            
+            .form-metadata-summary::-webkit-details-marker {
+                display: none;
+            }
+            
+            .form-metadata-summary::marker {
+                display: none;
             }
 
             .form-title-input, .page-title-input {
@@ -1087,22 +1197,30 @@ class IPLCFormBuilder {
                 visibility: hidden !important;
             }
             
-            /* Task E: Blue Divider Visual Pattern */
+            /* Task F: Centralized Section Divider System - IPLC Brand Color */
             .section-divider {
                 border: none;
                 height: 4px;
-                background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 50%, #2563eb 100%);
+                background: #0B60D1;
                 margin: 1.5rem 0;
                 width: 100%;
                 border-radius: 2px;
-                box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+                box-shadow: 0 2px 4px rgba(11, 96, 209, 0.3);
                 opacity: 0.8;
                 transition: opacity 0.3s ease;
+                /* Accessibility: Ensure dividers don't interfere with screen readers */
+                role: presentation;
+                aria-hidden: true;
             }
             
             .section-divider:hover {
                 opacity: 1;
-                box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
+                box-shadow: 0 2px 6px rgba(11, 96, 209, 0.4);
+            }
+            
+            /* Enhanced gradient variant for special sections */
+            .section-divider.gradient {
+                background: linear-gradient(90deg, #0B60D1 0%, #0952a5 50%, #0B60D1 100%);
             }
             
             /* Ensure dividers span full content width */
@@ -1121,10 +1239,20 @@ class IPLCFormBuilder {
                 margin-bottom: 0;
             }
             
-            /* Accessibility: Ensure dividers don't interfere with screen readers */
-            .section-divider {
-                role: presentation;
-                aria-hidden: true;
+            /* Thicker dividers for panel separation */
+            .section-divider.panel-separator {
+                height: 6px;
+                margin: 2rem 0;
+                background: linear-gradient(90deg, #0B60D1 0%, #0952a5 25%, #0B60D1 50%, #0952a5 75%, #0B60D1 100%);
+                box-shadow: 0 3px 8px rgba(11, 96, 209, 0.4);
+            }
+            
+            /* Subtle dividers for sub-elements */
+            .section-divider.subtle {
+                height: 2px;
+                background: rgba(11, 96, 209, 0.6);
+                margin: 1rem 0;
+                box-shadow: 0 1px 2px rgba(11, 96, 209, 0.2);
             }
             
             /* Task F: Touch Target Accessibility - WCAG 2.1 Success Criterion 2.5.5 (Level AAA) */
@@ -1515,7 +1643,7 @@ class IPLCFormBuilder {
     renderPageTabs() {
         const tabsContainer = document.getElementById('pageTabs');
         tabsContainer.innerHTML = this.formData.pages.map((page, index) => `
-            <div class="page-tab ${index === this.currentPageIndex ? 'active' : ''}"
+            <div class="page-tab touch-target ${index === this.currentPageIndex ? 'active' : ''}"
                  data-page-index="${index}">
                 ${page.title || `Page ${index + 1}`}
             </div>
@@ -1578,8 +1706,12 @@ class IPLCFormBuilder {
         
         const elementTypeIcon = this.getElementTypeIcon(element.type);
         
+        // Task F: Use centralized divider injection system
+        const topDivider = this.createSectionDivider('element-separator', index === 0);
+        const bottomDivider = this.createSectionDivider(isPanelType ? 'panel-separator' : 'element-separator');
+        
         return `
-            <hr class="section-divider">
+            ${topDivider}
             <div class="form-element ${this.selectedElement === index ? 'selected' : ''} ${isPanelType ? 'panel-element' : ''} ${isPreConfigured ? 'pre-configured' : ''}"
                  data-index="${index}"
                  data-action="selectElement"
@@ -1592,18 +1724,18 @@ class IPLCFormBuilder {
                         ${isPreConfigured ? '<span class="pre-configured-badge" style="font-size: 0.7em; background: #28a745; color: white; padding: 2px 6px; border-radius: 3px; margin-left: 0.5rem;">Pre-configured</span>' : ''}
                     </div>
                     <div class="element-actions">
-                        <button data-action="editElement" data-index="${index}" title="${isPanelType ? 'Edit Panel & Elements' : 'Edit'}" class="edit-btn ${isPanelType ? 'panel-edit' : ''}">
-                            ${isPanelType ? '⚙️' : '✏️'}
+                        <button data-action="editElement" data-index="${index}" title="${isPanelType ? 'Edit Panel & Elements' : 'Edit'}" class="edit-btn ${isPanelType ? 'panel-edit' : ''} touch-target">
+                            ✏️
                         </button>
-                        <button data-action="moveElement" data-index="${index}" data-direction="-1" title="Move Up">↑</button>
-                        <button data-action="moveElement" data-index="${index}" data-direction="1" title="Move Down">↓</button>
-                        <button data-action="duplicateElement" data-index="${index}" title="Duplicate">📋</button>
-                        <button data-action="deleteElement" data-index="${index}" title="Delete">🗑️</button>
+                        <button data-action="moveElement" data-index="${index}" data-direction="-1" title="Move Up" class="touch-target">↑</button>
+                        <button data-action="moveElement" data-index="${index}" data-direction="1" title="Move Down" class="touch-target">↓</button>
+                        <button data-action="duplicateElement" data-index="${index}" title="Duplicate" class="touch-target">📋</button>
+                        <button data-action="deleteElement" data-index="${index}" title="Delete" class="touch-target">🗑️</button>
                     </div>
                 </div>
                 ${hasSubElements ? this.renderPanelPreview(element) : ''}
             </div>
-            <hr class="section-divider">
+            ${bottomDivider}
         `;
     }
     
@@ -1626,6 +1758,65 @@ class IPLCFormBuilder {
             'ai-summary': '🤖'
         };
         return icons[type] || '📝';
+    }
+    
+    // Task F: Centralized section divider creation system
+    createSectionDivider(type = 'default', isFirst = false) {
+        const dividerTypes = {
+            'default': 'section-divider',
+            'element-separator': 'section-divider',
+            'panel-separator': 'section-divider panel-separator',
+            'subtle': 'section-divider subtle',
+            'gradient': 'section-divider gradient'
+        };
+        
+        const className = dividerTypes[type] || 'section-divider';
+        const role = 'presentation';
+        const ariaHidden = 'true';
+        
+        // Skip divider for first element to avoid extra spacing at top
+        if (isFirst) {
+            return '';
+        }
+        
+        return `<hr class="${className}" role="${role}" aria-hidden="${ariaHidden}">`;
+    }
+    
+    // Inject dividers into preview content for visual consistency
+    injectDividersIntoPreview() {
+        // Find all SurveyJS elements in preview and add dividers between them
+        const surveyContainer = document.getElementById('surveyPreview');
+        if (!surveyContainer) return;
+        
+        // Wait for Survey.js to render content
+        setTimeout(() => {
+            const questions = surveyContainer.querySelectorAll('.sv-question, .sv-panel');
+            questions.forEach((question, index) => {
+                if (index > 0) {
+                    // Create divider element
+                    const divider = document.createElement('hr');
+                    divider.className = 'section-divider';
+                    divider.role = 'presentation';
+                    divider.setAttribute('aria-hidden', 'true');
+                    
+                    // Insert before current question
+                    question.parentNode.insertBefore(divider, question);
+                }
+            });
+        }, 100);
+    }
+    
+    // Apply consistent divider styling throughout the form builder
+    applyCentralizedDividerStyling() {
+        // Update all existing dividers to use centralized styling
+        const existingDividers = document.querySelectorAll('.form-element hr, .drop-zone hr');
+        existingDividers.forEach(divider => {
+            if (!divider.classList.contains('section-divider')) {
+                divider.className = 'section-divider';
+                divider.role = 'presentation';
+                divider.setAttribute('aria-hidden', 'true');
+            }
+        });
     }
     
     // Render a preview of panel contents
@@ -1769,49 +1960,264 @@ class IPLCFormBuilder {
                 }
             });
         }
+    // Task I: Enhanced iPad touch gesture system to prevent blur/touchstart conflicts
     setupTouchGestures() {
         const propertiesPanel = document.getElementById('builderProperties');
         if (!propertiesPanel) return;
         
-        let startX = 0;
-        let currentX = 0;
-        let isDragging = false;
+        // Task I: Enhanced touch gesture state with iPad-specific handling
+        this.touchGestureState = {
+            isActive: false,
+            startX: 0,
+            startY: 0,
+            currentX: 0,
+            currentY: 0,
+            startTime: 0,
+            minimumSwipeDistance: 80, // Increased threshold to prevent accidental triggers
+            maximumSwipeTime: 1000, // Maximum time for a valid swipe gesture
+            verticalTolerance: 40, // Allow some vertical movement
+            isValidSwipeGesture: false,
+            targetElement: null,
+            preventBlurConflicts: true
+        };
         
-        // Touch start
+        // Task I: iPad-specific device detection for enhanced handling
+        const isIPadDevice = /iPad/.test(navigator.userAgent) ||
+                           (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        
+        // Task I: Enhanced touchstart handler with input element detection
         propertiesPanel.addEventListener('touchstart', (e) => {
-            startX = e.touches[0].clientX;
-            isDragging = true;
-        }, { passive: true });
-        
-        // Touch move
-        propertiesPanel.addEventListener('touchmove', (e) => {
-            if (!isDragging) return;
+            // Task I: Prevent gesture detection on form inputs to avoid blur conflicts
+            const target = e.target;
+            const isFormElement = target.matches('input, textarea, select, button, [contenteditable]') ||
+                                 target.closest('input, textarea, select, button, [contenteditable]');
             
-            currentX = e.touches[0].clientX;
-            const deltaX = currentX - startX;
+            // Task I: Skip gesture detection for form elements to prevent blur/focus conflicts
+            if (isFormElement) {
+                this.touchGestureState.isActive = false;
+                return;
+            }
             
-            // If swiped right more than 50px, collapse panel
-            if (deltaX > 50 && !propertiesPanel.classList.contains('collapsed')) {
-                this.togglePropertiesPanel();
-                isDragging = false;
+            // Task I: Only start gesture tracking for panel container touches
+            const isPanelContainer = target.classList.contains('builder-properties') ||
+                                   target.classList.contains('properties-content') ||
+                                   target.closest('.builder-properties:not(input):not(textarea):not(select):not(button)');
+            
+            if (!isPanelContainer) {
+                this.touchGestureState.isActive = false;
+                return;
+            }
+            
+            // Task I: Initialize enhanced gesture tracking
+            this.touchGestureState.isActive = true;
+            this.touchGestureState.startX = e.touches[0].clientX;
+            this.touchGestureState.startY = e.touches[0].clientY;
+            this.touchGestureState.currentX = this.touchGestureState.startX;
+            this.touchGestureState.currentY = this.touchGestureState.startY;
+            this.touchGestureState.startTime = Date.now();
+            this.touchGestureState.targetElement = target;
+            this.touchGestureState.isValidSwipeGesture = false;
+            
+            // Task I: iPad-specific gesture initialization
+            if (isIPadDevice) {
+                // Add visual feedback for iPad users
+                propertiesPanel.style.transition = 'transform 0.1s ease-out';
             }
         }, { passive: true });
         
-        // Touch end
-        propertiesPanel.addEventListener('touchend', () => {
-            isDragging = false;
+        // Task I: Enhanced touchmove handler with gesture validation
+        propertiesPanel.addEventListener('touchmove', (e) => {
+            if (!this.touchGestureState.isActive) return;
+            
+            this.touchGestureState.currentX = e.touches[0].clientX;
+            this.touchGestureState.currentY = e.touches[0].clientY;
+            
+            const deltaX = this.touchGestureState.currentX - this.touchGestureState.startX;
+            const deltaY = Math.abs(this.touchGestureState.currentY - this.touchGestureState.startY);
+            const elapsedTime = Date.now() - this.touchGestureState.startTime;
+            
+            // Task I: Validate swipe gesture criteria
+            const isHorizontalSwipe = Math.abs(deltaX) > deltaY;
+            const isRightwardSwipe = deltaX > 0;
+            const hasMinimumDistance = Math.abs(deltaX) >= this.touchGestureState.minimumSwipeDistance;
+            const isWithinTimeLimit = elapsedTime <= this.touchGestureState.maximumSwipeTime;
+            const isWithinVerticalTolerance = deltaY <= this.touchGestureState.verticalTolerance;
+            
+            // Task I: Only trigger on valid horizontal right swipe
+            if (isHorizontalSwipe && isRightwardSwipe && hasMinimumDistance &&
+                isWithinTimeLimit && isWithinVerticalTolerance) {
+                
+                this.touchGestureState.isValidSwipeGesture = true;
+                
+                // Task I: Visual feedback during swipe for iPad
+                if (isIPadDevice) {
+                    const swipeProgress = Math.min(Math.abs(deltaX) / this.touchGestureState.minimumSwipeDistance, 1);
+                    propertiesPanel.style.transform = `translateX(${swipeProgress * 10}px)`;
+                    propertiesPanel.style.opacity = `${1 - swipeProgress * 0.2}`;
+                }
+                
+                // Task I: Execute panel collapse for valid gesture
+                if (!propertiesPanel.classList.contains('collapsed')) {
+                    this.togglePropertiesPanel();
+                    this.touchGestureState.isActive = false;
+                    
+                    // Task I: Reset visual feedback
+                    if (isIPadDevice) {
+                        setTimeout(() => {
+                            propertiesPanel.style.transform = '';
+                            propertiesPanel.style.opacity = '';
+                            propertiesPanel.style.transition = '';
+                        }, 300);
+                    }
+                    
+                    // Task I: Show user-friendly notification
+                    this.showNotification('Properties panel collapsed via swipe gesture');
+                }
+            } else if (deltaY > this.touchGestureState.verticalTolerance * 2) {
+                // Task I: Cancel gesture if too much vertical movement (likely scrolling)
+                this.touchGestureState.isActive = false;
+                
+                // Task I: Reset visual feedback
+                if (isIPadDevice) {
+                    propertiesPanel.style.transform = '';
+                    propertiesPanel.style.opacity = '';
+                }
+            }
         }, { passive: true });
+        
+        // Task I: Enhanced touchend handler with gesture completion
+        propertiesPanel.addEventListener('touchend', (e) => {
+            if (!this.touchGestureState.isActive) return;
+            
+            // Task I: Reset visual feedback for iPad
+            if (isIPadDevice) {
+                propertiesPanel.style.transform = '';
+                propertiesPanel.style.opacity = '';
+                propertiesPanel.style.transition = '';
+            }
+            
+            // Task I: Reset gesture state
+            this.touchGestureState.isActive = false;
+            this.touchGestureState.isValidSwipeGesture = false;
+            this.touchGestureState.targetElement = null;
+        }, { passive: true });
+        
+        // Task I: Touch cancel handler for iPad reliability
+        propertiesPanel.addEventListener('touchcancel', (e) => {
+            if (!this.touchGestureState.isActive) return;
+            
+            // Task I: Emergency cleanup for cancelled touches
+            if (isIPadDevice) {
+                propertiesPanel.style.transform = '';
+                propertiesPanel.style.opacity = '';
+                propertiesPanel.style.transition = '';
+            }
+            
+            // Task I: Reset all gesture state
+            this.touchGestureState.isActive = false;
+            this.touchGestureState.isValidSwipeGesture = false;
+            this.touchGestureState.targetElement = null;
+        }, { passive: true });
+        
+        // Task I: Focus/blur event handling to prevent conflicts with touch gestures
+        if (this.touchGestureState.preventBlurConflicts) {
+            this.setupFocusBlurConflictPrevention(propertiesPanel);
+        }
+        
+        console.log('FormBuilder: Enhanced iPad touch gesture system initialized with blur/focus conflict prevention');
+    }
+    
+    // Task I: Setup focus/blur conflict prevention for iPad
+    setupFocusBlurConflictPrevention(propertiesPanel) {
+        // Task I: Track focus/blur events to prevent gesture conflicts
+        this.focusBlurState = {
+            lastFocusTime: 0,
+            lastBlurTime: 0,
+            preventGestureWindow: 300 // 300ms window to prevent gestures after focus/blur
+        };
+        
+        // Task I: Monitor focus events on form inputs
+        propertiesPanel.addEventListener('focusin', (e) => {
+            this.focusBlurState.lastFocusTime = Date.now();
+            
+            // Task I: Temporarily disable touch gestures during focus
+            if (this.touchGestureState) {
+                this.touchGestureState.isActive = false;
+            }
+        }, { passive: true });
+        
+        // Task I: Monitor blur events on form inputs
+        propertiesPanel.addEventListener('focusout', (e) => {
+            this.focusBlurState.lastBlurTime = Date.now();
+            
+            // Task I: Temporarily disable touch gestures after blur
+            if (this.touchGestureState) {
+                this.touchGestureState.isActive = false;
+            }
+            
+            // Task I: Add a brief delay before re-enabling gestures
+            setTimeout(() => {
+                // Reset gesture state after focus/blur events settle
+                if (this.touchGestureState) {
+                    this.touchGestureState.isActive = false;
+                    this.touchGestureState.isValidSwipeGesture = false;
+                }
+            }, this.focusBlurState.preventGestureWindow);
+        }, { passive: true });
+        
+        // Task I: Prevent gesture activation near focus/blur events
+        const originalTouchStart = propertiesPanel.ontouchstart;
+        
+        // Task I: Enhanced validation for touch start events
+        this.validateTouchStart = (e) => {
+            const currentTime = Date.now();
+            const timeSinceFocus = currentTime - this.focusBlurState.lastFocusTime;
+            const timeSinceBlur = currentTime - this.focusBlurState.lastBlurTime;
+            
+            // Task I: Prevent gestures if too close to focus/blur events
+            if (timeSinceFocus < this.focusBlurState.preventGestureWindow ||
+                timeSinceBlur < this.focusBlurState.preventGestureWindow) {
+                
+                if (this.touchGestureState) {
+                    this.touchGestureState.isActive = false;
+                }
+                return false;
+            }
+            
+            return true;
+        };
+        
+        console.log('FormBuilder: Focus/blur conflict prevention system initialized');
     }
     
     setupDragAndDrop() {
-        console.log('FormBuilder: setupDragAndDrop() called - Using Pointer Events API');
+        console.log('FormBuilder: setupDragAndDrop() called - Using Pointer Events API with iPadDragFix');
         const draggables = document.querySelectorAll('.draggable-element');
         const dropZone = document.getElementById('dropZone');
         
         console.log('FormBuilder: Found', draggables.length, 'draggable elements');
         console.log('FormBuilder: Drop zone found:', !!dropZone);
 
-        // Initialize drag state
+        // Task H: iPad/iOS device detection for iPadDragFix
+        this.iPadDragFix = {
+            isIOS: /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1), // iPad Pro detection
+            isIPad: /iPad/.test(navigator.userAgent) ||
+                    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1),
+            isSafari: /^((?!chrome|android).)*safari/i.test(navigator.userAgent),
+            touchStartTime: 0,
+            lastTouchEnd: 0,
+            preventGestureConflicts: true,
+            enhancedPointerCapture: true,
+            debugMode: false
+        };
+
+        // Log iPad detection for debugging
+        if (this.iPadDragFix.isIPad) {
+            console.log('FormBuilder: iPad detected - enabling iPadDragFix optimizations');
+        }
+
+        // Initialize drag state with iPad-specific enhancements
         this.dragState = {
             isDragging: false,
             dragElement: null,
@@ -1820,10 +2226,24 @@ class IPLCFormBuilder {
             startY: 0,
             offsetX: 0,
             offsetY: 0,
-            elementData: null
+            elementData: null,
+            // Task H: iPad-specific drag state
+            pointerCapture: {
+                active: false,
+                pointerId: null,
+                element: null
+            },
+            gesturePreventionActive: false,
+            dragStartTime: 0,
+            minimumDragDistance: this.iPadDragFix.isIPad ? 10 : 5
         };
 
-        // Setup draggable elements with Pointer Events
+        // Task H: Setup iPad-specific gesture conflict prevention
+        if (this.iPadDragFix.isIOS && this.iPadDragFix.preventGestureConflicts) {
+            this.setupiPadGestureConflictPrevention();
+        }
+
+        // Setup draggable elements with iPad-enhanced Pointer Events
         draggables.forEach((draggable, index) => {
             console.log(`FormBuilder: Setting up draggable element ${index}:`, draggable.dataset.type);
             
@@ -1831,205 +2251,577 @@ class IPLCFormBuilder {
             const newDraggable = draggable.cloneNode(true);
             draggable.parentNode.replaceChild(newDraggable, draggable);
             
-            // Make element unselectable during drag
-            newDraggable.style.userSelect = 'none';
-            newDraggable.style.webkitUserSelect = 'none';
-            newDraggable.style.msUserSelect = 'none';
+            // Task H: iPad-optimized element styling
+            this.applyiPadDragOptimizations(newDraggable);
             
-            // Add touch-action CSS to prevent scrolling during drag
-            newDraggable.style.touchAction = 'none';
-            
-            // Pointer down - start drag
+            // Task H: Enhanced pointer down handler with iPad optimizations
             newDraggable.addEventListener('pointerdown', (e) => {
                 if (this.formData.isFormLocked) return;
                 
-                console.log('FormBuilder: Pointer down on:', newDraggable.dataset.type);
+                console.log('FormBuilder: Pointer down on:', newDraggable.dataset.type,
+                           'iPad mode:', this.iPadDragFix.isIPad);
                 
-                // Prevent default touch behaviors
-                e.preventDefault();
+                // Task H: iPad-specific preventDefault timing
+                if (this.iPadDragFix.isIPad) {
+                    // Immediate preventDefault for iPad to prevent scroll conflicts
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Prevent double-tap zoom on iPad
+                    const currentTime = Date.now();
+                    if (currentTime - this.iPadDragFix.lastTouchEnd < 300) {
+                        return; // Ignore rapid successive touches
+                    }
+                } else {
+                    e.preventDefault();
+                }
                 
-                // Store drag data
+                // Task H: Enhanced pointer capture for iPad
+                const success = this.initializeiPadPointerCapture(e, newDraggable);
+                if (!success && this.iPadDragFix.isIPad) {
+                    console.warn('FormBuilder: iPad pointer capture failed, using fallback');
+                    return;
+                }
+                
+                // Store drag data with enhanced timing
                 this.dragState.isDragging = true;
                 this.dragState.dragElement = newDraggable;
                 this.dragState.startX = e.clientX;
                 this.dragState.startY = e.clientY;
+                this.dragState.dragStartTime = Date.now();
                 this.dragState.elementData = {
                     elementType: newDraggable.dataset.type,
                     isCustom: newDraggable.dataset.custom === 'true',
                     category: newDraggable.dataset.category || ''
                 };
                 
-                // Create visual clone for dragging
-                const clone = newDraggable.cloneNode(true);
-                clone.style.position = 'fixed';
-                clone.style.pointerEvents = 'none';
-                clone.style.zIndex = '9999';
-                clone.style.opacity = '0.8';
-                clone.style.transform = 'scale(1.05)';
-                clone.style.transition = 'transform 0.2s';
-                clone.style.width = newDraggable.offsetWidth + 'px';
-                
-                // Position clone at pointer
-                const rect = newDraggable.getBoundingClientRect();
-                this.dragState.offsetX = e.clientX - rect.left;
-                this.dragState.offsetY = e.clientY - rect.top;
-                clone.style.left = (e.clientX - this.dragState.offsetX) + 'px';
-                clone.style.top = (e.clientY - this.dragState.offsetY) + 'px';
-                
-                document.body.appendChild(clone);
-                this.dragState.dragClone = clone;
+                // Task H: iPad-optimized visual clone creation
+                this.createiPadOptimizedDragClone(e, newDraggable);
                 
                 // Add dragging class to original element
                 newDraggable.classList.add('dragging');
                 
-                // Capture pointer for consistent tracking
-                newDraggable.setPointerCapture(e.pointerId);
+                // Task H: iPad-specific gesture prevention
+                if (this.iPadDragFix.isIPad) {
+                    this.activateiPadGesturePrevention();
+                }
             });
             
-            // Pointer move - handle drag
+            // Task H: Enhanced pointer move handler with iPad coordination
             newDraggable.addEventListener('pointermove', (e) => {
                 if (!this.dragState.isDragging || !this.dragState.dragClone) return;
                 
-                // Prevent default to avoid scrolling on touch devices
-                e.preventDefault();
-                
-                // Update clone position
-                this.dragState.dragClone.style.left = (e.clientX - this.dragState.offsetX) + 'px';
-                this.dragState.dragClone.style.top = (e.clientY - this.dragState.offsetY) + 'px';
-                
-                // Check if over drop zone
-                const dropZone = document.getElementById('dropZone');
-                if (dropZone) {
-                    const dropRect = dropZone.getBoundingClientRect();
-                    const isOverDropZone = e.clientX >= dropRect.left &&
-                                          e.clientX <= dropRect.right &&
-                                          e.clientY >= dropRect.top &&
-                                          e.clientY <= dropRect.bottom;
+                // Task H: iPad-specific preventDefault coordination
+                if (this.iPadDragFix.isIPad) {
+                    e.preventDefault();
+                    e.stopPropagation();
                     
-                    if (isOverDropZone) {
-                        dropZone.classList.add('drag-over');
-                    } else {
-                        dropZone.classList.remove('drag-over');
+                    // Check minimum drag distance for iPad
+                    const deltaX = Math.abs(e.clientX - this.dragState.startX);
+                    const deltaY = Math.abs(e.clientY - this.dragState.startY);
+                    const dragDistance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+                    
+                    if (dragDistance < this.dragState.minimumDragDistance) {
+                        return; // Don't start dragging until minimum distance is met
                     }
+                } else {
+                    e.preventDefault();
                 }
+                
+                // Task H: Enhanced clone position update with iPad smoothing
+                this.updateiPadDragClonePosition(e);
+                
+                // Task H: iPad-optimized drop zone detection
+                this.updateiPadDropZoneDetection(e);
             });
             
-            // Pointer up - end drag
+            // Task H: Enhanced pointer up handler with iPad cleanup
             newDraggable.addEventListener('pointerup', (e) => {
                 if (!this.dragState.isDragging) return;
                 
-                console.log('FormBuilder: Pointer up - ending drag');
+                console.log('FormBuilder: Pointer up - ending drag (iPad mode:', this.iPadDragFix.isIPad, ')');
                 
-                // Check if dropped on drop zone
-                const dropZone = document.getElementById('dropZone');
-                if (dropZone) {
-                    const dropRect = dropZone.getBoundingClientRect();
-                    const isOverDropZone = e.clientX >= dropRect.left &&
-                                          e.clientX <= dropRect.right &&
-                                          e.clientY >= dropRect.top &&
-                                          e.clientY <= dropRect.bottom;
-                    
-                    if (isOverDropZone && this.dragState.elementData) {
-                        console.log('FormBuilder: Dropped element:', this.dragState.elementData);
-                        this.addElement(
-                            this.dragState.elementData.elementType,
-                            this.dragState.elementData.isCustom,
-                            this.dragState.elementData.category
-                        );
-                    }
-                    
-                    dropZone.classList.remove('drag-over');
+                // Task H: iPad-specific cleanup timing
+                if (this.iPadDragFix.isIPad) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.iPadDragFix.lastTouchEnd = Date.now();
                 }
                 
-                // Clean up
-                if (this.dragState.dragClone) {
-                    this.dragState.dragClone.remove();
-                }
-                if (this.dragState.dragElement) {
-                    this.dragState.dragElement.classList.remove('dragging');
-                    this.dragState.dragElement.releasePointerCapture(e.pointerId);
-                }
+                // Check if dropped on drop zone with iPad-enhanced detection
+                const dropSuccess = this.handleiPadDragDrop(e);
                 
-                // Reset drag state
-                this.dragState = {
-                    isDragging: false,
-                    dragElement: null,
-                    dragClone: null,
-                    startX: 0,
-                    startY: 0,
-                    offsetX: 0,
-                    offsetY: 0,
-                    elementData: null
-                };
+                // Task H: iPad-optimized cleanup
+                this.cleanupiPadDragOperation(e);
             });
             
-            // Pointer cancel - handle interruptions
+            // Task H: Enhanced pointer cancel handler for iPad reliability
             newDraggable.addEventListener('pointercancel', (e) => {
                 if (!this.dragState.isDragging) return;
                 
-                console.log('FormBuilder: Pointer cancelled');
+                console.log('FormBuilder: Pointer cancelled (iPad emergency cleanup)');
                 
-                // Clean up on cancel
-                if (this.dragState.dragClone) {
-                    this.dragState.dragClone.remove();
-                }
-                if (this.dragState.dragElement) {
-                    this.dragState.dragElement.classList.remove('dragging');
+                // Task H: iPad-specific cancel handling
+                if (this.iPadDragFix.isIPad) {
+                    e.preventDefault();
+                    e.stopPropagation();
                 }
                 
-                const dropZone = document.getElementById('dropZone');
-                if (dropZone) {
-                    dropZone.classList.remove('drag-over');
-                }
-                
-                // Reset drag state
-                this.dragState = {
-                    isDragging: false,
-                    dragElement: null,
-                    dragClone: null,
-                    startX: 0,
-                    startY: 0,
-                    offsetX: 0,
-                    offsetY: 0,
-                    elementData: null
-                };
+                // Emergency cleanup for iPad
+                this.emergencyiPadDragCleanup();
             });
         });
 
-        // Add visual feedback styles if not already present
+        // Task H: Add iPad-enhanced visual feedback styles
         if (!document.getElementById('pointer-drag-styles')) {
-            const styles = document.createElement('style');
-            styles.id = 'pointer-drag-styles';
-            styles.textContent = `
+            this.createiPadOptimizedDragStyles();
+        }
+    }
+
+    // Task H: Setup iPad gesture conflict prevention
+    setupiPadGestureConflictPrevention() {
+        console.log('FormBuilder: Setting up iPad gesture conflict prevention');
+        
+        // Prevent iOS Safari's default gestures during drag operations
+        document.addEventListener('gesturestart', (e) => {
+            if (this.dragState.isDragging || this.dragState.gesturePreventionActive) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }, { passive: false });
+        
+        document.addEventListener('gesturechange', (e) => {
+            if (this.dragState.isDragging || this.dragState.gesturePreventionActive) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }, { passive: false });
+        
+        document.addEventListener('gestureend', (e) => {
+            if (this.dragState.isDragging || this.dragState.gesturePreventionActive) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }, { passive: false });
+        
+        // Prevent context menu on iPad long press during drag
+        document.addEventListener('contextmenu', (e) => {
+            if (this.dragState.isDragging) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }, { passive: false });
+    }
+
+    // Task H: Apply iPad-specific drag optimizations to elements
+    applyiPadDragOptimizations(element) {
+        // Enhanced touch-action for iPad
+        element.style.touchAction = 'none';
+        element.style.userSelect = 'none';
+        element.style.webkitUserSelect = 'none';
+        element.style.msUserSelect = 'none';
+        
+        if (this.iPadDragFix.isIPad) {
+            // iPad-specific optimizations
+            element.style.webkitTouchCallout = 'none';
+            element.style.webkitTapHighlightColor = 'transparent';
+            element.style.webkitUserDrag = 'none';
+            
+            // Enhanced cursor feedback for iPad with Apple Pencil
+            element.style.cursor = 'grab';
+            
+            // Prevent iOS momentum scrolling conflicts
+            element.style.webkitOverflowScrolling = 'auto';
+        }
+    }
+
+    // Task H: Initialize iPad-enhanced pointer capture
+    initializeiPadPointerCapture(e, element) {
+        try {
+            if (this.iPadDragFix.enhancedPointerCapture) {
+                // Enhanced pointer capture for iPad
+                element.setPointerCapture(e.pointerId);
+                
+                // Store capture info for iPad tracking
+                this.dragState.pointerCapture = {
+                    active: true,
+                    pointerId: e.pointerId,
+                    element: element
+                };
+                
+                if (this.iPadDragFix.debugMode) {
+                    console.log('FormBuilder: iPad pointer capture initialized:', e.pointerId);
+                }
+                
+                return true;
+            }
+        } catch (error) {
+            console.warn('FormBuilder: iPad pointer capture failed:', error);
+            return false;
+        }
+        
+        return true;
+    }
+
+    // Task H: Create iPad-optimized drag clone
+    createiPadOptimizedDragClone(e, element) {
+        const clone = element.cloneNode(true);
+        
+        // iPad-optimized clone styling
+        clone.style.position = 'fixed';
+        clone.style.pointerEvents = 'none';
+        clone.style.zIndex = '9999';
+        clone.style.opacity = this.iPadDragFix.isIPad ? '0.85' : '0.8'; // Slightly more visible on iPad
+        clone.style.transform = this.iPadDragFix.isIPad ? 'scale(1.08)' : 'scale(1.05)'; // Larger for iPad
+        clone.style.transition = this.iPadDragFix.isIPad ? 'transform 0.15s' : 'transform 0.2s'; // Faster on iPad
+        clone.style.width = element.offsetWidth + 'px';
+        
+        // iPad-specific enhancements
+        if (this.iPadDragFix.isIPad) {
+            clone.style.borderRadius = '8px';
+            clone.style.boxShadow = '0 8px 24px rgba(0,0,0,0.25)';
+            clone.style.webkitTransform = clone.style.transform; // Webkit fallback
+        }
+        
+        // Position clone at pointer with iPad offset compensation
+        const rect = element.getBoundingClientRect();
+        this.dragState.offsetX = e.clientX - rect.left;
+        this.dragState.offsetY = e.clientY - rect.top;
+        
+        // iPad-specific offset adjustments
+        if (this.iPadDragFix.isIPad) {
+            this.dragState.offsetY -= 10; // Compensate for finger offset on iPad
+        }
+        
+        clone.style.left = (e.clientX - this.dragState.offsetX) + 'px';
+        clone.style.top = (e.clientY - this.dragState.offsetY) + 'px';
+        
+        document.body.appendChild(clone);
+        this.dragState.dragClone = clone;
+    }
+
+    // Task H: Update iPad drag clone position with smoothing
+    updateiPadDragClonePosition(e) {
+        if (!this.dragState.dragClone) return;
+        
+        let x = e.clientX - this.dragState.offsetX;
+        let y = e.clientY - this.dragState.offsetY;
+        
+        // iPad-specific position smoothing
+        if (this.iPadDragFix.isIPad) {
+            // Apply slight smoothing for iPad touch input
+            const smoothingFactor = 0.1;
+            const currentX = parseFloat(this.dragState.dragClone.style.left) || x;
+            const currentY = parseFloat(this.dragState.dragClone.style.top) || y;
+            
+            x = currentX + (x - currentX) * (1 - smoothingFactor);
+            y = currentY + (y - currentY) * (1 - smoothingFactor);
+        }
+        
+        this.dragState.dragClone.style.left = x + 'px';
+        this.dragState.dragClone.style.top = y + 'px';
+    }
+
+    // Task H: iPad-optimized drop zone detection
+    updateiPadDropZoneDetection(e) {
+        const dropZone = document.getElementById('dropZone');
+        if (!dropZone) return;
+        
+        const dropRect = dropZone.getBoundingClientRect();
+        
+        // iPad-enhanced hit detection with expanded touch area
+        let tolerance = this.iPadDragFix.isIPad ? 15 : 5;
+        
+        const isOverDropZone = e.clientX >= dropRect.left - tolerance &&
+                              e.clientX <= dropRect.right + tolerance &&
+                              e.clientY >= dropRect.top - tolerance &&
+                              e.clientY <= dropRect.bottom + tolerance;
+        
+        if (isOverDropZone) {
+            dropZone.classList.add('drag-over');
+            
+            // iPad-specific visual feedback
+            if (this.iPadDragFix.isIPad && this.dragState.dragClone) {
+                this.dragState.dragClone.style.transform = 'scale(1.12)';
+            }
+        } else {
+            dropZone.classList.remove('drag-over');
+            
+            // Reset clone scale on iPad
+            if (this.iPadDragFix.isIPad && this.dragState.dragClone) {
+                this.dragState.dragClone.style.transform = 'scale(1.08)';
+            }
+        }
+    }
+
+    // Task H: Handle iPad drag drop with enhanced detection
+    handleiPadDragDrop(e) {
+        const dropZone = document.getElementById('dropZone');
+        if (!dropZone) return false;
+        
+        const dropRect = dropZone.getBoundingClientRect();
+        
+        // iPad-enhanced drop detection with tolerance
+        const tolerance = this.iPadDragFix.isIPad ? 15 : 0;
+        const isOverDropZone = e.clientX >= dropRect.left - tolerance &&
+                              e.clientX <= dropRect.right + tolerance &&
+                              e.clientY >= dropRect.top - tolerance &&
+                              e.clientY <= dropRect.bottom + tolerance;
+        
+        if (isOverDropZone && this.dragState.elementData) {
+            console.log('FormBuilder: Dropped element (iPad mode):', this.dragState.elementData);
+            
+            this.addElement(
+                this.dragState.elementData.elementType,
+                this.dragState.elementData.isCustom,
+                this.dragState.elementData.category
+            );
+            
+            // iPad-specific success feedback
+            if (this.iPadDragFix.isIPad) {
+                this.showNotification('Element added successfully', 'success');
+                
+                // Haptic feedback simulation for iPad
+                if (navigator.vibrate) {
+                    navigator.vibrate(50);
+                }
+            }
+            
+            return true;
+        }
+        
+        dropZone.classList.remove('drag-over');
+        return false;
+    }
+
+    // Task H: iPad-optimized drag operation cleanup
+    cleanupiPadDragOperation(e) {
+        // Clean up drag clone
+        if (this.dragState.dragClone) {
+            if (this.iPadDragFix.isIPad) {
+                // Animated removal for iPad
+                this.dragState.dragClone.style.transition = 'all 0.2s ease-out';
+                this.dragState.dragClone.style.opacity = '0';
+                this.dragState.dragClone.style.transform = 'scale(0.8)';
+                
+                setTimeout(() => {
+                    if (this.dragState.dragClone) {
+                        this.dragState.dragClone.remove();
+                    }
+                }, 200);
+            } else {
+                this.dragState.dragClone.remove();
+            }
+        }
+        
+        // Clean up drag element
+        if (this.dragState.dragElement) {
+            this.dragState.dragElement.classList.remove('dragging');
+            
+            // Release pointer capture with iPad error handling
+            if (this.dragState.pointerCapture.active && e.pointerId) {
+                try {
+                    this.dragState.dragElement.releasePointerCapture(e.pointerId);
+                } catch (error) {
+                    if (this.iPadDragFix.debugMode) {
+                        console.warn('FormBuilder: iPad pointer capture release failed:', error);
+                    }
+                }
+            }
+        }
+        
+        // Deactivate iPad gesture prevention
+        if (this.iPadDragFix.isIPad) {
+            this.deactivateiPadGesturePrevention();
+        }
+        
+        // Reset drag state
+        this.dragState = {
+            isDragging: false,
+            dragElement: null,
+            dragClone: null,
+            startX: 0,
+            startY: 0,
+            offsetX: 0,
+            offsetY: 0,
+            elementData: null,
+            pointerCapture: {
+                active: false,
+                pointerId: null,
+                element: null
+            },
+            gesturePreventionActive: false,
+            dragStartTime: 0,
+            minimumDragDistance: this.iPadDragFix.isIPad ? 10 : 5
+        };
+    }
+
+    // Task H: Emergency iPad drag cleanup for pointer cancel events
+    emergencyiPadDragCleanup() {
+        console.log('FormBuilder: Emergency iPad drag cleanup initiated');
+        
+        // Force remove drag clone
+        if (this.dragState.dragClone) {
+            this.dragState.dragClone.remove();
+        }
+        
+        // Force remove dragging class
+        if (this.dragState.dragElement) {
+            this.dragState.dragElement.classList.remove('dragging');
+        }
+        
+        // Force clean drop zone state
+        const dropZone = document.getElementById('dropZone');
+        if (dropZone) {
+            dropZone.classList.remove('drag-over');
+        }
+        
+        // Force deactivate gesture prevention
+        this.deactivateiPadGesturePrevention();
+        
+        // Reset all state
+        this.dragState = {
+            isDragging: false,
+            dragElement: null,
+            dragClone: null,
+            startX: 0,
+            startY: 0,
+            offsetX: 0,
+            offsetY: 0,
+            elementData: null,
+            pointerCapture: {
+                active: false,
+                pointerId: null,
+                element: null
+            },
+            gesturePreventionActive: false,
+            dragStartTime: 0,
+            minimumDragDistance: this.iPadDragFix.isIPad ? 10 : 5
+        };
+    }
+
+    // Task H: Activate iPad gesture prevention
+    activateiPadGesturePrevention() {
+        this.dragState.gesturePreventionActive = true;
+        
+        // Prevent Safari's pull-to-refresh on iPad
+        document.body.style.overscrollBehavior = 'none';
+        document.body.style.webkitOverflowScrolling = 'auto';
+    }
+
+    // Task H: Deactivate iPad gesture prevention
+    deactivateiPadGesturePrevention() {
+        this.dragState.gesturePreventionActive = false;
+        
+        // Restore normal scrolling behavior
+        document.body.style.overscrollBehavior = '';
+        document.body.style.webkitOverflowScrolling = '';
+    }
+
+    // Task H: Create iPad-optimized drag styles
+    createiPadOptimizedDragStyles() {
+        const styles = document.createElement('style');
+        styles.id = 'pointer-drag-styles';
+        styles.textContent = `
+            .draggable-element {
+                cursor: grab;
+                -webkit-touch-callout: none;
+                -webkit-tap-highlight-color: transparent;
+                touch-action: none;
+                user-select: none;
+                -webkit-user-select: none;
+            }
+            
+            .draggable-element:active {
+                cursor: grabbing;
+            }
+            
+            .draggable-element.dragging {
+                opacity: 0.5;
+                cursor: grabbing;
+            }
+            
+            /* Task H: iPad-specific optimizations */
+            @supports (-webkit-touch-callout: none) {
                 .draggable-element {
-                    cursor: grab;
                     -webkit-touch-callout: none;
+                    -webkit-user-drag: none;
                     -webkit-tap-highlight-color: transparent;
+                    -webkit-overflow-scrolling: auto;
                 }
                 
                 .draggable-element:active {
-                    cursor: grabbing;
+                    -webkit-transform: scale(1.02);
+                    transform: scale(1.02);
+                    transition: transform 0.1s ease-out;
+                }
+            }
+            
+            /* iPad Pro and Apple Pencil optimizations */
+            @media (hover: hover) and (pointer: fine) and (max-device-width: 1366px) {
+                .draggable-element {
+                    cursor: grab;
+                    transition: all 0.15s ease-out;
                 }
                 
-                .draggable-element.dragging {
-                    opacity: 0.5;
-                    cursor: grabbing;
+                .draggable-element:hover {
+                    transform: scale(1.02);
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                }
+            }
+            
+            @media (hover: none) and (pointer: coarse) {
+                /* Touch device styles with iPad enhancements */
+                .draggable-element {
+                    cursor: pointer;
+                    -webkit-user-drag: none;
+                    -khtml-user-drag: none;
+                    -moz-user-drag: none;
+                    -o-user-drag: none;
+                    user-drag: none;
+                    /* Enhanced touch feedback for iPad */
+                    min-height: 48px;
+                    position: relative;
                 }
                 
-                @media (hover: none) and (pointer: coarse) {
-                    /* Touch device styles */
-                    .draggable-element {
-                        cursor: pointer;
-                        -webkit-user-drag: none;
-                        -khtml-user-drag: none;
-                        -moz-user-drag: none;
-                        -o-user-drag: none;
-                        user-drag: none;
-                    }
+                .draggable-element::after {
+                    content: '';
+                    position: absolute;
+                    top: -8px;
+                    left: -8px;
+                    right: -8px;
+                    bottom: -8px;
+                    pointer-events: none;
+                    border-radius: 8px;
+                    background: transparent;
+                    transition: background 0.15s ease-out;
                 }
-            `;
-            document.head.appendChild(styles);
-        }
+                
+                .draggable-element:active::after {
+                    background: rgba(0,0,0,0.05);
+                }
+            }
+            
+            /* Drop zone enhancements for iPad */
+            .drop-zone.drag-over {
+                background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
+                border: 3px dashed #0B60D1;
+                transform: scale(1.02);
+                transition: all 0.2s ease-out;
+            }
+            
+            /* iPad-specific drag clone animations */
+            @supports (-webkit-touch-callout: none) {
+                .drag-clone {
+                    will-change: transform, opacity;
+                    backface-visibility: hidden;
+                    -webkit-backface-visibility: hidden;
+                    perspective: 1000px;
+                    -webkit-perspective: 1000px;
+                }
+            }
+        `;
+        document.head.appendChild(styles);
     }
 
     addElement(type, isCustom = false, category = '') {
@@ -3853,7 +4645,7 @@ class IPLCFormBuilder {
                     {
                         type: 'html',
                         name: 'generate_button',
-                        html: '<div style="text-align: center; margin: 20px 0;"><button type="button" class="btn btn-primary" data-action="generateAIGoals">🎯 Generate Goals</button></div>'
+                        html: '<div style="text-align: center; margin: 20px 0;"><button type="button" class="btn btn-primary touch-target" data-action="generateAIGoals">🎯 Generate Goals</button></div>'
                     },
                     {
                         type: 'panel',
@@ -3971,7 +4763,7 @@ class IPLCFormBuilder {
                     {
                         type: 'html',
                         name: 'generate_recommendations_button',
-                        html: '<div style="text-align: center; margin: 20px 0;"><button type="button" class="btn btn-primary" data-action="generateAIRecommendations">💡 Generate Recommendations</button></div>'
+                        html: '<div style="text-align: center; margin: 20px 0;"><button type="button" class="btn btn-primary touch-target" data-action="generateAIRecommendations">💡 Generate Recommendations</button></div>'
                     },
                     {
                         type: 'panel',
@@ -4153,7 +4945,7 @@ class IPLCFormBuilder {
         propertiesHTML += `
             <div class="property-group">
                 <h4 style="margin-bottom: 0.5rem;">Conditional Logic</h4>
-                <button class="btn btn-sm btn-secondary conditional-logic-btn" data-action="showConditionalLogicEditor">
+                <button class="btn btn-sm btn-secondary conditional-logic-btn touch-target" data-action="showConditionalLogicEditor">
                     <span class="icon">⚙️</span> Configure Conditions
                 </button>
                 ${element.visibleIf ? `<div class="current-condition-preview">Current: <code>${element.visibleIf}</code></div>` : ''}
@@ -4172,10 +4964,10 @@ class IPLCFormBuilder {
                         <div class="choice-item">
                             <input type="text" class="property-input" value="${this.escapeHtml(choice)}"
                                    onchange="formBuilder.updateChoice(${i}, this.value)">
-                            <button data-action="removeChoice" data-index="${i}" class="remove-btn">×</button>
+                            <button data-action="removeChoice" data-index="${i}" class="remove-btn touch-target">×</button>
                         </div>
                     `).join('')}
-                    <button class="btn btn-sm add-choice" data-action="addChoice">
+                    <button class="btn btn-sm add-choice touch-target" data-action="addChoice">
                         <span class="icon">➕</span> Add Choice
                     </button>
                 </div>
@@ -4204,15 +4996,15 @@ class IPLCFormBuilder {
                                 <span class="element-type-badge">${el.type}</span>
                                 <span class="element-name">${el.title || el.name || 'Untitled'}</span>
                                 <div class="element-actions">
-                                    <button data-action="editPanelElement" data-index="${i}" class="edit-btn" title="Edit">✏️</button>
-                                    <button data-action="movePanelElement" data-index="${i}" data-direction="-1" class="move-btn" title="Move Up">↑</button>
-                                    <button data-action="movePanelElement" data-index="${i}" data-direction="1" class="move-btn" title="Move Down">↓</button>
-                                    <button data-action="removePanelElement" data-index="${i}" class="remove-btn" title="Remove">🗑️</button>
+                                    <button data-action="editPanelElement" data-index="${i}" class="edit-btn touch-target" title="Edit">✏️</button>
+                                    <button data-action="movePanelElement" data-index="${i}" data-direction="-1" class="move-btn touch-target" title="Move Up">↑</button>
+                                    <button data-action="movePanelElement" data-index="${i}" data-direction="1" class="move-btn touch-target" title="Move Down">↓</button>
+                                    <button data-action="removePanelElement" data-index="${i}" class="remove-btn touch-target" title="Remove">🗑️</button>
                                 </div>
                             </div>
                         </div>
                     `).join('')}
-                    <button class="btn btn-sm add-panel-element" data-action="addPanelElement">
+                    <button class="btn btn-sm add-panel-element touch-target" data-action="addPanelElement">
                         <span class="icon">➕</span> Add Element to Panel
                     </button>
                 </div>
@@ -4232,10 +5024,10 @@ class IPLCFormBuilder {
                         <div class="matrix-item">
                             <input type="text" class="property-input" value="${this.escapeHtml(col)}"
                                    onchange="formBuilder.updateMatrixColumn(${i}, this.value)">
-                            <button data-action="removeMatrixColumn" data-index="${i}" class="remove-btn">×</button>
+                            <button data-action="removeMatrixColumn" data-index="${i}" class="remove-btn touch-target">×</button>
                         </div>
                     `).join('')}
-                    <button class="btn btn-sm" data-action="addMatrixColumn">
+                    <button class="btn btn-sm touch-target" data-action="addMatrixColumn">
                         <span class="icon">➕</span> Add Column
                     </button>
                 </div>
@@ -4246,10 +5038,10 @@ class IPLCFormBuilder {
                         <div class="matrix-item">
                             <input type="text" class="property-input" value="${this.escapeHtml(row)}"
                                    onchange="formBuilder.updateMatrixRow(${i}, this.value)">
-                            <button data-action="removeMatrixRow" data-index="${i}" class="remove-btn">×</button>
+                            <button data-action="removeMatrixRow" data-index="${i}" class="remove-btn touch-target">×</button>
                         </div>
                     `).join('')}
-                    <button class="btn btn-sm" data-action="addMatrixRow">
+                    <button class="btn btn-sm touch-target" data-action="addMatrixRow">
                         <span class="icon">➕</span> Add Row
                     </button>
                 </div>
@@ -4300,10 +5092,10 @@ class IPLCFormBuilder {
                                 <option value="radiogroup" ${col.cellType === 'radiogroup' ? 'selected' : ''}>Radio</option>
                                 <option value="boolean" ${col.cellType === 'boolean' ? 'selected' : ''}>Yes/No</option>
                             </select>
-                            <button data-action="removeMatrixDynamicColumn" data-index="${i}" class="remove-btn">×</button>
+                            <button data-action="removeMatrixDynamicColumn" data-index="${i}" class="remove-btn touch-target">×</button>
                         </div>
                     `).join('')}
-                    <button class="btn btn-sm" data-action="addMatrixDynamicColumn">
+                    <button class="btn btn-sm touch-target" data-action="addMatrixDynamicColumn">
                         <span class="icon">➕</span> Add Column
                     </button>
                 </div>
@@ -4343,15 +5135,15 @@ class IPLCFormBuilder {
                                 <span class="element-type-badge">${el.type}</span>
                                 <span class="element-name">${el.title || el.name || 'Untitled'}</span>
                                 <div class="element-actions">
-                                    <button data-action="editPanelDynamicElement" data-index="${i}" class="edit-btn" title="Edit">✏️</button>
-                                    <button data-action="movePanelDynamicElement" data-index="${i}" data-direction="-1" class="move-btn" title="Move Up">↑</button>
-                                    <button data-action="movePanelDynamicElement" data-index="${i}" data-direction="1" class="move-btn" title="Move Down">↓</button>
-                                    <button data-action="removePanelDynamicElement" data-index="${i}" class="remove-btn" title="Remove">🗑️</button>
+                                    <button data-action="editPanelElement" data-index="${i}" class="edit-btn touch-target" title="Edit">✏️</button>
+                                    <button data-action="movePanelElement" data-index="${i}" data-direction="-1" class="move-btn touch-target" title="Move Up">↑</button>
+                                    <button data-action="movePanelElement" data-index="${i}" data-direction="1" class="move-btn touch-target" title="Move Down">↓</button>
+                                    <button data-action="removePanelElement" data-index="${i}" class="remove-btn touch-target" title="Remove">🗑️</button>
                                 </div>
                             </div>
                         </div>
                     `).join('')}
-                    <button class="btn btn-sm" data-action="addPanelDynamicElement">
+                    <button class="btn btn-sm touch-target" data-action="addPanelDynamicElement">
                         <span class="icon">➕</span> Add Template Element
                     </button>
                 </div>
@@ -4769,7 +5561,7 @@ class IPLCFormBuilder {
             <div class="conditional-logic-content">
                 <div class="conditional-logic-header">
                     <h3>Conditional Logic for: ${element.title || element.name}</h3>
-                    <button class="close-button" data-action="closeModal">×</button>
+                    <button class="close-button touch-target" data-action="closeModal">×</button>
                 </div>
                 <div class="conditional-logic-body">
                     <div class="enable-conditional">
@@ -4813,10 +5605,10 @@ class IPLCFormBuilder {
                     </div>
                 </div>
                 <div class="conditional-logic-footer">
-                    <button class="btn btn-secondary" data-action="closeModal">
+                    <button class="btn btn-secondary touch-target" data-action="closeModal">
                         Cancel
                     </button>
-                    <button class="btn btn-primary" data-action="saveConditionalLogic">
+                    <button class="btn btn-primary touch-target" data-action="saveConditionalLogic">
                         Save Condition
                     </button>
                 </div>
@@ -5417,7 +6209,7 @@ class IPLCFormBuilder {
                 <h5 class="modal-title" style="margin: 0; font-size: 1.25rem; font-weight: 500;">
                     Edit Panel: ${panel.title || panel.name}
                 </h5>
-                <button type="button" class="btn-close" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; opacity: 0.5;">&times;</button>
+                <button type="button" class="btn-close touch-target" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; opacity: 0.5;">&times;</button>
             </div>
             <div class="modal-body" style="padding: 1.5rem; overflow-y: auto; flex: 1;">
                 <div class="panel-basic-props" style="margin-bottom: 1.5rem;">
@@ -5445,21 +6237,21 @@ class IPLCFormBuilder {
                                         <span style="color: #6c757d; font-size: 0.875rem; margin-left: 0.5rem;">(${el.type})</span>
                                     </div>
                                     <div>
-                                        <button class="btn btn-sm btn-primary edit-sub-element" data-index="${idx}" style="margin-right: 0.25rem;">Edit</button>
-                                        <button class="btn btn-sm btn-danger remove-sub-element" data-index="${idx}">Remove</button>
+                                        <button class="btn btn-sm btn-primary edit-sub-element touch-target" data-index="${idx}" style="margin-right: 0.25rem;">Edit</button>
+                                        <button class="btn btn-sm btn-danger remove-sub-element touch-target" data-index="${idx}">Remove</button>
                                     </div>
                                 </div>
                             </div>
                         `).join('')}
                     </div>
-                    <button class="btn btn-sm btn-success" id="addSubElement" style="margin-top: 0.5rem;">
+                    <button class="btn btn-sm btn-success touch-target" id="addSubElement" style="margin-top: 0.5rem;">
                         <span>➕</span> Add Element
                     </button>
                 </div>
             </div>
             <div class="modal-footer" style="padding: 1rem 1.5rem; border-top: 1px solid #dee2e6; display: flex; justify-content: flex-end; gap: 0.5rem; flex-shrink: 0;">
-                <button type="button" class="btn btn-secondary" id="cancelPanelEdit">Cancel</button>
-                <button type="button" class="btn btn-primary" id="savePanelChanges">Save Changes</button>
+                <button type="button" class="btn btn-secondary touch-target" id="cancelPanelEdit">Cancel</button>
+                <button type="button" class="btn btn-primary touch-target" id="savePanelChanges">Save Changes</button>
             </div>
         `;
 
@@ -5525,8 +6317,8 @@ class IPLCFormBuilder {
                                     <span style="color: #6c757d; font-size: 0.875rem; margin-left: 0.5rem;">(${el.type})</span>
                                 </div>
                                 <div>
-                                    <button class="btn btn-sm btn-primary edit-sub-element" data-index="${idx}" style="margin-right: 0.25rem;">Edit</button>
-                                    <button class="btn btn-sm btn-danger remove-sub-element" data-index="${idx}">Remove</button>
+                                    <button class="btn btn-sm btn-primary edit-sub-element touch-target" data-index="${idx}" style="margin-right: 0.25rem;">Edit</button>
+                                    <button class="btn btn-sm btn-danger remove-sub-element touch-target" data-index="${idx}">Remove</button>
                                 </div>
                             </div>
                         </div>
@@ -5558,8 +6350,8 @@ class IPLCFormBuilder {
                                     <span style="color: #6c757d; font-size: 0.875rem; margin-left: 0.5rem;">(${el.type})</span>
                                 </div>
                                 <div>
-                                    <button class="btn btn-sm btn-primary edit-sub-element" data-index="${idx}" style="margin-right: 0.25rem;">Edit</button>
-                                    <button class="btn btn-sm btn-danger remove-sub-element" data-index="${idx}">Remove</button>
+                                    <button class="btn btn-sm btn-primary edit-sub-element touch-target" data-index="${idx}" style="margin-right: 0.25rem;">Edit</button>
+                                    <button class="btn btn-sm btn-danger remove-sub-element touch-target" data-index="${idx}">Remove</button>
                                 </div>
                             </div>
                         </div>
@@ -5588,8 +6380,8 @@ class IPLCFormBuilder {
                                 <span style="color: #6c757d; font-size: 0.875rem; margin-left: 0.5rem;">(${el.type})</span>
                             </div>
                             <div>
-                                <button class="btn btn-sm btn-primary edit-sub-element" data-index="${idx}" style="margin-right: 0.25rem;">Edit</button>
-                                <button class="btn btn-sm btn-danger remove-sub-element" data-index="${idx}">Remove</button>
+                                <button class="btn btn-sm btn-primary edit-sub-element touch-target" data-index="${idx}" style="margin-right: 0.25rem;">Edit</button>
+                                <button class="btn btn-sm btn-danger remove-sub-element touch-target" data-index="${idx}">Remove</button>
                             </div>
                         </div>
                     </div>
@@ -5645,7 +6437,7 @@ class IPLCFormBuilder {
                 <h5 class="modal-title" style="margin: 0; font-size: 1.25rem; font-weight: 500;">
                     Select Element Type
                 </h5>
-                <button type="button" class="btn-close" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; opacity: 0.5;">&times;</button>
+                <button type="button" class="btn-close touch-target" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; opacity: 0.5;">&times;</button>
             </div>
             <div class="modal-body" style="padding: 1.5rem;">
                 <div class="element-type-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.5rem;">
@@ -5750,11 +6542,11 @@ class IPLCFormBuilder {
                                        placeholder="Value" style="flex: 1;">
                                 <input type="text" class="form-control choice-text" value="${typeof choice === 'string' ? choice : choice.text || ''}"
                                        placeholder="Display Text" style="flex: 1;">
-                                <button class="btn btn-sm btn-danger remove-choice">&times;</button>
+                                <button class="btn btn-sm btn-danger remove-choice touch-target">&times;</button>
                             </div>
                         `).join('')}
                     </div>
-                    <button class="btn btn-sm btn-success" id="addChoice">Add Choice</button>
+                    <button class="btn btn-sm btn-success touch-target" id="addChoice">Add Choice</button>
                 </div>
             `;
         }
@@ -5803,14 +6595,14 @@ class IPLCFormBuilder {
                 <h5 class="modal-title" style="margin: 0; font-size: 1.25rem; font-weight: 500;">
                     Edit ${type.charAt(0).toUpperCase() + type.slice(1)} Element
                 </h5>
-                <button type="button" class="btn-close" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; opacity: 0.5;">&times;</button>
+                <button type="button" class="btn-close touch-target" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; opacity: 0.5;">&times;</button>
             </div>
             <div class="modal-body" style="padding: 1.5rem; overflow-y: auto; flex: 1;">
                 ${fieldsHtml}
             </div>
             <div class="modal-footer" style="padding: 1rem 1.5rem; border-top: 1px solid #dee2e6; display: flex; justify-content: flex-end; gap: 0.5rem; flex-shrink: 0;">
-                <button type="button" class="btn btn-secondary" id="cancelElementEdit">Cancel</button>
-                <button type="button" class="btn btn-primary" id="saveElementChanges">Save Changes</button>
+                <button type="button" class="btn btn-secondary touch-target" id="cancelElementEdit">Cancel</button>
+                <button type="button" class="btn btn-primary touch-target" id="saveElementChanges">Save Changes</button>
             </div>
         `;
 
@@ -5840,7 +6632,7 @@ class IPLCFormBuilder {
                 newChoice.innerHTML = `
                     <input type="text" class="form-control choice-value" placeholder="Value" style="flex: 1;">
                     <input type="text" class="form-control choice-text" placeholder="Display Text" style="flex: 1;">
-                    <button class="btn btn-sm btn-danger remove-choice">&times;</button>
+                    <button class="btn btn-sm btn-danger remove-choice touch-target">&times;</button>
                 `;
                 choicesList.appendChild(newChoice);
                 
@@ -5915,8 +6707,8 @@ class IPLCFormBuilder {
                                     <span style="color: #6c757d; font-size: 0.875rem; margin-left: 0.5rem;">(${el.type})</span>
                                 </div>
                                 <div>
-                                    <button class="btn btn-sm btn-primary edit-sub-element" data-index="${idx}" style="margin-right: 0.25rem;">Edit</button>
-                                    <button class="btn btn-sm btn-danger remove-sub-element" data-index="${idx}">Remove</button>
+                                    <button class="btn btn-sm btn-primary edit-sub-element touch-target" data-index="${idx}" style="margin-right: 0.25rem;">Edit</button>
+                                    <button class="btn btn-sm btn-danger remove-sub-element touch-target" data-index="${idx}">Remove</button>
                                 </div>
                             </div>
                         </div>
@@ -5948,8 +6740,8 @@ class IPLCFormBuilder {
                                     <span style="color: #6c757d; font-size: 0.875rem; margin-left: 0.5rem;">(${el.type})</span>
                                 </div>
                                 <div>
-                                    <button class="btn btn-sm btn-primary edit-sub-element" data-index="${idx}" style="margin-right: 0.25rem;">Edit</button>
-                                    <button class="btn btn-sm btn-danger remove-sub-element" data-index="${idx}">Remove</button>
+                                    <button class="btn btn-sm btn-primary edit-sub-element touch-target" data-index="${idx}" style="margin-right: 0.25rem;">Edit</button>
+                                    <button class="btn btn-sm btn-danger remove-sub-element touch-target" data-index="${idx}">Remove</button>
                                 </div>
                             </div>
                         </div>
@@ -6054,87 +6846,397 @@ class IPLCFormBuilder {
         this.renderFormElements();
     }
 
-    preview() {
-        const modal = document.createElement('div');
-        modal.className = 'preview-modal';
-        modal.innerHTML = `
-            <div class="preview-content">
-                <div class="preview-header">
-                    <h3>Form Preview</h3>
-                    <button class="close-preview" data-action="closeModal">×</button>
-                </div>
-                <div class="preview-body">
-                    <div id="surveyPreview"></div>
-                </div>
-            </div>
-        `;
-        
-        document.body.appendChild(modal);
-        modal.style.display = 'block';
+    // Task A: Inject builder CSS styles into preview for visual consistency
+    injectBuilderCSSIntoPreview() {
+        // Check if preview styles already exist to prevent duplicates
+        if (document.getElementById('preview-builder-styles')) {
+            return;
+        }
 
-        // Initialize SurveyJS with the form data
-        try {
-            // Ensure the preview container is in the DOM before rendering
-            const previewElement = document.getElementById("surveyPreview");
-            if (!previewElement) {
-                throw new Error("Preview container not found in DOM");
+        const previewStyles = document.createElement('style');
+        previewStyles.id = 'preview-builder-styles';
+        previewStyles.textContent = `
+            /* Task A & B: Inject divider & label styles into preview iframe for visual consistency */
+            
+            /* Task F: Centralized section dividers in preview - IPLC branding */
+            .preview-modal .section-divider,
+            #surveyPreview .section-divider {
+                border: none;
+                height: 4px;
+                background: #0B60D1;
+                margin: 1.5rem 0;
+                width: 100%;
+                border-radius: 2px;
+                box-shadow: 0 2px 4px rgba(11, 96, 209, 0.3);
+                opacity: 0.8;
+                transition: opacity 0.3s ease;
+                role: presentation;
+                aria-hidden: true;
             }
             
-            // Create survey with auto-loading IPLC logo
-            const surveyData = this.getFormDataWithLogo();
-            const survey = new Survey.Model(surveyData);
+            .preview-modal .section-divider:hover,
+            #surveyPreview .section-divider:hover {
+                opacity: 1;
+                box-shadow: 0 2px 6px rgba(11, 96, 209, 0.4);
+            }
             
-            // CRITICAL: Set the survey to read-only to hide all editing controls
-            survey.readOnly = false; // Keep interactive for preview
+            /* Gradient variant for special preview sections */
+            .preview-modal .section-divider.gradient,
+            #surveyPreview .section-divider.gradient {
+                background: linear-gradient(90deg, #0B60D1 0%, #0952a5 50%, #0B60D1 100%);
+            }
             
-            // Ensure no design-time features are enabled
-            survey.showNavigationButtons = true;
-            survey.showProgressBar = "top";
-            survey.showCompletedPage = false;
+            /* Panel separator styling in preview */
+            .preview-modal .section-divider.panel-separator,
+            #surveyPreview .section-divider.panel-separator {
+                height: 6px;
+                margin: 2rem 0;
+                background: linear-gradient(90deg, #0B60D1 0%, #0952a5 25%, #0B60D1 50%, #0952a5 75%, #0B60D1 100%);
+                box-shadow: 0 3px 8px rgba(11, 96, 209, 0.4);
+            }
             
-            // Disable any editing capabilities
-            if (survey.onAfterRenderPage) {
-                survey.onAfterRenderPage.add((sender, options) => {
-                    // Remove any design-time elements that might have been rendered
-                    const designElements = options.htmlElement.querySelectorAll(
-                        '.sv-action-bar, .sv-designer-button, .sd-element__add-button, ' +
-                        '.sd-page__add-button, .sv-action-bar-item, .sv-add-new-page-btn, ' +
-                        '[class*="designer"], [class*="add-new"], [class*="add-button"]'
-                    );
-                    designElements.forEach(el => el.remove());
+            /* Enhanced label styling in preview */
+            .preview-modal .sv-string-viewer,
+            .preview-modal .sv-question__title,
+            .preview-modal .sv-panel__title,
+            #surveyPreview .sv-string-viewer,
+            #surveyPreview .sv-question__title,
+            #surveyPreview .sv-panel__title {
+                font-weight: 600;
+                color: #2c3e50;
+                margin-bottom: 0.75rem;
+                line-height: 1.4;
+            }
+            
+            /* Panel styling consistency with IPLC branding */
+            .preview-modal .sv-panel,
+            #surveyPreview .sv-panel {
+                background: linear-gradient(to right, #f8f9fa 0%, white 10%);
+                border-left: 4px solid #0B60D1;
+                border-radius: 8px;
+                padding: 1.5rem;
+                margin-bottom: 1.5rem;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            
+            /* Form element spacing consistency */
+            .preview-modal .sv-question,
+            #surveyPreview .sv-question {
+                margin-bottom: 1.5rem;
+                padding: 1rem;
+                background: white;
+                border-radius: 6px;
+                border: 1px solid #e1e4e8;
+            }
+            
+            /* Input field consistency with touch-friendly sizing */
+            .preview-modal input[type="text"],
+            .preview-modal input[type="email"],
+            .preview-modal input[type="tel"],
+            .preview-modal input[type="number"],
+            .preview-modal input[type="date"],
+            .preview-modal textarea,
+            .preview-modal select,
+            #surveyPreview input[type="text"],
+            #surveyPreview input[type="email"],
+            #surveyPreview input[type="tel"],
+            #surveyPreview input[type="number"],
+            #surveyPreview input[type="date"],
+            #surveyPreview textarea,
+            #surveyPreview select {
+                min-height: 44px;
+                padding: 0.75rem;
+                border: 2px solid #dee2e6;
+                border-radius: 4px;
+                font-size: 16px; /* Prevent iOS zoom on focus */
+                background-color: #ffffff;
+                color: #212529;
+                transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+            }
+            
+            /* Focus states for accessibility */
+            .preview-modal input:focus,
+            .preview-modal textarea:focus,
+            .preview-modal select:focus,
+            #surveyPreview input:focus,
+            #surveyPreview textarea:focus,
+            #surveyPreview select:focus {
+                border-color: #0B60D1;
+                outline: 0;
+                box-shadow: 0 0 0 0.2rem rgba(11, 96, 209, 0.25);
+            }
+            
+            /* Button styling with IPLC branding */
+            .preview-modal .sv-btn,
+            .preview-modal button,
+            #surveyPreview .sv-btn,
+            #surveyPreview button {
+                min-width: 44px;
+                min-height: 44px;
+                padding: 0.75rem 1.5rem;
+                background-color: #0B60D1;
+                color: white;
+                border: 2px solid #0B60D1;
+                border-radius: 4px;
+                font-size: 16px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.15s ease-in-out;
+            }
+            
+            .preview-modal .sv-btn:hover,
+            .preview-modal button:hover,
+            #surveyPreview .sv-btn:hover,
+            #surveyPreview button:hover {
+                background-color: #0952a5;
+                border-color: #0952a5;
+                transform: translateY(-1px);
+                box-shadow: 0 2px 4px rgba(11, 96, 209, 0.3);
+            }
+            
+            /* Progress bar styling */
+            .preview-modal .sv-progress,
+            #surveyPreview .sv-progress {
+                background-color: #e9ecef;
+                border-radius: 0.25rem;
+                overflow: hidden;
+            }
+            
+            .preview-modal .sv-progress__bar,
+            #surveyPreview .sv-progress__bar {
+                background-color: #0B60D1;
+                transition: width 0.3s ease;
+            }
+            
+            /* Radio button and checkbox styling */
+            .preview-modal input[type="radio"],
+            .preview-modal input[type="checkbox"],
+            #surveyPreview input[type="radio"],
+            #surveyPreview input[type="checkbox"] {
+                min-width: 20px;
+                min-height: 20px;
+                margin: 12px;
+            }
+            
+            /* Label touch targets for small inputs */
+            .preview-modal label:has(input[type="checkbox"]),
+            .preview-modal label:has(input[type="radio"]),
+            #surveyPreview label:has(input[type="checkbox"]),
+            #surveyPreview label:has(input[type="radio"]) {
+                min-height: 44px;
+                display: flex;
+                align-items: center;
+                padding: 8px;
+                margin: 4px 0;
+                cursor: pointer;
+            }
+            
+            /* Rating scale styling */
+            .preview-modal .sv-rating,
+            #surveyPreview .sv-rating {
+                display: flex;
+                gap: 0.5rem;
+                align-items: center;
+            }
+            
+            .preview-modal .sv-rating__item,
+            #surveyPreview .sv-rating__item {
+                min-width: 44px;
+                min-height: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 2px solid #dee2e6;
+                border-radius: 4px;
+                cursor: pointer;
+                transition: all 0.15s ease-in-out;
+            }
+            
+            .preview-modal .sv-rating__item:hover,
+            .preview-modal .sv-rating__item.sv-rating__item--selected,
+            #surveyPreview .sv-rating__item:hover,
+            #surveyPreview .sv-rating__item.sv-rating__item--selected {
+                background-color: #0B60D1;
+                border-color: #0B60D1;
+                color: white;
+            }
+            
+            /* Error message styling */
+            .preview-modal .sv-question__errs,
+            #surveyPreview .sv-question__errs {
+                color: #dc3545;
+                font-size: 0.875rem;
+                margin-top: 0.25rem;
+            }
+            
+            /* Responsive design for mobile/tablet */
+            @media (max-width: 768px) {
+                .preview-modal input,
+                .preview-modal textarea,
+                .preview-modal select,
+                .preview-modal button,
+                #surveyPreview input,
+                #surveyPreview textarea,
+                #surveyPreview select,
+                #surveyPreview button {
+                    min-height: 48px;
+                    font-size: 18px;
+                }
+                
+                .preview-modal .sv-question,
+                #surveyPreview .sv-question {
+                    padding: 0.75rem;
+                }
+                
+                .preview-modal .sv-panel,
+                #surveyPreview .sv-panel {
+                    padding: 1rem;
+                }
+            }
+            
+            /* High contrast mode support */
+            @media (prefers-contrast: high) {
+                .preview-modal input,
+                .preview-modal textarea,
+                .preview-modal select,
+                .preview-modal button,
+                #surveyPreview input,
+                #surveyPreview textarea,
+                #surveyPreview select,
+                #surveyPreview button {
+                    border-width: 3px;
+                }
+            }
+            
+            /* Reduced motion support */
+            @media (prefers-reduced-motion: reduce) {
+                .preview-modal *,
+                #surveyPreview * {
+                    animation-duration: 0.01ms !important;
+                    transition-duration: 0.01ms !important;
+                }
+            }
+        `;
+        document.head.appendChild(previewStyles);
+    }
+
+    preview() {
+        // Data-preview-bound guard to prevent duplicate listeners and multiple instances
+        if (document.body.hasAttribute('data-preview-bound') || document.querySelector('.preview-modal')) {
+            console.log('FormBuilder: Preview already active, skipping duplicate initialization');
+            return;
+        }
+        
+        // Set guard flag
+        document.body.setAttribute('data-preview-bound', 'true');
+        
+        try {
+            // Inject builder CSS styles into preview to ensure visual consistency
+            this.injectBuilderCSSIntoPreview();
+            
+            const modal = document.createElement('div');
+            modal.className = 'preview-modal';
+            modal.innerHTML = `
+                <div class="preview-content">
+                    <div class="preview-header">
+                        <h3>Form Preview</h3>
+                        <button class="close-preview touch-target" data-action="closeModal">×</button>
+                    </div>
+                    <div class="preview-body">
+                        <div id="surveyPreview"></div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            modal.style.display = 'block';
+
+            // Initialize SurveyJS with the form data
+            try {
+                // Ensure the preview container is in the DOM before rendering
+                const previewElement = document.getElementById("surveyPreview");
+                if (!previewElement) {
+                    throw new Error("Preview container not found in DOM");
+                }
+                
+                // Create survey with auto-loading IPLC logo
+                const surveyData = this.getFormDataWithLogo();
+                const survey = new Survey.Model(surveyData);
+                
+                // CRITICAL: Set the survey to read-only to hide all editing controls
+                survey.readOnly = false; // Keep interactive for preview
+                
+                // Ensure no design-time features are enabled
+                survey.showNavigationButtons = true;
+                survey.showProgressBar = "top";
+                survey.showCompletedPage = false;
+                
+                // Disable any editing capabilities
+                if (survey.onAfterRenderPage) {
+                    survey.onAfterRenderPage.add((sender, options) => {
+                        // Remove any design-time elements that might have been rendered
+                        const designElements = options.htmlElement.querySelectorAll(
+                            '.sv-action-bar, .sv-designer-button, .sd-element__add-button, ' +
+                            '.sd-page__add-button, .sv-action-bar-item, .sv-add-new-page-btn, ' +
+                            '[class*="designer"], [class*="add-new"], [class*="add-button"]'
+                        );
+                        designElements.forEach(el => el.remove());
+                    });
+                }
+                
+                // Pass the DOM element, not just the ID string
+                survey.render(previewElement);
+                
+                // Additional cleanup after render
+                setTimeout(() => {
+                    // Remove any remaining design/edit elements
+                    const container = document.getElementById('surveyPreview');
+                    if (container) {
+                        // Remove any "Add Page" buttons or similar editing controls
+                        const editControls = container.querySelectorAll(
+                            'button:contains("Add"), button:contains("add"), ' +
+                            '[title*="Add"], [title*="add"], .add-page-btn, ' +
+                            '.sv-action-bar, .sd-action-bar'
+                        );
+                        editControls.forEach(el => {
+                            if (el.textContent && (el.textContent.includes('Add') || el.textContent.includes('add'))) {
+                                el.remove();
+                            }
+                        });
+                    }
+                }, 100);
+                
+            } catch (error) {
+                console.error('Error creating preview:', error);
+                document.getElementById('surveyPreview').innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: #dc3545;">
+                        <p>Error creating preview. Please check your form configuration.</p>
+                        <small>${error.message}</small>
+                    </div>
+                `;
+            }
+            
+            // Add event listener for close button using Pointer Events API for unified touch/mouse/pen input
+            const closeButton = modal.querySelector('.close-preview');
+            if (closeButton) {
+                closeButton.addEventListener('pointerdown', (e) => {
+                    e.preventDefault();
+                    this.closePreview();
                 });
             }
             
-            // Pass the DOM element, not just the ID string
-            survey.render(previewElement);
-            
-            // Additional cleanup after render
-            setTimeout(() => {
-                // Remove any remaining design/edit elements
-                const container = document.getElementById('surveyPreview');
-                if (container) {
-                    // Remove any "Add Page" buttons or similar editing controls
-                    const editControls = container.querySelectorAll(
-                        'button:contains("Add"), button:contains("add"), ' +
-                        '[title*="Add"], [title*="add"], .add-page-btn, ' +
-                        '.sv-action-bar, .sd-action-bar'
-                    );
-                    editControls.forEach(el => {
-                        if (el.textContent && (el.textContent.includes('Add') || el.textContent.includes('add'))) {
-                            el.remove();
-                        }
-                    });
+            // Add event listener for clicking outside the modal
+            modal.addEventListener('pointerdown', (e) => {
+                if (e.target === modal) {
+                    e.preventDefault();
+                    this.closePreview();
                 }
-            }, 100);
+            });
             
         } catch (error) {
-            console.error('Error creating preview:', error);
-            document.getElementById('surveyPreview').innerHTML = `
-                <div style="text-align: center; padding: 2rem; color: #dc3545;">
-                    <p>Error creating preview. Please check your form configuration.</p>
-                    <small>${error.message}</small>
-                </div>
-            `;
+            console.error('FormBuilder: Preview initialization error:', error);
+            // Remove guard flag on error
+            document.body.removeAttribute('data-preview-bound');
         }
     }
     
@@ -6147,6 +7249,25 @@ class IPLCFormBuilder {
         if (modal) {
             modal.remove();
         }
+        
+        // Clean up guard flags to prevent duplicate listeners
+        document.body.removeAttribute('data-preview-bound');
+        
+        // Clean up injected preview styles
+        const injectedStyles = document.getElementById('preview-builder-styles');
+        if (injectedStyles) {
+            injectedStyles.remove();
+        }
+        
+        // Clean up any remaining event listeners on preview elements
+        const previewElements = document.querySelectorAll('[data-action="closeModal"]');
+        previewElements.forEach(element => {
+            // Clone and replace to remove all event listeners
+            const newElement = element.cloneNode(true);
+            if (element.parentNode) {
+                element.parentNode.replaceChild(newElement, element);
+            }
+        });
         
         // Reinitialize the builder to ensure it's not in read-only state
         setTimeout(() => {
@@ -7008,7 +8129,7 @@ class IPLCFormBuilder {
         dialog.innerHTML = `
             <div class="modal-header" style="padding: 1rem; border-bottom: 1px solid #dee2e6; display: flex; justify-content: space-between; align-items: center;">
                 <h5 class="modal-title" style="margin: 0; font-size: 1.25rem;">Select Element Type</h5>
-                <button type="button" class="btn-close" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; opacity: 0.5;" aria-label="Close">&times;</button>
+                <button type="button" class="btn-close touch-target" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; opacity: 0.5;" aria-label="Close">&times;</button>
             </div>
             <div class="modal-body" style="padding: 1rem;">
                 <select class="form-select" id="elementTypeSelect" style="width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem; font-size: 1rem;">
@@ -7016,8 +8137,8 @@ class IPLCFormBuilder {
                 </select>
             </div>
             <div class="modal-footer" style="padding: 1rem; border-top: 1px solid #dee2e6; display: flex; justify-content: flex-end; gap: 0.5rem;">
-                <button type="button" class="btn btn-secondary" style="padding: 0.375rem 0.75rem; border: 1px solid #6c757d; background: #6c757d; color: white; border-radius: 0.25rem; cursor: pointer;">Cancel</button>
-                <button type="button" class="btn btn-primary" id="confirmElementType" style="padding: 0.375rem 0.75rem; border: 1px solid #0d6efd; background: #0d6efd; color: white; border-radius: 0.25rem; cursor: pointer;">Add Element</button>
+                <button type="button" class="btn btn-secondary touch-target" style="padding: 0.375rem 0.75rem; border: 1px solid #6c757d; background: #6c757d; color: white; border-radius: 0.25rem; cursor: pointer;">Cancel</button>
+                <button type="button" class="btn btn-primary touch-target" id="confirmElementType" style="padding: 0.375rem 0.75rem; border: 1px solid #0d6efd; background: #0d6efd; color: white; border-radius: 0.25rem; cursor: pointer;">Add Element</button>
             </div>
         `;
 
@@ -7159,7 +8280,7 @@ class IPLCFormBuilder {
                 <h5 class="modal-title" style="margin: 0; font-size: 1.25rem; font-weight: 500;">
                     Edit ${type ? type.charAt(0).toUpperCase() + type.slice(1) : ''} Element
                 </h5>
-                <button type="button" class="btn-close" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; opacity: 0.5; padding: 0; width: 1.5rem; height: 1.5rem; display: flex; align-items: center; justify-content: center;">&times;</button>
+                <button type="button" class="btn-close touch-target" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; opacity: 0.5; padding: 0; width: 1.5rem; height: 1.5rem; display: flex; align-items: center; justify-content: center;">&times;</button>
             </div>
             <div class="modal-body" style="padding: 1.5rem; overflow-y: auto; flex: 1;">
                 <form id="elementEditForm">
@@ -7177,8 +8298,8 @@ class IPLCFormBuilder {
                 </form>
             </div>
             <div class="modal-footer" style="padding: 1rem 1.5rem; border-top: 1px solid #dee2e6; display: flex; justify-content: flex-end; gap: 0.5rem; flex-shrink: 0;">
-                <button type="button" class="btn btn-secondary" style="padding: 0.375rem 0.75rem; border: 1px solid #6c757d; background: #6c757d; color: white; border-radius: 0.25rem; cursor: pointer;">Cancel</button>
-                <button type="button" class="btn btn-primary" id="saveElementChanges" style="padding: 0.375rem 0.75rem; border: 1px solid #0d6efd; background: #0d6efd; color: white; border-radius: 0.25rem; cursor: pointer;">Save Changes</button>
+                <button type="button" class="btn btn-secondary touch-target" style="padding: 0.375rem 0.75rem; border: 1px solid #6c757d; background: #6c757d; color: white; border-radius: 0.25rem; cursor: pointer;">Cancel</button>
+                <button type="button" class="btn btn-primary touch-target" id="saveElementChanges" style="padding: 0.375rem 0.75rem; border: 1px solid #0d6efd; background: #0d6efd; color: white; border-radius: 0.25rem; cursor: pointer;">Save Changes</button>
             </div>
         `;
 
@@ -7810,6 +8931,105 @@ class IPLCFormBuilder {
         if (typeof Survey === 'undefined') {
             console.warn('FormBuilder: Survey.js not loaded, skipping custom question registration');
             return;
+        }
+        
+        // Task C: Register calculateAge() function via Survey.FunctionFactory
+        try {
+            Survey.FunctionFactory.Instance.register("calculateAge", function(dateOfBirth) {
+                // Handle different date input formats
+                if (!dateOfBirth) {
+                    return "";
+                }
+                
+                let birthDate;
+                
+                // Convert string dates to Date object
+                if (typeof dateOfBirth === "string") {
+                    // Handle various date formats: YYYY-MM-DD, MM/DD/YYYY, DD/MM/YYYY
+                    birthDate = new Date(dateOfBirth);
+                    
+                    // If invalid date, try alternative parsing
+                    if (isNaN(birthDate.getTime())) {
+                        // Try MM/DD/YYYY format
+                        const parts = dateOfBirth.split(/[-\/]/);
+                        if (parts.length === 3) {
+                            // Assume YYYY-MM-DD or MM/DD/YYYY based on first part length
+                            if (parts[0].length === 4) {
+                                // YYYY-MM-DD format
+                                birthDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+                            } else {
+                                // MM/DD/YYYY format
+                                birthDate = new Date(parseInt(parts[2]), parseInt(parts[0]) - 1, parseInt(parts[1]));
+                            }
+                        }
+                    }
+                } else if (dateOfBirth instanceof Date) {
+                    birthDate = dateOfBirth;
+                } else {
+                    return "Invalid date format";
+                }
+                
+                // Validate date
+                if (isNaN(birthDate.getTime())) {
+                    return "Invalid date";
+                }
+                
+                // Calculate age
+                const today = new Date();
+                const birthYear = birthDate.getFullYear();
+                const birthMonth = birthDate.getMonth();
+                const birthDay = birthDate.getDate();
+                
+                const currentYear = today.getFullYear();
+                const currentMonth = today.getMonth();
+                const currentDay = today.getDate();
+                
+                let age = currentYear - birthYear;
+                
+                // Adjust age if birthday hasn't occurred this year
+                if (currentMonth < birthMonth ||
+                    (currentMonth === birthMonth && currentDay < birthDay)) {
+                    age--;
+                }
+                
+                // Handle edge cases
+                if (age < 0) {
+                    return "Future date";
+                }
+                
+                if (age > 150) {
+                    return "Please verify date";
+                }
+                
+                // Return age with appropriate formatting
+                if (age === 0) {
+                    // For infants, calculate months
+                    let months = currentMonth - birthMonth;
+                    if (currentDay < birthDay) {
+                        months--;
+                    }
+                    if (months < 0) {
+                        months += 12;
+                    }
+                    
+                    if (months === 0) {
+                        // Calculate days for newborns
+                        const timeDiff = today.getTime() - birthDate.getTime();
+                        const days = Math.floor(timeDiff / (1000 * 3600 * 24));
+                        return days <= 1 ? `${days} day` : `${days} days`;
+                    } else {
+                        return months === 1 ? `${months} month` : `${months} months`;
+                    }
+                } else if (age === 1) {
+                    return `${age} year`;
+                } else {
+                    return `${age} years`;
+                }
+            });
+            
+            console.log('FormBuilder: calculateAge() function registered successfully');
+        } catch (error) {
+            console.error('FormBuilder: Error registering calculateAge() function:', error);
         }
         
         // Register AI Summary custom question type
