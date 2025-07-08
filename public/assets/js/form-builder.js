@@ -10,9 +10,7 @@
  */
 class IPLCFormBuilder {
     constructor(containerId, options = {}) {
-        console.log('IPLCFormBuilder constructor called with:', containerId);
         this.container = document.getElementById(containerId);
-        console.log('Container element found:', this.container);
         this.options = options;
         this.templateId = null;
         this.formData = {
@@ -52,15 +50,378 @@ class IPLCFormBuilder {
     }
 
     init() {
-        console.log('FormBuilder: init() called');
-        this.checkForEditMode();
-        this.initializeBuilder();
-        this.loadQuickTemplates();
+        try {
+            this.checkForEditMode();
+            this.initializeBuilder();
+            this.loadQuickTemplates();
+        } catch (error) {
+            console.error('FormBuilder: Critical error during initialization:', error);
+            this.showNotification('Form builder initialization failed: ' + error.message, 'error');
+            
+            // Show fallback error state
+            const container = this.container;
+            if (container) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: #dc3545; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 0.25rem; margin: 1rem;">
+                        <h3>Form Builder Initialization Error</h3>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                        <p>Please refresh the page to try again.</p>
+                        <button onclick="window.location.reload()" class="btn btn-primary" style="background: #dc3545; border-color: #dc3545; color: white; padding: 0.5rem 1rem; border-radius: 0.25rem; cursor: pointer;">
+                            Refresh Page
+                        </button>
+                    </div>
+                `;
+            }
+            
+            // Re-throw for debugging in development
+            if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+                throw error;
+            }
+        }
+    }
+
+    // Task A: Implement missing loadQuickTemplates method
+    async loadQuickTemplates() {
+        const dropdown = document.getElementById('quickTemplateSelect');
+        
+        if (!dropdown) {
+            console.warn('FormBuilder: Quick templates dropdown not found');
+            return;
+        }
+
+        try {
+            // Show loading state
+            dropdown.innerHTML = '<option value="">Loading templates...</option>';
+            dropdown.disabled = true;
+
+            // Fetch templates from API endpoint
+            const response = await fetch('/api/forms/templates', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            // Check if request was successful
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // Parse JSON response
+            const result = await response.json();
+
+            // Check if API response indicates success
+            if (!result.success) {
+                throw new Error(result.message || 'Failed to load templates');
+            }
+
+            // Extract templates from response
+            const templates = result.data?.templates || [];
+
+            // Clear dropdown and add default option
+            dropdown.innerHTML = '<option value="">Select a template...</option>';
+
+            // Populate dropdown with templates
+            if (templates.length > 0) {
+                templates.forEach(template => {
+                    const option = document.createElement('option');
+                    option.value = template.id;
+                    option.textContent = template.name || `Template ${template.id}`;
+                    
+                    // Add description as title attribute for tooltip
+                    if (template.description) {
+                        option.title = template.description;
+                    }
+                    
+                    dropdown.appendChild(option);
+                });
+            } else {
+                // No templates found
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'No templates available';
+                option.disabled = true;
+                dropdown.appendChild(option);
+            }
+
+        } catch (error) {
+            console.error('FormBuilder: Error loading quick templates:', error);
+            
+            // Show error state in dropdown
+            dropdown.innerHTML = '<option value="">Error loading templates</option>';
+            
+            // Show user-friendly error notification
+            this.showNotification('Failed to load templates: ' + error.message, 'error');
+            
+        } finally {
+            // Re-enable dropdown
+            dropdown.disabled = false;
+        }
+    }
+
+    // Task A: Load and apply a specific quick template by ID
+    async loadQuickTemplate(templateId) {
+        if (!templateId) {
+            return;
+        }
+
+        try {
+            // Show loading state
+            this.showNotification('Loading template...', 'info');
+
+            // Fetch individual template from API
+            const response = await fetch(`/api/forms/templates/${templateId}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            // Check if request was successful
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            // Parse JSON response
+            const template = await response.json();
+
+            // Apply the template to the current form
+            await this.applyTemplate(template);
+
+        } catch (error) {
+            console.error('FormBuilder: Error loading template:', error);
+            this.showNotification('Failed to load template: ' + error.message, 'error');
+        }
+    }
+
+    // Task A: Apply template to current form with format conversion
+    async applyTemplate(template) {
+        try {
+            // Save current state to history before applying template
+            this.saveToHistory();
+
+            // Update form metadata
+            if (template.name) {
+                this.formData.title = template.name;
+                const titleInput = document.getElementById('formTitle');
+                if (titleInput) {
+                    titleInput.value = template.name;
+                }
+            }
+
+            if (template.description) {
+                this.formData.description = template.description;
+                const descInput = document.getElementById('formDescription');
+                if (descInput) {
+                    descInput.value = template.description;
+                }
+            }
+
+            // Apply template sections/pages
+            if (template.sections && Array.isArray(template.sections)) {
+                // Check if this is SurveyJS format (pages with elements) or legacy format
+                if (template.sections.length > 0 && template.sections[0].elements !== undefined) {
+                    // SurveyJS format - use directly
+                    this.formData.pages = template.sections;
+                } else {
+                    // Legacy format - convert to SurveyJS format
+                    this.formData = this.convertLegacyToSurveyJS(template.sections);
+                }
+            } else if (template.pages && Array.isArray(template.pages)) {
+                // Direct pages format
+                this.formData.pages = template.pages;
+            }
+
+            // Preserve form settings if they exist in template
+            if (template.showLogo !== undefined) {
+                this.formData.showLogo = template.showLogo;
+                const logoCheckbox = document.getElementById('showLogoCheckbox');
+                if (logoCheckbox) {
+                    logoCheckbox.checked = template.showLogo;
+                }
+            }
+
+            // Reset current page to first page
+            this.currentPageIndex = 0;
+            this.selectedElement = null;
+
+            // Re-render the form builder
+            this.renderPageTabs();
+            this.renderFormElements();
+
+            // Update page title input
+            const pageTitle = document.getElementById('pageTitle');
+            if (pageTitle && this.formData.pages[0]) {
+                pageTitle.value = this.formData.pages[0].title || '';
+            }
+
+            // Clear properties panel
+            const propertiesPanel = document.getElementById('propertiesPanel');
+            if (propertiesPanel) {
+                propertiesPanel.innerHTML = '<div class="empty-properties">Select an element to edit its properties</div>';
+            }
+
+            // Mark as unsaved changes
+            this.hasUnsavedChanges = true;
+            this.debouncedSave();
+
+            // Show success notification
+            this.showNotification(`Template "${template.name || 'Unknown'}" applied successfully!`, 'success');
+
+            // Reset dropdown selection
+            const dropdown = document.getElementById('quickTemplateSelect');
+            if (dropdown) {
+                dropdown.value = '';
+            }
+
+        } catch (error) {
+            console.error('FormBuilder: Error applying template:', error);
+            this.showNotification('Failed to apply template: ' + error.message, 'error');
+        }
+    }
+
+    // Task A: Convert legacy template format to SurveyJS format
+    convertLegacyToSurveyJS(legacySections) {
+        const formData = {
+            title: this.formData.title || '',
+            description: this.formData.description || '',
+            pages: []
+        };
+
+        // Convert each legacy section to a SurveyJS page
+        if (legacySections && Array.isArray(legacySections)) {
+            legacySections.forEach((section, index) => {
+                const page = {
+                    name: section.id || `page${index + 1}`,
+                    title: section.title || section.name || `Page ${index + 1}`,
+                    elements: []
+                };
+
+                // Convert legacy fields to SurveyJS elements
+                if (section.fields && Array.isArray(section.fields)) {
+                    section.fields.forEach(field => {
+                        const element = {
+                            type: this.mapLegacyFieldType(field.type),
+                            name: field.name || field.id || `field_${Date.now()}`,
+                            title: field.label || field.title || field.name || 'Untitled Field'
+                        };
+
+                        // Map common field properties
+                        if (field.required) {
+                            element.isRequired = true;
+                        }
+
+                        if (field.placeholder) {
+                            element.placeholder = field.placeholder;
+                        }
+
+                        if (field.description) {
+                            element.description = field.description;
+                        }
+
+                        // Map choices for selection fields
+                        if (field.options && Array.isArray(field.options)) {
+                            element.choices = field.options;
+                        } else if (field.choices && Array.isArray(field.choices)) {
+                            element.choices = field.choices;
+                        }
+
+                        // Map input type for text fields
+                        if (field.inputType) {
+                            element.inputType = field.inputType;
+                        }
+
+                        // Map validation rules
+                        if (field.validation) {
+                            if (field.validation.minLength) element.minLength = field.validation.minLength;
+                            if (field.validation.maxLength) element.maxLength = field.validation.maxLength;
+                            if (field.validation.min) element.min = field.validation.min;
+                            if (field.validation.max) element.max = field.validation.max;
+                        }
+
+                        page.elements.push(element);
+                    });
+                }
+
+                formData.pages.push(page);
+            });
+        }
+
+        // Ensure at least one page exists
+        if (formData.pages.length === 0) {
+            formData.pages.push({
+                name: 'page1',
+                title: 'Page 1',
+                elements: []
+            });
+        }
+
+        return formData;
+    }
+
+    // Task A: Map legacy field types to SurveyJS element types
+    mapLegacyFieldType(legacyType) {
+        const typeMapping = {
+            // Text inputs
+            'text': 'text',
+            'textarea': 'comment',
+            'textinput': 'text',
+            'input': 'text',
+            
+            // Specialized text inputs
+            'email': 'text',
+            'tel': 'text',
+            'phone': 'text',
+            'number': 'text',
+            'date': 'text',
+            'time': 'text',
+            'datetime': 'text',
+            'url': 'text',
+            'password': 'text',
+            
+            // Selection inputs
+            'select': 'dropdown',
+            'dropdown': 'dropdown',
+            'radio': 'radiogroup',
+            'radiogroup': 'radiogroup',
+            'checkbox': 'checkbox',
+            'checkboxes': 'checkbox',
+            'multiselect': 'checkbox',
+            
+            // Other field types
+            'boolean': 'boolean',
+            'yesno': 'boolean',
+            'rating': 'rating',
+            'scale': 'rating',
+            'slider': 'rating',
+            'file': 'file',
+            'upload': 'file',
+            'signature': 'signaturepad',
+            'signaturepad': 'signaturepad',
+            
+            // Layout elements
+            'html': 'html',
+            'content': 'html',
+            'section': 'panel',
+            'panel': 'panel',
+            'group': 'panel',
+            'fieldset': 'panel',
+            
+            // Matrix types
+            'matrix': 'matrix',
+            'table': 'matrix',
+            'grid': 'matrix'
+        };
+
+        // Return mapped type or default to 'text'
+        return typeMapping[legacyType?.toLowerCase()] || 'text';
     }
     
     // Reusable builder initialization method - can be called to reset builder state
     initializeBuilder() {
-        console.log('FormBuilder: initializeBuilder() called');
+        
         
         // Clear any existing state that might cause read-only issues
         this.selectedElement = null;
@@ -104,7 +465,7 @@ class IPLCFormBuilder {
         // Ensure builder is in correct state
         this.updateLockUI();
         
-        console.log('FormBuilder: Builder initialization complete');
+        
     }
     
     // Restore properties panel state from localStorage
@@ -1841,7 +2202,7 @@ class IPLCFormBuilder {
     }
 
     attachEventListeners() {
-        console.log('attachEventListeners() called');
+        
         // Track unsaved changes
         this.hasUnsavedChanges = false;
         
@@ -1873,9 +2234,9 @@ class IPLCFormBuilder {
             });
         }
 
-        console.log('About to call setupDragAndDrop()');
+        
         this.setupDragAndDrop();
-        console.log('setupDragAndDrop() completed');
+        
         this.setupKeyboardShortcuts();
         this.setupTouchGestures();
         
@@ -2124,7 +2485,7 @@ class IPLCFormBuilder {
             this.setupFocusBlurConflictPrevention(propertiesPanel);
         }
         
-        console.log('FormBuilder: Enhanced iPad touch gesture system initialized with blur/focus conflict prevention');
+        
     }
     
     // Task I: Setup focus/blur conflict prevention for iPad
@@ -2187,16 +2548,176 @@ class IPLCFormBuilder {
             return true;
         };
         
-        console.log('FormBuilder: Focus/blur conflict prevention system initialized');
+        // Task E: Setup iPad settings panel closes fix - Apply debouncing to correct SurveyJS Creator property grid components
+        this.setupPropertyGridFocusBlurDebouncing();
+        
+        
+    }
+    
+    // Task E: Setup property grid focus/blur debouncing for iPad settings panel closes issue
+    setupPropertyGridFocusBlurDebouncing() {
+        
+        
+        // Task E: Wait for DOM to be ready and search for property grid elements
+        const setupPropertyGridHandlers = () => {
+            // Task E: Find all SurveyJS Creator property grid components (correct class names)
+            const propertyGridElements = document.querySelectorAll([
+                '.svc-property-grid',
+                '.svc-property-grid-placeholder',
+                '[class*="svc-property-grid"]',
+                // Also target any dynamically loaded SurveyJS Creator property grids
+                '[data-sv-drop-target-survey-element*="property"]',
+                '.svc-side-bar__container .svc-property-panel'
+            ].join(', '));
+            
+            
+            
+            // Task E: Apply debouncing and event.stopPropagation() to each property grid element
+            propertyGridElements.forEach((element, index) => {
+                
+                
+                // Task E: Enhanced blur event debouncing with event.stopPropagation()
+                element.addEventListener('blur', (e) => {
+                    
+                    
+                    // Task E: Add event.stopPropagation() as required by task
+                    e.stopPropagation();
+                    
+                    // Task E: Apply 300ms debouncing using existing infrastructure
+                    this.focusBlurState.lastBlurTime = Date.now();
+                    
+                    // Task E: Temporarily disable touch gestures to prevent panel closing
+                    if (this.touchGestureState) {
+                        this.touchGestureState.isActive = false;
+                        this.touchGestureState.isValidSwipeGesture = false;
+                    }
+                    
+                    // Task E: Extended debouncing window for property grid stability
+                    setTimeout(() => {
+                        // Reset gesture state after property grid blur events settle
+                        if (this.touchGestureState) {
+                            this.touchGestureState.isActive = false;
+                            this.touchGestureState.isValidSwipeGesture = false;
+                        }
+                    }, this.focusBlurState.preventGestureWindow);
+                    
+                }, { passive: false, capture: true }); // Use capture phase for early intervention
+                
+                // Task E: Enhanced touchstart event debouncing with event.stopPropagation()
+                element.addEventListener('touchstart', (e) => {
+                    
+                    
+                    // Task E: Add event.stopPropagation() as required by task
+                    e.stopPropagation();
+                    
+                    // Task E: Check if we're within debouncing window from recent blur
+                    const currentTime = Date.now();
+                    const timeSinceBlur = currentTime - this.focusBlurState.lastBlurTime;
+                    
+                    if (timeSinceBlur < this.focusBlurState.preventGestureWindow) {
+                        
+                        
+                        // Task E: Prevent gesture activation if too close to blur event
+                        if (this.touchGestureState) {
+                            this.touchGestureState.isActive = false;
+                            this.touchGestureState.isValidSwipeGesture = false;
+                        }
+                        
+                        // Task E: Optionally prevent default to avoid unwanted interactions
+                        e.preventDefault();
+                        return false;
+                    }
+                    
+                    // Task E: Apply enhanced validation using existing infrastructure
+                    if (!this.validateTouchStart || !this.validateTouchStart(e)) {
+                        
+                        if (this.touchGestureState) {
+                            this.touchGestureState.isActive = false;
+                        }
+                        e.preventDefault();
+                        return false;
+                    }
+                    
+                }, { passive: false, capture: true }); // Use capture phase for early intervention
+                
+                // Task E: Focus event handling for comprehensive coverage
+                element.addEventListener('focus', (e) => {
+                    
+                    
+                    // Task E: Add event.stopPropagation() for consistency
+                    e.stopPropagation();
+                    
+                    // Task E: Update focus timing for debouncing
+                    this.focusBlurState.lastFocusTime = Date.now();
+                    
+                    // Task E: Disable touch gestures during focus to prevent conflicts
+                    if (this.touchGestureState) {
+                        this.touchGestureState.isActive = false;
+                        this.touchGestureState.isValidSwipeGesture = false;
+                    }
+                    
+                }, { passive: false, capture: true });
+            });
+            
+            // Task E: Also monitor for dynamically added property grid elements
+            if (propertyGridElements.length > 0) {
+                
+            } else {
+                console.warn('FormBuilder: Task E - No property grid elements found, will retry');
+                // Task E: Retry setup after short delay for dynamically loaded content
+                setTimeout(setupPropertyGridHandlers, 1000);
+            }
+        };
+        
+        // Task E: Initial setup
+        setupPropertyGridHandlers();
+        
+        // Task E: Setup mutation observer to handle dynamically added property grid elements
+        if (typeof MutationObserver !== 'undefined') {
+            const propertyGridObserver = new MutationObserver((mutations) => {
+                let shouldResetup = false;
+                
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'childList') {
+                        // Task E: Check if any added nodes contain property grid elements
+                        mutation.addedNodes.forEach((node) => {
+                            if (node.nodeType === Node.ELEMENT_NODE) {
+                                const hasPropertyGrid = node.classList?.contains('svc-property-grid') ||
+                                                      node.classList?.contains('svc-property-grid-placeholder') ||
+                                                      node.querySelector?.('.svc-property-grid, .svc-property-grid-placeholder');
+                                if (hasPropertyGrid) {
+                                    shouldResetup = true;
+                                }
+                            }
+                        });
+                    }
+                });
+                
+                if (shouldResetup) {
+                    
+                    setTimeout(setupPropertyGridHandlers, 100);
+                }
+            });
+            
+            // Task E: Observe the entire document for property grid changes
+            propertyGridObserver.observe(document.body, {
+                childList: true,
+                subtree: true,
+                attributes: false
+            });
+            
+            // Task E: Store observer for cleanup
+            this.propertyGridObserver = propertyGridObserver;
+        }
     }
     
     setupDragAndDrop() {
-        console.log('FormBuilder: setupDragAndDrop() called - Using Pointer Events API with iPadDragFix');
+        
         const draggables = document.querySelectorAll('.draggable-element');
         const dropZone = document.getElementById('dropZone');
         
-        console.log('FormBuilder: Found', draggables.length, 'draggable elements');
-        console.log('FormBuilder: Drop zone found:', !!dropZone);
+        
+        
 
         // Task H: iPad/iOS device detection for iPadDragFix
         this.iPadDragFix = {
@@ -2214,7 +2735,7 @@ class IPLCFormBuilder {
 
         // Log iPad detection for debugging
         if (this.iPadDragFix.isIPad) {
-            console.log('FormBuilder: iPad detected - enabling iPadDragFix optimizations');
+            
         }
 
         // Initialize drag state with iPad-specific enhancements
@@ -2241,11 +2762,14 @@ class IPLCFormBuilder {
         // Task H: Setup iPad-specific gesture conflict prevention
         if (this.iPadDragFix.isIOS && this.iPadDragFix.preventGestureConflicts) {
             this.setupiPadGestureConflictPrevention();
+            
+            // Task F: Setup enhanced pointer lost handling for drag stickiness prevention
+            this.setupiPadPointerLostHandling();
         }
 
         // Setup draggable elements with iPad-enhanced Pointer Events
         draggables.forEach((draggable, index) => {
-            console.log(`FormBuilder: Setting up draggable element ${index}:`, draggable.dataset.type);
+            
             
             // Clone and replace to remove all existing event listeners
             const newDraggable = draggable.cloneNode(true);
@@ -2258,8 +2782,6 @@ class IPLCFormBuilder {
             newDraggable.addEventListener('pointerdown', (e) => {
                 if (this.formData.isFormLocked) return;
                 
-                console.log('FormBuilder: Pointer down on:', newDraggable.dataset.type,
-                           'iPad mode:', this.iPadDragFix.isIPad);
                 
                 // Task H: iPad-specific preventDefault timing
                 if (this.iPadDragFix.isIPad) {
@@ -2339,7 +2861,7 @@ class IPLCFormBuilder {
             newDraggable.addEventListener('pointerup', (e) => {
                 if (!this.dragState.isDragging) return;
                 
-                console.log('FormBuilder: Pointer up - ending drag (iPad mode:', this.iPadDragFix.isIPad, ')');
+                
                 
                 // Task H: iPad-specific cleanup timing
                 if (this.iPadDragFix.isIPad) {
@@ -2359,7 +2881,7 @@ class IPLCFormBuilder {
             newDraggable.addEventListener('pointercancel', (e) => {
                 if (!this.dragState.isDragging) return;
                 
-                console.log('FormBuilder: Pointer cancelled (iPad emergency cleanup)');
+                
                 
                 // Task H: iPad-specific cancel handling
                 if (this.iPadDragFix.isIPad) {
@@ -2380,7 +2902,7 @@ class IPLCFormBuilder {
 
     // Task H: Setup iPad gesture conflict prevention
     setupiPadGestureConflictPrevention() {
-        console.log('FormBuilder: Setting up iPad gesture conflict prevention');
+        
         
         // Prevent iOS Safari's default gestures during drag operations
         document.addEventListener('gesturestart', (e) => {
@@ -2450,7 +2972,7 @@ class IPLCFormBuilder {
                 };
                 
                 if (this.iPadDragFix.debugMode) {
-                    console.log('FormBuilder: iPad pointer capture initialized:', e.pointerId);
+                    
                 }
                 
                 return true;
@@ -2569,7 +3091,7 @@ class IPLCFormBuilder {
                               e.clientY <= dropRect.bottom + tolerance;
         
         if (isOverDropZone && this.dragState.elementData) {
-            console.log('FormBuilder: Dropped element (iPad mode):', this.dragState.elementData);
+            
             
             this.addElement(
                 this.dragState.elementData.elementType,
@@ -2656,9 +3178,23 @@ class IPLCFormBuilder {
         };
     }
 
-    // Task H: Emergency iPad drag cleanup for pointer cancel events
+    // Task F: Emergency iPad drag cleanup for pointer cancel events - Enhanced with pointer capture cleanup
     emergencyiPadDragCleanup() {
-        console.log('FormBuilder: Emergency iPad drag cleanup initiated');
+        
+        
+        // Task F: Force release any active pointer capture to prevent stickiness
+        if (this.dragState.pointerCapture.active && this.dragState.pointerCapture.element) {
+            try {
+                // Release capture using stored pointerId and element
+                this.dragState.pointerCapture.element.releasePointerCapture(this.dragState.pointerCapture.pointerId);
+                
+            } catch (error) {
+                console.warn('FormBuilder: Emergency pointer capture release failed:', error);
+                
+                // Task F: Fallback - try to release capture on all potentially capturing elements
+                this.forceReleaseAllPointerCaptures();
+            }
+        }
         
         // Force remove drag clone
         if (this.dragState.dragClone) {
@@ -2678,6 +3214,9 @@ class IPLCFormBuilder {
         
         // Force deactivate gesture prevention
         this.deactivateiPadGesturePrevention();
+        
+        // Task F: Clear any pending iPad-specific timeouts
+        this.clearIpadDragTimeouts();
         
         // Reset all state
         this.dragState = {
@@ -2718,6 +3257,216 @@ class IPLCFormBuilder {
         document.body.style.webkitOverflowScrolling = '';
     }
 
+    // Task F: Force release all pointer captures to prevent stickiness
+    forceReleaseAllPointerCaptures() {
+        
+        
+        try {
+            // Find all draggable elements and attempt to release any captures
+            const draggableElements = document.querySelectorAll('.draggable-element');
+            draggableElements.forEach(element => {
+                try {
+                    // Try to release capture for common pointer IDs (1-10)
+                    for (let pointerId = 1; pointerId <= 10; pointerId++) {
+                        element.releasePointerCapture(pointerId);
+                    }
+                } catch (error) {
+                    // Expected to fail for non-captured pointers - silently continue
+                }
+            });
+            
+            // Also try to release on document body and drop zone
+            const criticalElements = [document.body, document.getElementById('dropZone')];
+            criticalElements.forEach(element => {
+                if (element) {
+                    try {
+                        for (let pointerId = 1; pointerId <= 10; pointerId++) {
+                            element.releasePointerCapture(pointerId);
+                        }
+                    } catch (error) {
+                        // Expected to fail for non-captured pointers - silently continue
+                    }
+                }
+            });
+            
+        } catch (error) {
+            console.warn('FormBuilder: Force pointer capture release encountered error:', error);
+        }
+    }
+    
+    // Task F: Clear iPad-specific drag timeouts to prevent stickiness
+    clearIpadDragTimeouts() {
+        if (this.iPadDragFix.isIPad) {
+            // Clear any potential timeouts that might cause sticky behavior
+            if (this.iPadDragTimeout) {
+                clearTimeout(this.iPadDragTimeout);
+                this.iPadDragTimeout = null;
+            }
+            
+            if (this.iPadStickinessCheckTimeout) {
+                clearTimeout(this.iPadStickinessCheckTimeout);
+                this.iPadStickinessCheckTimeout = null;
+            }
+            
+            // Reset iPad-specific timing flags
+            this.iPadDragFix.lastTouchEnd = 0;
+            this.iPadDragFix.touchStartTime = 0;
+        }
+    }
+    
+    // Task F: Enhanced pointer lost event handling for iPad stickiness prevention
+    setupiPadPointerLostHandling() {
+        
+        
+        // Handle lostpointercapture events to prevent stickiness
+        document.addEventListener('lostpointercapture', (e) => {
+            if (this.dragState.isDragging && this.dragState.pointerCapture.pointerId === e.pointerId) {
+                
+                
+                // Trigger emergency cleanup
+                this.emergencyiPadDragCleanup();
+                
+                // Show user notification
+                if (this.iPadDragFix.isIPad) {
+                    this.showNotification('Drag operation interrupted - try again', 'warning');
+                }
+            }
+        }, { passive: true });
+        
+        // Handle gotpointercapture events for tracking
+        document.addEventListener('gotpointercapture', (e) => {
+            if (this.iPadDragFix.debugMode) {
+                console.log('FormBuilder: Pointer capture acquired:', e.pointerId);
+            }
+        }, { passive: true });
+        
+        // Task F: Handle multi-touch conflicts that can cause stickiness
+        document.addEventListener('pointerdown', (e) => {
+            if (this.dragState.isDragging && e.pointerId !== this.dragState.pointerCapture.pointerId) {
+                
+                
+                // Prevent secondary touches from interfering
+                if (this.iPadDragFix.isIPad) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+            }
+        }, { passive: false, capture: true });
+        
+        // Task F: Periodic stickiness check for iPad
+        if (this.iPadDragFix.isIPad) {
+            this.startiPadStickinessMonitoring();
+        }
+    }
+    
+    // Task F: Monitor for iPad drag stickiness and auto-recover
+    startiPadStickinessMonitoring() {
+        setInterval(() => {
+            // Check if drag has been active for too long (indicates potential stickiness)
+            if (this.dragState.isDragging && this.dragState.dragStartTime > 0) {
+                const dragDuration = Date.now() - this.dragState.dragStartTime;
+                
+                // If drag has been active for more than 10 seconds, consider it stuck
+                if (dragDuration > 10000) {
+                    console.warn('FormBuilder: iPad drag stickiness detected, auto-recovering');
+                    
+                    this.emergencyiPadDragCleanup();
+                    this.showNotification('Drag operation reset due to inactivity', 'info');
+                }
+            }
+        }, 2000); // Check every 2 seconds
+    }
+    
+    // Task F: Enhanced cleanup for iPad drag operations with comprehensive pointer capture handling
+    cleanupiPadDragOperation(e) {
+        
+        
+        // Task F: Enhanced pointer capture cleanup with fallback mechanisms
+        if (this.dragState.pointerCapture.active && this.dragState.pointerCapture.element && e.pointerId) {
+            try {
+                // Primary cleanup - release specific pointer capture
+                this.dragState.pointerCapture.element.releasePointerCapture(e.pointerId);
+                
+            } catch (error) {
+                console.warn('FormBuilder: iPad pointer capture release failed, using fallback:', error);
+                
+                // Task F: Fallback 1 - Force release all captures on the element
+                this.forceReleaseAllPointerCaptures();
+                
+                // Task F: Fallback 2 - Emergency timeout cleanup
+                this.iPadStickinessCheckTimeout = setTimeout(() => {
+                    
+                    this.emergencyiPadDragCleanup();
+                }, 100);
+            }
+        }
+        
+        // Clean up drag clone with iPad-specific animation
+        if (this.dragState.dragClone) {
+            if (this.iPadDragFix.isIPad) {
+                // Animated removal for iPad
+                this.dragState.dragClone.style.transition = 'all 0.2s ease-out';
+                this.dragState.dragClone.style.opacity = '0';
+                this.dragState.dragClone.style.transform = 'scale(0.8)';
+                
+                setTimeout(() => {
+                    if (this.dragState.dragClone) {
+                        this.dragState.dragClone.remove();
+                    }
+                }, 200);
+            } else {
+                this.dragState.dragClone.remove();
+            }
+        }
+        
+        // Clean up drag element state
+        if (this.dragState.dragElement) {
+            this.dragState.dragElement.classList.remove('dragging');
+            
+            // Task F: Additional iPad-specific cleanup for dragging element
+            if (this.iPadDragFix.isIPad) {
+                // Reset any iPad-specific styles that might be stuck
+                this.dragState.dragElement.style.transform = '';
+                this.dragState.dragElement.style.zIndex = '';
+                this.dragState.dragElement.style.pointerEvents = '';
+            }
+        }
+        
+        // Clean up drop zone state
+        const dropZone = document.getElementById('dropZone');
+        if (dropZone) {
+            dropZone.classList.remove('drag-over');
+        }
+        
+        // Deactivate gesture prevention
+        this.deactivateiPadGesturePrevention();
+        
+        // Task F: Clear iPad-specific timeouts
+        this.clearIpadDragTimeouts();
+        
+        // Reset drag state with enhanced iPad cleanup
+        this.dragState = {
+            isDragging: false,
+            dragElement: null,
+            dragClone: null,
+            startX: 0,
+            startY: 0,
+            offsetX: 0,
+            offsetY: 0,
+            elementData: null,
+            pointerCapture: {
+                active: false,
+                pointerId: null,
+                element: null
+            },
+            gesturePreventionActive: false,
+            dragStartTime: 0,
+            minimumDragDistance: this.iPadDragFix.isIPad ? 10 : 5
+        };
+        
+        
+    }
+    
     // Task H: Create iPad-optimized drag styles
     createiPadOptimizedDragStyles() {
         const styles = document.createElement('style');
@@ -7123,7 +7872,7 @@ class IPLCFormBuilder {
     preview() {
         // Data-preview-bound guard to prevent duplicate listeners and multiple instances
         if (document.body.hasAttribute('data-preview-bound') || document.querySelector('.preview-modal')) {
-            console.log('FormBuilder: Preview already active, skipping duplicate initialization');
+            
             return;
         }
         
@@ -7242,7 +7991,7 @@ class IPLCFormBuilder {
     
     // Close preview and reinitialize builder to prevent read-only state
     closePreview() {
-        console.log('FormBuilder: Closing preview and reinitializing builder');
+        
         
         // Remove the preview modal
         const modal = document.querySelector('.preview-modal');
@@ -8619,7 +9368,7 @@ class IPLCFormBuilder {
 
     // Initialize auto-pagination feature using Intersection Observer API
     initializeAutoPagination() {
-        console.log('FormBuilder: Initializing auto-pagination');
+        
         
         // Configuration for auto-pagination
         this.paginationConfig = {
@@ -8861,7 +9610,7 @@ class IPLCFormBuilder {
     
     // Recalculate pagination for all elements
     recalculatePagination() {
-        console.log('FormBuilder: Recalculating pagination');
+        
         
         // Re-observe all elements
         this.observeFormElements();
@@ -8919,13 +9668,18 @@ class IPLCFormBuilder {
             this.mutationObserver.disconnect();
         }
         
+        // Task E: Clean up property grid observer to prevent memory leaks
+        if (this.propertyGridObserver) {
+            this.propertyGridObserver.disconnect();
+        }
+        
         clearTimeout(this.resizeTimeout);
         clearTimeout(this.mutationTimeout);
     }
 
     // Register custom question types with Survey.js
     registerCustomQuestionTypes() {
-        console.log('FormBuilder: Registering custom question types');
+        
         
         // Only register if Survey is available
         if (typeof Survey === 'undefined') {
@@ -9027,7 +9781,7 @@ class IPLCFormBuilder {
                 }
             });
             
-            console.log('FormBuilder: calculateAge() function registered successfully');
+            
         } catch (error) {
             console.error('FormBuilder: Error registering calculateAge() function:', error);
         }
@@ -9083,7 +9837,7 @@ class IPLCFormBuilder {
             return new AISummaryQuestion(name);
         });
         
-        console.log('FormBuilder: AI Summary question type registered');
+        
     }
 }
 
