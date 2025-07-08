@@ -264,13 +264,13 @@ class IPLCFormBuilder {
                 ]
             },
             {
-                name: 'Patient Info',
+                name: 'Relevant Background History',
                 elements: [
-                    { type: 'patient-info', icon: '👤', label: 'Patient Demographics', custom: true, category: 'patient-info' },
-                    { type: 'referral-info', icon: '📋', label: 'Referral Information', custom: true, category: 'patient-info' },
-                    { type: 'insurance-info', icon: '🏥', label: 'Insurance Information', custom: true, category: 'patient-info' },
-                    { type: 'parent-caregiver', icon: '👥', label: 'Parent/Caregiver Info', custom: true, category: 'patient-info' },
-                    { type: 'medical-history', icon: '📑', label: 'Medical History', custom: true, category: 'patient-info' }
+                    { type: 'client-info', icon: '👤', label: 'Client Demographics', custom: true, category: 'client-info' },
+                    { type: 'referral-info', icon: '📋', label: 'Referral Information', custom: true, category: 'client-info' },
+                    { type: 'insurance-info', icon: '🏥', label: 'Insurance Information', custom: true, category: 'client-info' },
+                    { type: 'parent-caregiver', icon: '👥', label: 'Parent/Caregiver Info', custom: true, category: 'client-info' },
+                    { type: 'medical-history', icon: '📑', label: 'Medical History', custom: true, category: 'client-info' }
                 ]
             },
             {
@@ -1086,6 +1086,428 @@ class IPLCFormBuilder {
                 display: none !important;
                 visibility: hidden !important;
             }
+            
+            /* Task E: Blue Divider Visual Pattern */
+            .section-divider {
+                border: none;
+                height: 4px;
+                background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 50%, #2563eb 100%);
+                margin: 1.5rem 0;
+                width: 100%;
+                border-radius: 2px;
+                box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+                opacity: 0.8;
+                transition: opacity 0.3s ease;
+            }
+            
+            .section-divider:hover {
+                opacity: 1;
+                box-shadow: 0 2px 6px rgba(37, 99, 235, 0.4);
+            }
+            
+            /* Ensure dividers span full content width */
+            .drop-zone .section-divider {
+                margin-left: -1rem;
+                margin-right: -1rem;
+                width: calc(100% + 2rem);
+            }
+            
+            /* Special styling for first and last dividers */
+            .drop-zone .section-divider:first-child {
+                margin-top: 0;
+            }
+            
+            .drop-zone .section-divider:last-child {
+                margin-bottom: 0;
+            }
+            
+            /* Accessibility: Ensure dividers don't interfere with screen readers */
+            .section-divider {
+                role: presentation;
+                aria-hidden: true;
+            }
+            
+            /* Task F: Touch Target Accessibility - WCAG 2.1 Success Criterion 2.5.5 (Level AAA) */
+            
+            /* Basic Touch Target Requirements - Minimum 44×44 CSS pixels */
+            .touch-target,
+            button,
+            input[type="button"],
+            input[type="submit"],
+            input[type="reset"],
+            .btn,
+            .draggable-element,
+            .form-element .element-actions button,
+            .page-tab,
+            .element-type-btn,
+            .properties-toggle,
+            .close-button,
+            .btn-close {
+                min-width: 44px;
+                min-height: 44px;
+                margin: 4px; /* 8px total spacing (4px on each side) */
+                cursor: pointer;
+                /* Ensure touch targets don't overlap */
+                position: relative;
+                z-index: 1;
+            }
+            
+            /* Enhanced Touch Targets - 48×48px for frequently used controls */
+            .btn-primary,
+            .btn-success,
+            .form-element .element-actions .edit-btn,
+            .builder-actions .btn,
+            .add-choice,
+            .add-panel-element,
+            .save-btn,
+            .preview-btn {
+                min-width: 48px;
+                min-height: 48px;
+                margin: 6px; /* 12px total spacing for enhanced targets */
+            }
+            
+            /* Form Input Touch Target Compliance */
+            input[type="text"],
+            input[type="email"],
+            input[type="tel"],
+            input[type="number"],
+            input[type="date"],
+            input[type="time"],
+            input[type="password"],
+            input[type="url"],
+            textarea,
+            select,
+            .property-input,
+            .form-control {
+                min-height: 44px;
+                padding: 0.75rem; /* 12px */
+                margin: 4px 0;
+                font-size: 16px; /* Prevent iOS zoom on focus */
+                /* Ensure sufficient color contrast */
+                border: 2px solid #dee2e6;
+                background-color: #ffffff;
+                color: #212529;
+            }
+            
+            /* Checkbox and Radio Button Touch Targets */
+            input[type="checkbox"],
+            input[type="radio"] {
+                min-width: 20px;
+                min-height: 20px;
+                margin: 12px; /* Extra margin for smaller inputs */
+                /* Ensure parent label meets touch target requirements */
+            }
+            
+            /* Label Touch Target for Small Inputs */
+            label:has(input[type="checkbox"]),
+            label:has(input[type="radio"]),
+            .property-label:has(input[type="checkbox"]),
+            .field-checkbox {
+                min-height: 44px;
+                display: flex;
+                align-items: center;
+                padding: 8px;
+                margin: 4px 0;
+                cursor: pointer;
+            }
+            
+            /* Focus Indicators for Accessibility */
+            button:focus,
+            input:focus,
+            select:focus,
+            textarea:focus,
+            .draggable-element:focus,
+            .form-element:focus,
+            .touch-target:focus {
+                outline: 3px solid #0066cc;
+                outline-offset: 2px;
+                /* High contrast focus indicator */
+                box-shadow: 0 0 0 2px #ffffff, 0 0 0 5px #0066cc;
+            }
+            
+            /* Page Tab Touch Targets */
+            .page-tab {
+                min-width: 80px; /* Wider for text content */
+                min-height: 44px;
+                padding: 8px 16px;
+                margin: 4px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            /* Modal and Dialog Touch Targets */
+            .modal-header .btn-close,
+            .close-preview,
+            .conditional-logic-header .close-button {
+                min-width: 44px;
+                min-height: 44px;
+                padding: 8px;
+                margin: 4px;
+            }
+            
+            /* Builder Canvas Element Actions */
+            .element-actions {
+                display: flex;
+                gap: 8px; /* Ensure spacing between touch targets */
+                align-items: center;
+            }
+            
+            .element-actions button {
+                min-width: 36px; /* Slightly smaller but still accessible */
+                min-height: 36px;
+                padding: 6px;
+                margin: 2px;
+            }
+            
+            /* Color Contrast Compliance - WCAG 2.1 Standards */
+            
+            /* High Contrast Text - 4.5:1 minimum ratio */
+            button,
+            .btn {
+                background-color: #ffffff;
+                color: #212529;
+                border: 2px solid #6c757d;
+            }
+            
+            button:hover,
+            .btn:hover {
+                background-color: #e9ecef;
+                color: #000000;
+                border-color: #495057;
+            }
+            
+            /* Primary Actions - High Contrast */
+            .btn-primary {
+                background-color: #0d47a1; /* Higher contrast blue */
+                color: #ffffff;
+                border: 2px solid #0d47a1;
+            }
+            
+            .btn-primary:hover {
+                background-color: #1565c0;
+                color: #ffffff;
+                border-color: #1565c0;
+            }
+            
+            /* Success Actions - High Contrast */
+            .btn-success {
+                background-color: #2e7d32; /* Higher contrast green */
+                color: #ffffff;
+                border: 2px solid #2e7d32;
+            }
+            
+            .btn-success:hover {
+                background-color: #388e3c;
+                color: #ffffff;
+                border-color: #388e3c;
+            }
+            
+            /* Warning Actions - High Contrast */
+            .btn-warning {
+                background-color: #f57c00; /* Higher contrast orange */
+                color: #ffffff;
+                border: 2px solid #f57c00;
+            }
+            
+            .btn-warning:hover {
+                background-color: #ff9800;
+                color: #000000;
+                border-color: #ff9800;
+            }
+            
+            /* Danger Actions - High Contrast */
+            .btn-danger,
+            .remove-btn {
+                background-color: #d32f2f; /* Higher contrast red */
+                color: #ffffff;
+                border: 2px solid #d32f2f;
+            }
+            
+            .btn-danger:hover,
+            .remove-btn:hover {
+                background-color: #f44336;
+                color: #ffffff;
+                border-color: #f44336;
+            }
+            
+            /* Mobile Responsive Touch Targets */
+            @media (max-width: 768px) {
+                /* Larger touch targets on mobile devices */
+                .touch-target,
+                button,
+                .btn,
+                input,
+                select,
+                textarea {
+                    min-width: 48px;
+                    min-height: 48px;
+                    margin: 6px;
+                }
+                
+                /* Enhanced targets even larger on mobile */
+                .btn-primary,
+                .btn-success,
+                .form-element .element-actions .edit-btn {
+                    min-width: 56px;
+                    min-height: 56px;
+                    margin: 8px;
+                }
+                
+                /* Prevent accidental touches */
+                .element-actions {
+                    gap: 12px;
+                }
+                
+                /* Larger text for better readability */
+                button,
+                .btn,
+                input,
+                select,
+                textarea {
+                    font-size: 18px;
+                }
+            }
+            
+            /* Accessibility Media Queries */
+            
+            /* High Contrast Mode Support */
+            @media (prefers-contrast: high) {
+                button,
+                .btn,
+                input,
+                select,
+                textarea {
+                    border-width: 3px;
+                    outline-width: 4px;
+                }
+                
+                /* Enhanced focus indicators in high contrast mode */
+                button:focus,
+                input:focus,
+                select:focus,
+                textarea:focus {
+                    outline: 4px solid;
+                    outline-offset: 3px;
+                }
+            }
+            
+            /* Reduced Motion Support */
+            @media (prefers-reduced-motion: reduce) {
+                /* Remove transitions and animations for users who prefer reduced motion */
+                *,
+                *::before,
+                *::after {
+                    animation-duration: 0.01ms !important;
+                    animation-iteration-count: 1 !important;
+                    transition-duration: 0.01ms !important;
+                }
+                
+                /* Keep essential focus transitions */
+                button:focus,
+                input:focus,
+                select:focus,
+                textarea:focus {
+                    transition: outline 0.15s ease-in-out;
+                }
+            }
+            
+            /* Touch Device Optimizations */
+            @media (hover: none) and (pointer: coarse) {
+                /* Touch device specific styles */
+                .draggable-element {
+                    /* Prevent accidental drags on touch devices */
+                    -webkit-touch-callout: none;
+                    -webkit-user-select: none;
+                    -khtml-user-select: none;
+                    -moz-user-select: none;
+                    -ms-user-select: none;
+                    user-select: none;
+                }
+                
+                /* Larger hit areas for small controls */
+                .element-actions button {
+                    min-width: 44px;
+                    min-height: 44px;
+                    padding: 10px;
+                }
+                
+                /* Prevent hover states on touch devices */
+                button:hover,
+                .btn:hover {
+                    background-color: initial;
+                    border-color: initial;
+                    color: initial;
+                }
+            }
+            
+            /* Fine Pointer Device Optimizations */
+            @media (hover: hover) and (pointer: fine) {
+                /* Mouse/trackpad specific optimizations */
+                .touch-target:hover,
+                button:hover,
+                .btn:hover {
+                    transform: scale(1.05);
+                    transition: transform 0.15s ease-in-out;
+                }
+                
+                /* Smaller margins allowed with precise pointer */
+                .element-actions button {
+                    margin: 1px;
+                }
+            }
+            
+            /* Print Media Accessibility */
+            @media print {
+                /* Ensure sufficient contrast in print */
+                button,
+                .btn {
+                    background: white !important;
+                    color: black !important;
+                    border: 2px solid black !important;
+                }
+                
+                /* Hide interactive elements that don't work in print */
+                .touch-target,
+                .element-actions,
+                .builder-actions {
+                    display: none !important;
+                }
+            }
+            
+            /* Screen Reader and Assistive Technology Support */
+            .sr-only {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                padding: 0;
+                margin: -1px;
+                overflow: hidden;
+                clip: rect(0, 0, 0, 0);
+                white-space: nowrap;
+                border: 0;
+            }
+            
+            /* Skip to content link for keyboard navigation */
+            .skip-link {
+                position: absolute;
+                top: -40px;
+                left: 6px;
+                background: #000;
+                color: #fff;
+                padding: 8px;
+                text-decoration: none;
+                z-index: 9999;
+                min-width: 44px;
+                min-height: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .skip-link:focus {
+                top: 6px;
+            }
         `;
         document.head.appendChild(styles);
     }
@@ -1129,7 +1551,7 @@ class IPLCFormBuilder {
         
         // Add special styling for pre-configured panels
         const isPreConfigured = element.name && (
-            element.name.includes('patient_demographics') ||
+            element.name.includes('client_demographics') ||
             element.name.includes('oral_mechanism') ||
             element.name.includes('language_assessment') ||
             element.name.includes('medical_history') ||
@@ -1157,6 +1579,7 @@ class IPLCFormBuilder {
         const elementTypeIcon = this.getElementTypeIcon(element.type);
         
         return `
+            <hr class="section-divider">
             <div class="form-element ${this.selectedElement === index ? 'selected' : ''} ${isPanelType ? 'panel-element' : ''} ${isPreConfigured ? 'pre-configured' : ''}"
                  data-index="${index}"
                  data-action="selectElement"
@@ -1180,6 +1603,7 @@ class IPLCFormBuilder {
                 </div>
                 ${hasSubElements ? this.renderPanelPreview(element) : ''}
             </div>
+            <hr class="section-divider">
         `;
     }
     
@@ -1669,10 +2093,10 @@ class IPLCFormBuilder {
     applyCategoryDefaults(element, type, category) {
         // Apply category-specific defaults based on evidence-based practices
         switch (category) {
-            case 'patient-info':
+            case 'client-info':
                 switch (type) {
                     case 'text':
-                        // Auto-seed text fields based on common patient info patterns
+                        // Auto-seed text fields based on common client info patterns
                         if (element.title.toLowerCase().includes('name')) {
                             element.placeholder = 'Enter full name';
                             element.isRequired = true;
@@ -1807,17 +2231,18 @@ class IPLCFormBuilder {
                     <p style="margin: 0;">Phone: (305) 253-7342 | Fax: (305) 253-0003</p>
                 </div>`
             },
-            'patient-info': {
+            'client-info': {
                 type: 'panel',
-                name: 'patient_demographics',
-                title: 'Patient Information',
+                name: 'client_demographics',
+                title: 'IDENTIFYING INFORMATION',
                 elements: [
-                    { type: 'text', name: 'patient_name', title: 'Patient Name', isRequired: true, placeholder: 'Enter full name' },
+                    { type: 'text', name: 'client_name', title: 'NAME', isRequired: true, placeholder: 'Enter full name' },
+                    { type: 'text', name: 'clinician_name', title: 'Clinician\'s Name', isRequired: true, placeholder: 'Enter clinician name' },
                     { type: 'text', name: 'date_of_birth', title: 'Date of Birth', inputType: 'date', isRequired: true },
-                    { type: 'expression', name: 'age', title: 'Age', expression: 'calculateAge({date_of_birth})' },
-                    { type: 'dropdown', name: 'gender', title: 'Gender', choices: ['Male', 'Female', 'Non-binary', 'Prefer not to say'], isRequired: true },
-                    { type: 'text', name: 'diagnosis', title: 'Primary Diagnosis', placeholder: 'ICD-10 code or description' },
-                    { type: 'text', name: 'mrn', title: 'Medical Record Number', placeholder: 'MRN#' }
+                    { type: 'expression', name: 'age', title: 'Age (auto-calculated)', expression: 'calculateAge({date_of_birth})', description: 'Automatically calculated from date of birth' },
+                    { type: 'text', name: 'evaluation_date', title: 'Evaluation Date', inputType: 'date', isRequired: true, defaultValueExpression: 'today()' },
+                    { type: 'text', name: 'evaluation_location', title: 'Evaluation Location', isRequired: true, placeholder: 'Enter evaluation location' },
+                    { type: 'text', name: 'examiner', title: 'Examiner', isRequired: true, placeholder: 'Enter examiner name' }
                 ]
             },
             'insurance-info': {
@@ -1829,7 +2254,7 @@ class IPLCFormBuilder {
                     { type: 'text', name: 'policy_number', title: 'Policy Number', isRequired: true, placeholder: 'Policy #' },
                     { type: 'text', name: 'group_number', title: 'Group Number', placeholder: 'Group #' },
                     { type: 'text', name: 'subscriber_name', title: 'Subscriber Name', placeholder: 'Policy holder name' },
-                    { type: 'dropdown', name: 'relationship_to_patient', title: 'Relationship to Patient', choices: ['Self', 'Parent', 'Spouse', 'Child', 'Other'] },
+                    { type: 'dropdown', name: 'relationship_to_client', title: 'Relationship to Client', choices: ['Self', 'Parent', 'Spouse', 'Child', 'Other'] },
                     { type: 'text', name: 'authorization_number', title: 'Authorization Number', placeholder: 'Auth #' },
                     { type: 'text', name: 'auth_visits', title: 'Authorized Visits', inputType: 'number', placeholder: 'Number of visits' }
                 ]
@@ -3703,6 +4128,14 @@ class IPLCFormBuilder {
             propertiesHTML += this.getHtmlPropertiesHTML(element);
         }
 
+        // Add styling controls section for all elements
+        propertiesHTML += `
+            <div class="property-group">
+                <h4 style="margin-bottom: 0.5rem;">Styling Controls</h4>
+                ${this.getStylingControlsHTML(element)}
+            </div>
+        `;
+
         // Add validation rules section
         propertiesHTML += `
             <div class="property-group">
@@ -4084,9 +4517,191 @@ class IPLCFormBuilder {
         this.saveToHistory();
         const element = this.formData.pages[this.currentPageIndex].elements[this.selectedElement];
         element[property] = value;
+        
+        // Update the visual element for styling properties
+        const visualElement = document.querySelector(`[data-index="${this.selectedElement}"]`);
+        if (visualElement) {
+            switch (property) {
+                case 'backgroundColor':
+                    visualElement.style.backgroundColor = value;
+                    break;
+                case 'color':
+                    visualElement.style.color = value;
+                    break;
+                case 'fontFamily':
+                    visualElement.style.fontFamily = value;
+                    break;
+                case 'fontSize':
+                    visualElement.style.fontSize = value;
+                    break;
+                case 'backgroundImage':
+                    if (value) {
+                        visualElement.style.backgroundImage = `url(${value})`;
+                        visualElement.style.backgroundSize = 'cover';
+                        visualElement.style.backgroundPosition = 'center';
+                        visualElement.style.backgroundRepeat = 'no-repeat';
+                    } else {
+                        visualElement.style.backgroundImage = '';
+                        visualElement.style.backgroundSize = '';
+                        visualElement.style.backgroundPosition = '';
+                        visualElement.style.backgroundRepeat = '';
+                    }
+                    break;
+            }
+        }
+        
         this.renderFormElements();
         this.hasUnsavedChanges = true;
         this.debouncedSave();
+    }
+
+    handleBackgroundImageUpload(inputElement) {
+        const file = inputElement.files[0];
+        if (!file) return;
+
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            alert('Please select a valid image file (JPEG, PNG, GIF, or WebP)');
+            inputElement.value = '';
+            return;
+        }
+
+        // Validate file size (2MB limit)
+        const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+        if (file.size > maxSize) {
+            alert('File size must be less than 2MB');
+            inputElement.value = '';
+            return;
+        }
+
+        // Convert to base64
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const base64String = e.target.result;
+                this.updateElementProperty('backgroundImage', base64String);
+                
+                // Update preview immediately
+                const previewElement = inputElement.parentElement.querySelector('.background-image-preview');
+                if (previewElement) {
+                    previewElement.style.backgroundImage = `url(${base64String})`;
+                    previewElement.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error processing image:', error);
+                alert('Error processing image file');
+                inputElement.value = '';
+            }
+        };
+
+        reader.onerror = () => {
+            console.error('Error reading file');
+            alert('Error reading image file');
+            inputElement.value = '';
+        };
+
+        reader.readAsDataURL(file);
+    }
+
+    getStylingControlsHTML(element) {
+        const webSafeFonts = [
+            { value: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', label: 'System Default' },
+            { value: 'Arial, sans-serif', label: 'Arial' },
+            { value: 'Helvetica, Arial, sans-serif', label: 'Helvetica' },
+            { value: '"Times New Roman", Times, serif', label: 'Times New Roman' },
+            { value: 'Georgia, serif', label: 'Georgia' },
+            { value: '"Courier New", Courier, monospace', label: 'Courier New' },
+            { value: 'Verdana, sans-serif', label: 'Verdana' },
+            { value: 'Tahoma, sans-serif', label: 'Tahoma' }
+        ];
+
+        const fontSizeOptions = [
+            { value: '12px', label: '12px - Small' },
+            { value: '14px', label: '14px - Default' },
+            { value: '16px', label: '16px - Mobile Optimized' },
+            { value: '18px', label: '18px - Large' },
+            { value: '20px', label: '20px - Extra Large' },
+            { value: '24px', label: '24px - Heading' }
+        ];
+
+        // Set defaults with white background and accessible styling
+        const currentFontFamily = element.fontFamily || '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        const currentFontSize = element.fontSize || '16px';
+        const currentBackgroundColor = element.backgroundColor || '#ffffff';
+        const currentColor = element.color || '#333333';
+        const currentBackgroundImage = element.backgroundImage || '';
+
+        return `
+            <div class="styling-controls">
+                <div class="form-field" style="margin-bottom: 1rem;">
+                    <label class="property-label" style="display: block; font-weight: 600; margin-bottom: 0.25rem; color: #2c3e50;">Font Family:</label>
+                    <select class="property-input touch-target" style="width: 100%; min-height: 44px; padding: 0.75rem; border: 2px solid #dee2e6; border-radius: 4px; font-size: 16px;"
+                            onchange="formBuilder.updateElementProperty('fontFamily', this.value)">
+                        ${webSafeFonts.map(font =>
+                            `<option value="${font.value}" ${currentFontFamily === font.value ? 'selected' : ''}>${font.label}</option>`
+                        ).join('')}
+                    </select>
+                </div>
+
+                <div class="form-field" style="margin-bottom: 1rem;">
+                    <label class="property-label" style="display: block; font-weight: 600; margin-bottom: 0.25rem; color: #2c3e50;">Font Size:</label>
+                    <select class="property-input touch-target" style="width: 100%; min-height: 44px; padding: 0.75rem; border: 2px solid #dee2e6; border-radius: 4px; font-size: 16px;"
+                            onchange="formBuilder.updateElementProperty('fontSize', this.value)">
+                        ${fontSizeOptions.map(size =>
+                            `<option value="${size.value}" ${currentFontSize === size.value ? 'selected' : ''}>${size.label}</option>`
+                        ).join('')}
+                    </select>
+                </div>
+
+                <div class="form-field" style="margin-bottom: 1rem;">
+                    <label class="property-label" style="display: block; font-weight: 600; margin-bottom: 0.25rem; color: #2c3e50;">Text Color:</label>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="color" class="property-input touch-target"
+                               style="width: 60px; min-height: 44px; border: 2px solid #dee2e6; border-radius: 4px; cursor: pointer;"
+                               value="${currentColor}"
+                               onchange="formBuilder.updateElementProperty('color', this.value)">
+                        <input type="text" class="property-input"
+                               style="flex: 1; min-height: 44px; padding: 0.75rem; border: 2px solid #dee2e6; border-radius: 4px; font-size: 16px;"
+                               value="${currentColor}" placeholder="#333333"
+                               onchange="formBuilder.updateElementProperty('color', this.value)">
+                    </div>
+                    <small style="color: #6c757d; font-size: 0.875rem;">Ensure 4.5:1 contrast ratio for accessibility</small>
+                </div>
+
+                <div class="form-field" style="margin-bottom: 1rem;">
+                    <label class="property-label" style="display: block; font-weight: 600; margin-bottom: 0.25rem; color: #2c3e50;">Background Color:</label>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="color" class="property-input touch-target"
+                               style="width: 60px; min-height: 44px; border: 2px solid #dee2e6; border-radius: 4px; cursor: pointer;"
+                               value="${currentBackgroundColor}"
+                               onchange="formBuilder.updateElementProperty('backgroundColor', this.value)">
+                        <input type="text" class="property-input"
+                               style="flex: 1; min-height: 44px; padding: 0.75rem; border: 2px solid #dee2e6; border-radius: 4px; font-size: 16px;"
+                               value="${currentBackgroundColor}" placeholder="#ffffff"
+                               onchange="formBuilder.updateElementProperty('backgroundColor', this.value)">
+                    </div>
+                    <small style="color: #6c757d; font-size: 0.875rem;">Default: White (#ffffff) for optimal contrast</small>
+                </div>
+
+                <div class="form-field" style="margin-bottom: 1rem;">
+                    <label class="property-label" style="display: block; font-weight: 600; margin-bottom: 0.25rem; color: #2c3e50;">Background Image:</label>
+                    <input type="file" class="property-input touch-target"
+                           style="width: 100%; min-height: 44px; padding: 0.75rem; border: 2px solid #dee2e6; border-radius: 4px; font-size: 16px;"
+                           accept="image/*"
+                           onchange="formBuilder.handleBackgroundImageUpload(this, '${element.id}')">
+                    ${currentBackgroundImage ? `
+                        <div style="margin-top: 0.5rem;">
+                            <small style="color: #28a745;">Current: ${currentBackgroundImage.split('/').pop()}</small>
+                            <button type="button" class="btn btn-sm btn-outline-danger touch-target"
+                                    style="margin-left: 0.5rem; min-height: 44px; padding: 0.5rem 1rem;"
+                                    onclick="formBuilder.updateElementProperty('backgroundImage', '')">Remove</button>
+                        </div>
+                    ` : ''}
+                    <small style="color: #6c757d; font-size: 0.875rem;">Recommended: JPG, PNG, WebP formats. Max 2MB.</small>
+                </div>
+            </div>
+        `;
     }
 
     getValidationRulesHTML(element) {
