@@ -80,7 +80,7 @@ class IPLCFormBuilder {
         }
     }
 
-    // Task A: Implement missing loadQuickTemplates method
+    // Task B: Enhanced loadQuickTemplates with robust error handling
     async loadQuickTemplates() {
         const dropdown = document.getElementById('quickTemplateSelect');
         
@@ -89,53 +89,125 @@ class IPLCFormBuilder {
             return;
         }
 
+        let response = null;
+        
         try {
-            // Show loading state
+            // Show loading state with visual feedback
             dropdown.innerHTML = '<option value="">Loading templates...</option>';
             dropdown.disabled = true;
+            dropdown.style.cursor = 'wait';
+            
+            // Show loading notification for better UI feedback
+            this.showNotification('Loading templates...', 'info');
 
-            // Fetch templates from API endpoint
-            const response = await fetch('/api/forms/templates', {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
+            // Fetch templates from API endpoint with timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+            
+            try {
+                response = await fetch('/api/forms/templates', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+            } catch (fetchError) {
+                clearTimeout(timeoutId);
+                
+                // Handle specific fetch errors
+                if (fetchError.name === 'AbortError') {
+                    throw new Error('Request timed out. Please check your connection and try again.');
+                } else if (fetchError instanceof TypeError && fetchError.message.includes('Failed to fetch')) {
+                    throw new Error('Network error. Please check your internet connection.');
+                } else {
+                    throw new Error(`Network request failed: ${fetchError.message}`);
                 }
-            });
-
-            // Check if request was successful
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            // Parse JSON response
-            const result = await response.json();
+            // Check if request was successful (MDN: fetch doesn't reject on HTTP errors)
+            if (!response.ok) {
+                // Provide specific error messages based on status code
+                let errorMessage = '';
+                switch (response.status) {
+                    case 404:
+                        errorMessage = 'Templates endpoint not found. Please contact support.';
+                        break;
+                    case 500:
+                    case 502:
+                    case 503:
+                        errorMessage = 'Server error. Please try again later.';
+                        break;
+                    case 401:
+                    case 403:
+                        errorMessage = 'Access denied. Please check your permissions.';
+                        break;
+                    default:
+                        errorMessage = `Server returned error ${response.status}`;
+                }
+                throw new Error(errorMessage);
+            }
+
+            // Parse JSON response with explicit error handling
+            let result;
+            try {
+                const responseText = await response.text();
+                if (!responseText) {
+                    throw new Error('Empty response from server');
+                }
+                result = JSON.parse(responseText);
+            } catch (parseError) {
+                console.error('FormBuilder: JSON parsing error:', parseError);
+                console.error('FormBuilder: Raw response:', responseText);
+                throw new Error('Invalid response format from server. Please try again.');
+            }
 
             // Check if API response indicates success
             if (!result.success) {
-                throw new Error(result.message || 'Failed to load templates');
+                throw new Error(result.message || 'Failed to load templates from server');
             }
 
-            // Extract templates from response
-            const templates = result.data?.templates || [];
+            // Extract templates from response with validation
+            const templates = result.data?.templates || result.data || [];
+            
+            // Validate templates array
+            if (!Array.isArray(templates)) {
+                console.error('FormBuilder: Invalid templates data structure:', templates);
+                throw new Error('Invalid templates data received from server');
+            }
 
             // Clear dropdown and add default option
             dropdown.innerHTML = '<option value="">Select a template...</option>';
 
             // Populate dropdown with templates
             if (templates.length > 0) {
-                templates.forEach(template => {
-                    const option = document.createElement('option');
-                    option.value = template.id;
-                    option.textContent = template.name || `Template ${template.id}`;
-                    
-                    // Add description as title attribute for tooltip
-                    if (template.description) {
-                        option.title = template.description;
+                templates.forEach((template, index) => {
+                    try {
+                        // Validate template object
+                        if (!template || typeof template !== 'object') {
+                            console.warn(`FormBuilder: Invalid template at index ${index}:`, template);
+                            return;
+                        }
+                        
+                        const option = document.createElement('option');
+                        option.value = template.id || '';
+                        option.textContent = template.name || `Template ${template.id || index + 1}`;
+                        
+                        // Add description as title attribute for tooltip
+                        if (template.description) {
+                            option.title = template.description;
+                        }
+                        
+                        dropdown.appendChild(option);
+                    } catch (optionError) {
+                        console.error(`FormBuilder: Error creating option for template ${index}:`, optionError);
                     }
-                    
-                    dropdown.appendChild(option);
                 });
+                
+                // Show success notification
+                this.showNotification(`Loaded ${templates.length} template${templates.length !== 1 ? 's' : ''}`, 'success');
             } else {
                 // No templates found
                 const option = document.createElement('option');
@@ -143,20 +215,47 @@ class IPLCFormBuilder {
                 option.textContent = 'No templates available';
                 option.disabled = true;
                 dropdown.appendChild(option);
+                
+                // Show info notification
+                this.showNotification('No templates available yet', 'info');
             }
 
         } catch (error) {
             console.error('FormBuilder: Error loading quick templates:', error);
+            console.error('FormBuilder: Error stack:', error.stack);
             
-            // Show error state in dropdown
-            dropdown.innerHTML = '<option value="">Error loading templates</option>';
+            // Show detailed error state in dropdown
+            dropdown.innerHTML = `<option value="">⚠️ ${error.message}</option>`;
             
-            // Show user-friendly error notification
-            this.showNotification('Failed to load templates: ' + error.message, 'error');
+            // Add retry option
+            const retryOption = document.createElement('option');
+            retryOption.value = 'retry';
+            retryOption.textContent = '🔄 Click to retry';
+            dropdown.appendChild(retryOption);
+            
+            // Show user-friendly error notification with toast/alert
+            this.showNotification(`Failed to load templates: ${error.message}`, 'error');
+            
+            // Log to console for debugging
+            if (response) {
+                console.error('FormBuilder: Response status:', response.status);
+                console.error('FormBuilder: Response headers:', response.headers);
+            }
             
         } finally {
-            // Re-enable dropdown
+            // Re-enable dropdown and restore cursor
             dropdown.disabled = false;
+            dropdown.style.cursor = 'pointer';
+            
+            // Add retry handler if error occurred
+            if (dropdown.querySelector('option[value="retry"]')) {
+                dropdown.addEventListener('change', (e) => {
+                    if (e.target.value === 'retry') {
+                        e.target.value = ''; // Reset selection
+                        this.loadQuickTemplates(); // Retry loading
+                    }
+                }, { once: true });
+            }
         }
     }
 
@@ -2661,19 +2760,29 @@ class IPLCFormBuilder {
             
             // Task E: Also monitor for dynamically added property grid elements
             if (propertyGridElements.length > 0) {
-                
+                console.log(`FormBuilder: Successfully setup handlers for ${propertyGridElements.length} property grid elements`);
             } else {
                 console.warn('FormBuilder: Task E - No property grid elements found, will retry');
                 // Task E: Retry setup after short delay for dynamically loaded content
-                setTimeout(setupPropertyGridHandlers, 1000);
+                setTimeout(() => {
+                    isSettingUpHandlers = false; // Task C: Reset guard before retry
+                    setupPropertyGridHandlers();
+                }, 1000);
             }
+            
+            // Task C: Reset guard flag after setup is complete
+            isSettingUpHandlers = false;
         };
         
         // Task E: Initial setup
         setupPropertyGridHandlers();
         
-        // Task E: Setup mutation observer to handle dynamically added property grid elements
+        // Task C & E: Setup mutation observer with throttling to prevent infinite loops
         if (typeof MutationObserver !== 'undefined') {
+            // Task C: Throttling state using requestAnimationFrame pattern
+            let ticking = false;
+            let pendingResetup = false;
+            
             const propertyGridObserver = new MutationObserver((mutations) => {
                 let shouldResetup = false;
                 
@@ -2694,8 +2803,21 @@ class IPLCFormBuilder {
                 });
                 
                 if (shouldResetup) {
+                    pendingResetup = true;
                     
-                    setTimeout(setupPropertyGridHandlers, 100);
+                    // Task C: Use requestAnimationFrame throttling to prevent infinite loops
+                    if (!ticking) {
+                        window.requestAnimationFrame(() => {
+                            if (pendingResetup) {
+                                console.log('FormBuilder: Property grid elements detected, setting up handlers');
+                                setupPropertyGridHandlers();
+                                pendingResetup = false;
+                            }
+                            ticking = false;
+                        });
+                        
+                        ticking = true;
+                    }
                 }
             });
             
@@ -8615,42 +8737,79 @@ class IPLCFormBuilder {
         }
     }
 
-    // Show notification message
-    showNotification(message) {
+    // Helper method to escape HTML for security
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // Show notification message with enhanced UI feedback for Task B
+    showNotification(message, type = 'info') {
         const notification = document.createElement('div');
+        
+        // Define colors and icons for different notification types
+        const typeConfig = {
+            'info': { bg: '#17a2b8', icon: 'ℹ️' },
+            'success': { bg: '#28a745', icon: '✅' },
+            'error': { bg: '#dc3545', icon: '❌' },
+            'warning': { bg: '#ffc107', icon: '⚠️' }
+        };
+        
+        const config = typeConfig[type] || typeConfig.info;
+        
         notification.style.cssText = `
             position: fixed;
             bottom: 20px;
             right: 20px;
-            background: #333;
+            background: ${config.bg};
             color: white;
             padding: 12px 20px;
             border-radius: 4px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
             z-index: 1000;
             animation: slideIn 0.3s ease-out;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: 400px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         `;
-        notification.textContent = message;
         
-        // Add animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideIn {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
+        // Add icon and message
+        notification.innerHTML = `
+            <span style="font-size: 1.2em;">${config.icon}</span>
+            <span>${this.escapeHtml(message)}</span>
         `;
-        document.head.appendChild(style);
+        
+        // Add animation styles if not already present
+        if (!document.getElementById('notification-animations')) {
+            const style = document.createElement('style');
+            style.id = 'notification-animations';
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                @keyframes slideOut {
+                    from { transform: translateX(0); opacity: 1; }
+                    to { transform: translateX(100%); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+        }
         
         document.body.appendChild(notification);
+        
+        // Different display durations based on type
+        const duration = type === 'error' ? 4000 : 3000;
         
         setTimeout(() => {
             notification.style.animation = 'slideOut 0.3s ease-out';
             setTimeout(() => {
                 notification.remove();
-                style.remove();
             }, 300);
-        }, 2000);
+        }, duration);
     }
 
     // Update form-level settings

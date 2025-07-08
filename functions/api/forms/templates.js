@@ -65,11 +65,17 @@ async function handleGetTemplates(env, templateId) {
       console.log('Querying for template ID:', templateId);
       
       // Get specific template
-      const template = await env.DB.prepare(`
-        SELECT ft.*, 'Anonymous' as creator_name
-        FROM form_templates ft
-        WHERE ft.id = ?
-      `).bind(templateId).first();
+      let template;
+      try {
+        template = await env.DB.prepare(`
+          SELECT ft.*, 'Anonymous' as creator_name
+          FROM form_templates ft
+          WHERE ft.id = ?
+        `).bind(templateId).first();
+      } catch (e) {
+        console.error('D1 query error for single template:', e);
+        return new Response(JSON.stringify({error: e.message}), {status: 500});
+      }
       
       console.log('Single template query result:', JSON.stringify(template, null, 2));
       
@@ -100,16 +106,22 @@ async function handleGetTemplates(env, templateId) {
       
       // List all templates - MODIFIED QUERY TO INCLUDE SECTIONS
       console.log('Executing templates list query...');
-      const result = await env.DB.prepare(`
-        SELECT ft.id, ft.name, ft.description, ft.sections, ft.created_by, ft.created_at, ft.updated_at,
-               ft.is_locked, ft.passcode,
-               'Anonymous' as creator_name,
-               COUNT(fs.id) as submission_count
-        FROM form_templates ft
-        LEFT JOIN form_submissions fs ON ft.id = fs.template_id
-        GROUP BY ft.id, ft.name, ft.description, ft.sections, ft.created_by, ft.created_at, ft.updated_at, ft.is_locked, ft.passcode
-        ORDER BY ft.updated_at DESC
-      `).all();
+      let result;
+      try {
+        result = await env.DB.prepare(`
+          SELECT ft.id, ft.name, ft.description, ft.sections, ft.created_by, ft.created_at, ft.updated_at,
+                 ft.is_locked, ft.passcode,
+                 'Anonymous' as creator_name,
+                 COUNT(fs.id) as submission_count
+          FROM form_templates ft
+          LEFT JOIN form_submissions fs ON ft.id = fs.template_id
+          GROUP BY ft.id, ft.name, ft.description, ft.sections, ft.created_by, ft.created_at, ft.updated_at, ft.is_locked, ft.passcode
+          ORDER BY ft.updated_at DESC
+        `).all();
+      } catch (e) {
+        console.error('D1 query error for templates list:', e);
+        return new Response(JSON.stringify({error: e.message}), {status: 500});
+      }
       
       console.log('=== DATABASE QUERY RESULT ANALYSIS ===');
       console.log('Query success:', result.success);
@@ -222,19 +234,25 @@ async function handleGetTemplates(env, templateId) {
      console.log('Lock status:', isLocked, 'Passcode provided:', !!passcode);
      
      // Insert new template with lock status
-     const result = await env.DB.prepare(`
-       INSERT INTO form_templates (name, description, sections, created_by, created_at, updated_at, is_locked, passcode)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-     `).bind(
-       name,
-       description || null,
-       JSON.stringify(templateSections),
-       createdBy || 'Anonymous', // Store creator name
-       now,
-       now,
-       isLocked ? 1 : 0,
-       passcode || null
-     ).run();
+     let result;
+     try {
+       result = await env.DB.prepare(`
+         INSERT INTO form_templates (name, description, sections, created_by, created_at, updated_at, is_locked, passcode)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+       `).bind(
+         name,
+         description || null,
+         JSON.stringify(templateSections),
+         createdBy || 'Anonymous', // Store creator name
+         now,
+         now,
+         isLocked ? 1 : 0,
+         passcode || null
+       ).run();
+     } catch (e) {
+       console.error('D1 insert error in handleCreateTemplate:', e);
+       return new Response(JSON.stringify({error: e.message}), {status: 500});
+     }
     
     console.log('Database insert result:', JSON.stringify(result, null, 2));
     
@@ -246,11 +264,17 @@ async function handleGetTemplates(env, templateId) {
     console.log('Template created with ID:', result.meta.last_row_id);
     
     // Get the created template
-    const template = await env.DB.prepare(`
-      SELECT ft.*, 'Anonymous' as creator_name
-      FROM form_templates ft
-      WHERE ft.id = ?
-    `).bind(result.meta.last_row_id).first();
+    let template;
+    try {
+      template = await env.DB.prepare(`
+        SELECT ft.*, 'Anonymous' as creator_name
+        FROM form_templates ft
+        WHERE ft.id = ?
+      `).bind(result.meta.last_row_id).first();
+    } catch (e) {
+      console.error('D1 query error fetching created template:', e);
+      return new Response(JSON.stringify({error: e.message}), {status: 500});
+    }
     
     console.log('Retrieved created template:', JSON.stringify(template, null, 2));
     
@@ -277,9 +301,15 @@ async function handleUpdateTemplate(request, env, templateId) {
   
   try {
     // Check if template exists
-    const existingTemplate = await env.DB.prepare(`
-      SELECT * FROM form_templates WHERE id = ?
-    `).bind(templateId).first();
+    let existingTemplate;
+    try {
+      existingTemplate = await env.DB.prepare(`
+        SELECT * FROM form_templates WHERE id = ?
+      `).bind(templateId).first();
+    } catch (e) {
+      console.error('D1 query error checking template existence:', e);
+      return new Response(JSON.stringify({error: e.message}), {status: 500});
+    }
     
     if (!existingTemplate) {
       return createResponse(false, 'Template not found', null, 404);
@@ -296,38 +326,50 @@ async function handleUpdateTemplate(request, env, templateId) {
     const now = new Date().toISOString();
     
     // Update template (including createdBy and lock status if provided)
-    const result = await env.DB.prepare(`
-      UPDATE form_templates
-      SET name = COALESCE(?, name),
-          description = COALESCE(?, description),
-          sections = COALESCE(?, sections),
-          created_by = COALESCE(?, created_by),
-          is_locked = COALESCE(?, is_locked),
-          passcode = CASE WHEN ? IS NOT NULL THEN ? ELSE passcode END,
-          updated_at = ?
-      WHERE id = ?
-    `).bind(
-      name || null,
-      description !== undefined ? description : null,
-      sections ? JSON.stringify(sections) : null,
-      createdBy || null,
-      isLocked !== undefined ? (isLocked ? 1 : 0) : null,
-      isLocked !== undefined ? 1 : null,
-      passcode || null,
-      now,
-      templateId
-    ).run();
+    let result;
+    try {
+      result = await env.DB.prepare(`
+        UPDATE form_templates
+        SET name = COALESCE(?, name),
+            description = COALESCE(?, description),
+            sections = COALESCE(?, sections),
+            created_by = COALESCE(?, created_by),
+            is_locked = COALESCE(?, is_locked),
+            passcode = CASE WHEN ? IS NOT NULL THEN ? ELSE passcode END,
+            updated_at = ?
+        WHERE id = ?
+      `).bind(
+        name || null,
+        description !== undefined ? description : null,
+        sections ? JSON.stringify(sections) : null,
+        createdBy || null,
+        isLocked !== undefined ? (isLocked ? 1 : 0) : null,
+        isLocked !== undefined ? 1 : null,
+        passcode || null,
+        now,
+        templateId
+      ).run();
+    } catch (e) {
+      console.error('D1 update error in handleUpdateTemplate:', e);
+      return new Response(JSON.stringify({error: e.message}), {status: 500});
+    }
     
     if (!result.success) {
       return createResponse(false, 'Failed to update template', null, 500);
     }
     
     // Get the updated template
-    const template = await env.DB.prepare(`
-      SELECT ft.*, 'Anonymous' as creator_name
-      FROM form_templates ft
-      WHERE ft.id = ?
-    `).bind(templateId).first();
+    let template;
+    try {
+      template = await env.DB.prepare(`
+        SELECT ft.*, 'Anonymous' as creator_name
+        FROM form_templates ft
+        WHERE ft.id = ?
+      `).bind(templateId).first();
+    } catch (e) {
+      console.error('D1 query error fetching updated template:', e);
+      return new Response(JSON.stringify({error: e.message}), {status: 500});
+    }
     
     if (template.sections) {
       template.sections = JSON.parse(template.sections);
@@ -350,23 +392,41 @@ async function handleDeleteTemplate(env, templateId) {
   
   try {
     // Check if template exists
-    const existingTemplate = await env.DB.prepare(`
-      SELECT * FROM form_templates WHERE id = ?
-    `).bind(templateId).first();
+    let existingTemplate;
+    try {
+      existingTemplate = await env.DB.prepare(`
+        SELECT * FROM form_templates WHERE id = ?
+      `).bind(templateId).first();
+    } catch (e) {
+      console.error('D1 query error checking template existence:', e);
+      return new Response(JSON.stringify({error: e.message}), {status: 500});
+    }
     
     if (!existingTemplate) {
       return createResponse(false, 'Template not found', null, 404);
     }
     
     // Check if template has submissions
-    const submissionCount = await env.DB.prepare(`
-      SELECT COUNT(*) as count FROM form_submissions WHERE template_id = ?
-    `).bind(templateId).first();
+    let submissionCount;
+    try {
+      submissionCount = await env.DB.prepare(`
+        SELECT COUNT(*) as count FROM form_submissions WHERE template_id = ?
+      `).bind(templateId).first();
+    } catch (e) {
+      console.error('D1 query error counting submissions:', e);
+      return new Response(JSON.stringify({error: e.message}), {status: 500});
+    }
     
     // Hard delete since this is open access (no soft delete needed)
-    const result = await env.DB.prepare(`
-      DELETE FROM form_templates WHERE id = ?
-    `).bind(templateId).run();
+    let result;
+    try {
+      result = await env.DB.prepare(`
+        DELETE FROM form_templates WHERE id = ?
+      `).bind(templateId).run();
+    } catch (e) {
+      console.error('D1 delete error in handleDeleteTemplate:', e);
+      return new Response(JSON.stringify({error: e.message}), {status: 500});
+    }
     
     if (!result.success) {
       return createResponse(false, 'Failed to delete template', null, 500);
