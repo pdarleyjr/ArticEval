@@ -1,576 +1,256 @@
-import { createResponse, handleCORS } from '../../utils/api-utils.js';
+import { createResponse, handleCORS, handleError } from '../../utils/api-utils.js';
 
 export async function onRequest(context) {
-  console.log('Templates API called - context:', typeof context);
   const { request, env } = context;
-  console.log('Request method:', request.method);
-  console.log('Request URL:', request.url);
-  console.log('Environment bindings available:', Object.keys(env || {}));
-  
-  // Handle CORS preflight
+
   if (request.method === 'OPTIONS') {
-    console.log('Handling CORS preflight');
     return handleCORS();
   }
   
   try {
     const url = new URL(request.url);
-    const templateId = url.searchParams.get('id');
-    console.log('Template ID from params:', templateId);
-    
-    // Test DB connection
-    console.log('Testing DB connection...');
+    const id = url.pathname.split('/').pop();
+    const templateId = id.match(/^[0-9a-f]{8}-([0-9a-f]{4}-){3}[0-9a-f]{12}$/i) ? id : null;
+
     if (!env.DB) {
-      console.error('DB binding not available');
-      return createResponse(false, 'Database not available', null, 500);
+      return handleError('Database binding not available', 503);
     }
-    console.log('DB binding available');
     
     switch (request.method) {
       case 'GET':
-        console.log('Calling handleGetTemplates');
         return await handleGetTemplates(env, templateId);
       case 'POST':
-        console.log('Calling handleCreateTemplate');
         return await handleCreateTemplate(request, env);
       case 'PUT':
-        console.log('Calling handleUpdateTemplate');
+        if (!templateId) return handleError('A valid template ID is required in the URL for PUT requests.', 400);
         return await handleUpdateTemplate(request, env, templateId);
       case 'DELETE':
-        console.log('Calling handleDeleteTemplate');
+        if (!templateId) return handleError('A valid template ID is required in the URL for DELETE requests.', 400);
         return await handleDeleteTemplate(env, templateId);
       default:
-        console.log('Method not allowed:', request.method);
-        return createResponse(false, 'Method not allowed', null, 405);
+        return handleError(`Method not allowed: ${request.method}`, 405);
     }
   } catch (error) {
-    console.error('Templates API error:', error);
-    console.error('Error stack:', error.stack);
-    console.error('Error message:', error.message);
-    return createResponse(false, 'Internal server error: ' + error.message, null, 500);
+    return handleError(error);
   }
 }
 
 /**
- * Handle GET requests - list templates or get specific template
+ * Handle GET requests - list templates or get a specific template
  */
 async function handleGetTemplates(env, templateId) {
-  console.log('=== STARTING handleGetTemplates function ===');
-  console.log('Environment DB binding available:', !!env.DB);
-  console.log('Template ID parameter:', templateId);
-  
   try {
     if (templateId) {
-      console.log('=== SINGLE TEMPLATE RETRIEVAL MODE ===');
-      console.log('Querying for template ID:', templateId);
-      
-      // Get specific template
-      let template;
-      try {
-        template = await env.DB.prepare(`
-          SELECT ft.*, 'Anonymous' as creator_name
-          FROM form_templates ft
-          WHERE ft.id = ?
-        `).bind(templateId).first();
-      } catch (e) {
-        console.error('D1 query error for single template:', e);
-        return new Response(JSON.stringify({error: e.message}), {status: 500});
-      }
-      
-      console.log('Single template query result:', JSON.stringify(template, null, 2));
-      
+      // Get a single specific template
+      const template = await env.DB.prepare(
+        `SELECT ft.*, 'Anonymous' as creator_name 
+         FROM form_templates ft 
+         WHERE ft.id = ?`
+      ).bind(templateId).first();
+
       if (!template) {
-        console.log('Template not found for ID:', templateId);
-        return createResponse(false, 'Template not found', null, 404);
+        return handleError('Template not found', 404);
       }
       
-      // Parse JSON sections
-      console.log('Parsing sections for template:', template.id);
-      console.log('Raw sections value:', template.sections);
-      console.log('Sections type:', typeof template.sections);
-      
+      // Safely parse JSON sections
       if (template.sections) {
         try {
           template.sections = JSON.parse(template.sections);
-          console.log('Successfully parsed sections:', JSON.stringify(template.sections, null, 2));
-        } catch (parseError) {
-          console.error('Failed to parse template sections:', parseError);
-          console.error('Raw sections content:', template.sections);
+        } catch (e) {
+          console.warn(`Could not parse sections for template ${template.id}: ${e.message}`);
+          template.sections = []; // Sanitize corrupted JSON
         }
       }
       
-      console.log('Final template object:', JSON.stringify(template, null, 2));
-      return createResponse(true, 'Template retrieved successfully', { template });
+      return createResponse({ template });
+
     } else {
-      console.log('=== TEMPLATE LIST RETRIEVAL MODE ===');
-      
-      // List all templates - MODIFIED QUERY TO INCLUDE SECTIONS
-      console.log('Executing templates list query...');
-      let result;
-      try {
-        result = await env.DB.prepare(`
-          SELECT ft.id, ft.name, ft.description, ft.sections, ft.created_by, ft.created_at, ft.updated_at,
-                 ft.is_locked, ft.passcode,
-                 'Anonymous' as creator_name,
-                 COUNT(fs.id) as submission_count
-          FROM form_templates ft
-          LEFT JOIN form_submissions fs ON ft.id = fs.template_id
-          GROUP BY ft.id, ft.name, ft.description, ft.sections, ft.created_by, ft.created_at, ft.updated_at, ft.is_locked, ft.passcode
-          ORDER BY ft.updated_at DESC
-        `).all();
-      } catch (e) {
-        console.error('D1 query error for templates list:', e);
-        return new Response(JSON.stringify({error: e.message}), {status: 500});
+      // List all templates
+      const { results: templates } = await env.DB.prepare(
+        `SELECT ft.id, ft.name, ft.description, ft.sections, ft.created_by, ft.created_at, ft.updated_at,
+                ft.is_locked, ft.passcode,
+                'Anonymous' as creator_name,
+                COUNT(fs.id) as submission_count
+         FROM form_templates ft
+         LEFT JOIN form_submissions fs ON ft.id = fs.template_id
+         GROUP BY ft.id
+         ORDER BY ft.updated_at DESC`
+      ).all();
+
+      if (!templates) {
+        return createResponse({ templates: [] });
       }
-      
-      console.log('=== DATABASE QUERY RESULT ANALYSIS ===');
-      console.log('Query success:', result.success);
-      console.log('Result object keys:', Object.keys(result));
-      console.log('Results array length:', result.results ? result.results.length : 'N/A');
-      console.log('Full result object:', JSON.stringify(result, null, 2));
-      
-      if (!result.success) {
-        console.error('=== DATABASE QUERY FAILED ===');
-        console.error('Query error:', result.error);
-        return createResponse(false, 'Database query failed', null, 500);
-      }
-      
-      console.log('=== PROCESSING TEMPLATES ===');
-      const processedTemplates = [];
-      
-      if (result.results && Array.isArray(result.results)) {
-        for (let i = 0; i < result.results.length; i++) {
-          const template = result.results[i];
-          console.log(`Processing template ${i + 1}:`, template.id, template.name);
-          console.log(`Template ${i + 1} raw data:`, JSON.stringify(template, null, 2));
-          
-          // Parse sections if present
-          if (template.sections) {
-            console.log(`Template ${i + 1} has sections, attempting to parse...`);
-            console.log(`Raw sections value:`, template.sections);
-            console.log(`Sections type:`, typeof template.sections);
-            
-            try {
-              template.sections = JSON.parse(template.sections);
-              console.log(`Template ${i + 1} sections parsed successfully:`, JSON.stringify(template.sections, null, 2));
-              
-              // Validate sections using our validation function
-              console.log(`=== VALIDATING TEMPLATE ${i + 1} SECTIONS ===`);
-              const isValid = isValidTemplateSections(template.sections);
-              console.log(`Template ${i + 1} validation result:`, isValid);
-              
-              if (!isValid) {
-                console.warn(`Template ${i + 1} failed validation - excluding from results`);
-                continue;
-              }
-            } catch (parseError) {
-              console.error(`Template ${i + 1} sections parse error:`, parseError);
-              console.error(`Failed to parse sections:`, template.sections);
-              template.sections = [];
+
+      const processedTemplates = templates.map(template => {
+        if (template.sections) {
+          try {
+            const sections = JSON.parse(template.sections);
+            if (isValidTemplateSections(sections)) {
+              template.sections = sections;
+            } else {
+              template.sections = []; // Clear invalid sections
             }
-          } else {
-            console.log(`Template ${i + 1} has no sections`);
-            template.sections = [];
+          } catch (e) {
+            console.warn(`Could not parse sections for template ${template.id}: ${e.message}`);
+            template.sections = []; // Sanitize corrupted sections
           }
-          
-          processedTemplates.push(template);
-          console.log(`Template ${i + 1} added to processed list`);
         }
-      } else {
-        console.warn('No results array found or results is not an array');
-      }
-      
-      console.log('=== FINAL PROCESSING COMPLETE ===');
-      console.log('Total processed templates:', processedTemplates.length);
-      console.log('Final templates array:', JSON.stringify(processedTemplates, null, 2));
-      
-      const response = createResponse(true, 'Templates retrieved successfully', {
-        templates: processedTemplates
+        return template;
       });
-      
-      console.log('=== RESPONSE OBJECT ===');
-      console.log('Response object:', JSON.stringify(response, null, 2));
-      
-      return response;
+
+      return createResponse({ templates: processedTemplates });
     }
   } catch (error) {
-    console.error('=== CRITICAL ERROR IN handleGetTemplates ===');
-    console.error('Error message:', error.message);
-    console.error('Error name:', error.name);
-    console.error('Error stack:', error.stack);
-    console.error('Error object (serialized):', JSON.stringify(error, Object.getOwnPropertyNames(error)));
-    
-    return createResponse(false, 'Failed to retrieve templates: ' + error.message, null, 500);
+    return handleError(error);
   }
 }
 
 /**
- * Handle POST requests - create new template
- async function handleCreateTemplate(request, env) {
-   console.log('=== STARTING handleCreateTemplate ===');
-   try {
-     const data = await request.json();
-     console.log('Request data:', JSON.stringify(data, null, 2));
-     const { name, description, sections, createdBy, isLocked, passcode } = data;
-     
-     // Validate required fields - only name is required for initial creation
-     if (!name) {
-       console.log('Validation failed: name is required');
-       return createResponse(false, 'Template name is required', null, 400);
-     }
-     
-     // Use empty sections array if not provided (for initial template creation)
-     const templateSections = sections || [];
-     console.log('Template sections:', JSON.stringify(templateSections, null, 2));
-     
-     // Validate sections structure only if sections are provided
-     if (templateSections.length > 0 && !isValidTemplateSections(templateSections)) {
-       console.log('Validation failed: invalid template sections');
-       return createResponse(false, 'Invalid template sections', null, 400);
-     }
-     
-     const now = new Date().toISOString();
-     console.log('Creating template with name:', name, 'description:', description, 'createdBy:', createdBy);
-     console.log('Lock status:', isLocked, 'Passcode provided:', !!passcode);
-     
-     // Insert new template with lock status
-     let result;
-     try {
-       result = await env.DB.prepare(`
-         INSERT INTO form_templates (name, description, sections, created_by, created_at, updated_at, is_locked, passcode)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-       `).bind(
-         name,
-         description || null,
-         JSON.stringify(templateSections),
-         createdBy || 'Anonymous', // Store creator name
-         now,
-         now,
-         isLocked ? 1 : 0,
-         passcode || null
-       ).run();
-     } catch (e) {
-       console.error('D1 insert error in handleCreateTemplate:', e);
-       return new Response(JSON.stringify({error: e.message}), {status: 500});
-     }
-    
-    console.log('Database insert result:', JSON.stringify(result, null, 2));
-    
-    if (!result.success) {
-      console.error('Database insert failed:', result.error);
-      return createResponse(false, 'Failed to create template', null, 500);
-    }
-    
-    console.log('Template created with ID:', result.meta.last_row_id);
-    
-    // Get the created template
-    let template;
-    try {
-      template = await env.DB.prepare(`
-        SELECT ft.*, 'Anonymous' as creator_name
-        FROM form_templates ft
-        WHERE ft.id = ?
-      `).bind(result.meta.last_row_id).first();
-    } catch (e) {
-      console.error('D1 query error fetching created template:', e);
-      return new Response(JSON.stringify({error: e.message}), {status: 500});
-    }
-    
-    console.log('Retrieved created template:', JSON.stringify(template, null, 2));
-    
-    if (template.sections) {
-      template.sections = JSON.parse(template.sections);
-    }
-    
-    console.log('Template creation successful');
-    return createResponse(true, 'Template created successfully', { template }, 201);
-  } catch (error) {
-    console.error('Create template error:', error);
-    console.error('Error stack:', error.stack);
-    return createResponse(false, 'Failed to create template: ' + error.message, null, 500);
-  }
-}
-
-/**
- * Handle PUT requests - update existing template
+ * Handle POST requests - create a new template
  */
-async function handleUpdateTemplate(request, env, templateId) {
-  if (!templateId) {
-    return createResponse(false, 'Template ID is required', null, 400);
-  }
-  
+async function handleCreateTemplate(request, env) {
   try {
-    // Check if template exists
-    let existingTemplate;
-    try {
-      existingTemplate = await env.DB.prepare(`
-        SELECT * FROM form_templates WHERE id = ?
-      `).bind(templateId).first();
-    } catch (e) {
-      console.error('D1 query error checking template existence:', e);
-      return new Response(JSON.stringify({error: e.message}), {status: 500});
-    }
-    
-    if (!existingTemplate) {
-      return createResponse(false, 'Template not found', null, 404);
-    }
-    
     const data = await request.json();
     const { name, description, sections, createdBy, isLocked, passcode } = data;
-    
-    // Validate sections if provided
-    if (sections && !isValidTemplateSections(sections)) {
-      return createResponse(false, 'Invalid template sections', null, 400);
+
+    if (!name) {
+      return handleError('Template name is a required field.', 400);
     }
-    
+
+    const templateSections = sections || [];
+    if (templateSections.length > 0 && !isValidTemplateSections(templateSections)) {
+      return handleError('The provided sections have an invalid format.', 400);
+    }
+
     const now = new Date().toISOString();
-    
-    // Update template (including createdBy and lock status if provided)
-    let result;
-    try {
-      result = await env.DB.prepare(`
-        UPDATE form_templates
-        SET name = COALESCE(?, name),
-            description = COALESCE(?, description),
-            sections = COALESCE(?, sections),
-            created_by = COALESCE(?, created_by),
-            is_locked = COALESCE(?, is_locked),
-            passcode = CASE WHEN ? IS NOT NULL THEN ? ELSE passcode END,
-            updated_at = ?
-        WHERE id = ?
-      `).bind(
-        name || null,
-        description !== undefined ? description : null,
-        sections ? JSON.stringify(sections) : null,
-        createdBy || null,
-        isLocked !== undefined ? (isLocked ? 1 : 0) : null,
-        isLocked !== undefined ? 1 : null,
-        passcode || null,
-        now,
-        templateId
-      ).run();
-    } catch (e) {
-      console.error('D1 update error in handleUpdateTemplate:', e);
-      return new Response(JSON.stringify({error: e.message}), {status: 500});
-    }
-    
-    if (!result.success) {
-      return createResponse(false, 'Failed to update template', null, 500);
-    }
-    
-    // Get the updated template
-    let template;
-    try {
-      template = await env.DB.prepare(`
-        SELECT ft.*, 'Anonymous' as creator_name
-        FROM form_templates ft
-        WHERE ft.id = ?
-      `).bind(templateId).first();
-    } catch (e) {
-      console.error('D1 query error fetching updated template:', e);
-      return new Response(JSON.stringify({error: e.message}), {status: 500});
-    }
+    const { meta } = await env.DB.prepare(
+      `INSERT INTO form_templates (name, description, sections, created_by, created_at, updated_at, is_locked, passcode)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+    ).bind(
+      name,
+      description || null,
+      JSON.stringify(templateSections),
+      createdBy || 'Anonymous',
+      now,
+      now,
+      isLocked ? 1 : 0,
+      passcode || null
+    ).run();
+
+    const newTemplateId = meta.last_row_id;
+    const template = await env.DB.prepare(
+      `SELECT ft.*, 'Anonymous' as creator_name FROM form_templates ft WHERE ft.id = ?`
+    ).bind(newTemplateId).first();
     
     if (template.sections) {
       template.sections = JSON.parse(template.sections);
     }
     
-    return createResponse(true, 'Template updated successfully', { template });
+    return createResponse({ template }, 201);
   } catch (error) {
-    console.error('Update template error:', error);
-    return createResponse(false, 'Failed to update template', null, 500);
+    return handleError(error);
   }
 }
 
 /**
- * Handle DELETE requests - soft delete template
+ * Handle PUT requests - update an existing template
+ */
+async function handleUpdateTemplate(request, env, templateId) {
+  try {
+    const existingTemplate = await env.DB.prepare('SELECT id FROM form_templates WHERE id = ?').bind(templateId).first();
+    if (!existingTemplate) {
+      return handleError('Template not found', 404);
+    }
+
+    const data = await request.json();
+    const { name, description, sections, createdBy, isLocked, passcode } = data;
+
+    if (sections && !isValidTemplateSections(sections)) {
+      return handleError('The provided sections have an invalid format.', 400);
+    }
+
+    const now = new Date().toISOString();
+    await env.DB.prepare(
+      `UPDATE form_templates
+       SET name = COALESCE(?, name),
+           description = COALESCE(?, description),
+           sections = COALESCE(?, sections),
+           created_by = COALESCE(?, created_by),
+           is_locked = COALESCE(?, is_locked),
+           passcode = CASE WHEN ? IS NOT NULL THEN ? ELSE passcode END,
+           updated_at = ?
+       WHERE id = ?`
+    ).bind(
+      name || null,
+      description !== undefined ? description : null,
+      sections ? JSON.stringify(sections) : null,
+      createdBy || null,
+      isLocked !== undefined ? (isLocked ? 1 : 0) : null,
+      isLocked !== undefined ? 1 : null,
+      passcode || null,
+      now,
+      templateId
+    ).run();
+
+    const template = await env.DB.prepare(
+      `SELECT ft.*, 'Anonymous' as creator_name FROM form_templates ft WHERE ft.id = ?`
+    ).bind(templateId).first();
+
+    if (template.sections) {
+      template.sections = JSON.parse(template.sections);
+    }
+    
+    return createResponse({ template });
+  } catch (error) {
+    return handleError(error);
+  }
+}
+
+/**
+ * Handle DELETE requests - permanently delete a template
  */
 async function handleDeleteTemplate(env, templateId) {
-  if (!templateId) {
-    return createResponse(false, 'Template ID is required', null, 400);
-  }
-  
   try {
-    // Check if template exists
-    let existingTemplate;
-    try {
-      existingTemplate = await env.DB.prepare(`
-        SELECT * FROM form_templates WHERE id = ?
-      `).bind(templateId).first();
-    } catch (e) {
-      console.error('D1 query error checking template existence:', e);
-      return new Response(JSON.stringify({error: e.message}), {status: 500});
-    }
-    
+    const existingTemplate = await env.DB.prepare('SELECT id FROM form_templates WHERE id = ?').bind(templateId).first();
     if (!existingTemplate) {
-      return createResponse(false, 'Template not found', null, 404);
+      return handleError('Template not found', 404);
     }
+
+    await env.DB.prepare('DELETE FROM form_templates WHERE id = ?').bind(templateId).run();
     
-    // Check if template has submissions
-    let submissionCount;
-    try {
-      submissionCount = await env.DB.prepare(`
-        SELECT COUNT(*) as count FROM form_submissions WHERE template_id = ?
-      `).bind(templateId).first();
-    } catch (e) {
-      console.error('D1 query error counting submissions:', e);
-      return new Response(JSON.stringify({error: e.message}), {status: 500});
-    }
-    
-    // Hard delete since this is open access (no soft delete needed)
-    let result;
-    try {
-      result = await env.DB.prepare(`
-        DELETE FROM form_templates WHERE id = ?
-      `).bind(templateId).run();
-    } catch (e) {
-      console.error('D1 delete error in handleDeleteTemplate:', e);
-      return new Response(JSON.stringify({error: e.message}), {status: 500});
-    }
-    
-    if (!result.success) {
-      return createResponse(false, 'Failed to delete template', null, 500);
-    }
-    
-    return createResponse(true, 'Template deleted successfully', null);
+    return createResponse({ message: 'Template deleted successfully' });
   } catch (error) {
-    console.error('Delete template error:', error);
-    return createResponse(false, 'Failed to delete template', null, 500);
+    if (error.message && error.message.includes('FOREIGN KEY constraint failed')) {
+      return handleError('This template cannot be deleted because it has existing submissions.', 409);
+    }
+    return handleError(error);
   }
 }
 
 /**
  * Validate template sections structure
- * Supports both SurveyJS format (pages with elements) and legacy format (sections with fields)
- * @param {array} sections - Template sections or pages
- * @returns {boolean} True if valid
  */
 function isValidTemplateSections(sections) {
-  console.log('=== STARTING TEMPLATE SECTIONS VALIDATION ===');
-  console.log('Sections input:', JSON.stringify(sections, null, 2));
-  console.log('Sections type:', typeof sections);
-  console.log('Is array:', Array.isArray(sections));
-  
-  if (!sections || !Array.isArray(sections)) {
-    console.log('VALIDATION FAILED: Sections is not an array or is null/undefined');
+  if (!Array.isArray(sections)) {
     return false;
   }
-  
-  console.log('Sections array length:', sections.length);
-  
-  // Check if this is SurveyJS format (pages with elements)
+
   const isSurveyJSFormat = sections.length > 0 && sections[0].elements !== undefined;
-  console.log('Format detected:', isSurveyJSFormat ? 'SurveyJS' : 'Legacy');
-  
+
   if (isSurveyJSFormat) {
-    // Validate SurveyJS format (pages with elements)
-    for (let i = 0; i < sections.length; i++) {
-      const page = sections[i];
-      console.log(`=== VALIDATING PAGE ${i + 1} ===`);
-      console.log(`Page ${i + 1} data:`, JSON.stringify(page, null, 2));
-      
-      // Check page structure
-      console.log(`Page ${i + 1} has name:`, !!page.name, 'Value:', page.name);
-      console.log(`Page ${i + 1} has elements:`, !!page.elements, 'Type:', typeof page.elements);
-      console.log(`Page ${i + 1} elements is array:`, Array.isArray(page.elements));
-      
-      if (!page.name || !page.elements || !Array.isArray(page.elements)) {
-        console.log(`VALIDATION FAILED: Page ${i + 1} missing required properties`);
-        return false;
-      }
-      
-      // Validate each element
-      for (let j = 0; j < page.elements.length; j++) {
-        const element = page.elements[j];
-        console.log(`=== VALIDATING PAGE ${i + 1} ELEMENT ${j + 1} ===`);
-        console.log(`Element ${j + 1} data:`, JSON.stringify(element, null, 2));
-        
-        console.log(`Element ${j + 1} has type:`, !!element.type, 'Value:', element.type);
-        console.log(`Element ${j + 1} has name:`, !!element.name, 'Value:', element.name);
-        
-        if (!element.type || !element.name) {
-          console.log(`VALIDATION FAILED: Page ${i + 1} Element ${j + 1} missing required properties`);
-          return false;
-        }
-        
-        // Check valid element types (SurveyJS types)
-        const validSurveyJSTypes = [
-          'text', 'comment', 'dropdown', 'radiogroup', 'checkbox', 'boolean',
-          'rating', 'matrix', 'matrixdropdown', 'matrixdynamic', 'multipletext',
-          'html', 'signaturepad', 'expression', 'file', 'imagepicker',
-          'panel', 'paneldynamic'
-        ];
-        
-        console.log(`Element ${j + 1} type validation:`, element.type, 'Valid:', validSurveyJSTypes.includes(element.type));
-        
-        if (!validSurveyJSTypes.includes(element.type)) {
-          console.log(`VALIDATION WARNING: Page ${i + 1} Element ${j + 1} has unrecognized type: ${element.type}`);
-          // Don't fail validation for unrecognized types (might be custom)
-        }
-        
-        console.log(`Element ${j + 1} validation PASSED`);
-      }
-      
-      console.log(`Page ${i + 1} validation PASSED`);
-    }
+    return sections.every(page => 
+      page.name && Array.isArray(page.elements) && page.elements.every(el => el.type && el.name)
+    );
   } else {
-    // Validate legacy format (sections with fields)
-    for (let i = 0; i < sections.length; i++) {
-      const section = sections[i];
-      console.log(`=== VALIDATING SECTION ${i + 1} ===`);
-      console.log(`Section ${i + 1} data:`, JSON.stringify(section, null, 2));
-      
-      // Check section structure
-      console.log(`Section ${i + 1} has id:`, !!section.id, 'Value:', section.id);
-      console.log(`Section ${i + 1} has title:`, !!section.title, 'Value:', section.title);
-      console.log(`Section ${i + 1} has fields:`, !!section.fields, 'Type:', typeof section.fields);
-      console.log(`Section ${i + 1} fields is array:`, Array.isArray(section.fields));
-      
-      if (!section.id || !section.title || !section.fields || !Array.isArray(section.fields)) {
-        console.log(`VALIDATION FAILED: Section ${i + 1} missing required properties`);
-        console.log(`Missing - id: ${!section.id}, title: ${!section.title}, fields: ${!section.fields}, fields array: ${!Array.isArray(section.fields)}`);
-        return false;
-      }
-      
-      console.log(`Section ${i + 1} fields array length:`, section.fields.length);
-      
-      // Validate each field
-      for (let j = 0; j < section.fields.length; j++) {
-        const field = section.fields[j];
-        console.log(`=== VALIDATING SECTION ${i + 1} FIELD ${j + 1} ===`);
-        console.log(`Field ${j + 1} data:`, JSON.stringify(field, null, 2));
-        
-        console.log(`Field ${j + 1} has name:`, !!field.name, 'Value:', field.name);
-        console.log(`Field ${j + 1} has type:`, !!field.type, 'Value:', field.type);
-        console.log(`Field ${j + 1} has label:`, !!field.label, 'Value:', field.label);
-        
-        if (!field.name || !field.type || !field.label) {
-          console.log(`VALIDATION FAILED: Section ${i + 1} Field ${j + 1} missing required properties`);
-          console.log(`Missing - name: ${!field.name}, type: ${!field.type}, label: ${!field.label}`);
-          return false;
-        }
-        
-        // Check valid field types
+    // Legacy format
+    return sections.every(section =>
+      section.id && section.title && Array.isArray(section.fields) && section.fields.every(field => {
         const validTypes = [
           'text', 'textarea', 'number', 'email', 'tel', 'url', 'date', 'time',
           'select', 'radio', 'checkbox', 'file', 'rating', 'slider', 'textarea-rich'
         ];
-        
-        console.log(`Field ${j + 1} type validation:`, field.type, 'Valid:', validTypes.includes(field.type));
-        
-        if (!validTypes.includes(field.type)) {
-          console.log(`VALIDATION FAILED: Section ${i + 1} Field ${j + 1} has invalid type: ${field.type}`);
-          console.log('Valid types:', validTypes);
-          return false;
-        }
-        
-        console.log(`Field ${j + 1} validation PASSED`);
-      }
-      
-      console.log(`Section ${i + 1} validation PASSED`);
-    }
+        return field.name && field.type && field.label && validTypes.includes(field.type);
+      })
+    );
   }
-  
-  console.log('=== ALL SECTIONS VALIDATION PASSED ===');
-  return true;
 }

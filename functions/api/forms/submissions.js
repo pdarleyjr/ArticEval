@@ -1,4 +1,4 @@
-import { createResponse, handleCORS } from '../../utils/api-utils.js';
+import { createResponse, handleCORS, handleError } from '../../utils/api-utils.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -21,13 +21,13 @@ export async function onRequest(context) {
       case 'PUT':
         return await handleUpdateSubmission(request, env, submissionId);
       case 'DELETE':
+        if (!submissionId) return handleError('A valid submission ID is required in the URL for DELETE requests.', 400);
         return await handleDeleteSubmission(env, submissionId);
       default:
-        return createResponse(false, 'Method not allowed', null, 405);
+        return handleError(`Method not allowed: ${request.method}`, 405);
     }
   } catch (error) {
-    console.error('Submissions API error:', error);
-    return createResponse(false, 'Internal server error', null, 500);
+    return handleError(error);
   }
 }
 
@@ -44,8 +44,7 @@ async function handleGetSubmissions(env, submissionId, templateId, searchParams)
       return await listSubmissions(env, templateId, searchParams);
     }
   } catch (error) {
-    console.error('Get submissions error:', error);
-    return createResponse(false, 'Failed to retrieve submissions', null, 500);
+    return handleError(error, 'Failed to retrieve submissions');
   }
 }
 
@@ -63,7 +62,7 @@ async function getSubmissionById(env, submissionId) {
   const submission = await env.DB.prepare(query).bind(submissionId).first();
   
   if (!submission) {
-    return createResponse(false, 'Submission not found', null, 404);
+    return handleError('Submission not found', 404);
   }
   
   // Parse JSON data
@@ -159,16 +158,16 @@ async function handleCreateSubmission(request, env) {
     
     // Validate required fields
     if (!template_id || !formData) {
-      return createResponse(false, 'Template ID and form data are required', null, 400);
+      return handleError('Template ID and form data are required', 400);
     }
     
     // Get template to validate against
     const template = await env.DB.prepare(`
-      SELECT * FROM form_templates WHERE id = ? AND is_active = 1
+      SELECT * FROM form_templates WHERE id = ?
     `).bind(template_id).first();
     
     if (!template) {
-      return createResponse(false, 'Template not found or inactive', null, 404);
+      return handleError('Template not found or is inactive', 404);
     }
     
     // Parse template config
@@ -177,7 +176,7 @@ async function handleCreateSubmission(request, env) {
     // Validate form data against template
     const validation = validateSubmissionData(formData, templateConfig);
     if (!validation.isValid) {
-      return createResponse(false, `Validation failed: ${validation.errors.join(', ')}`, null, 400);
+      return handleError(`Validation failed: ${validation.errors.join(', ')}`, 400);
     }
     
     // Calculate score if template has scoring
@@ -186,44 +185,27 @@ async function handleCreateSubmission(request, env) {
     const now = new Date().toISOString();
     
     // Insert submission
-    const result = await env.DB.prepare(`
-      INSERT INTO form_submissions (template_id, submitted_by, data, client_data, status, score, submitted_at)
-      VALUES (?, ?, ?, ?, 'completed', ?, ?)
+    const { meta } = await env.DB.prepare(`
+        INSERT INTO form_submissions (template_id, data, client_data, status, score, submitted_at)
+        VALUES (?, ?, ?, 'completed', ?, ?)
     `).bind(
-      template_id,
-      null, // No user tracking in open access mode
-      JSON.stringify(formData),
-      client_data ? JSON.stringify(client_data) : null,
-      score,
-      now
+        template_id,
+        JSON.stringify(formData),
+        client_data ? JSON.stringify(client_data) : null,
+        score,
+        now
     ).run();
-    
-    if (!result.success) {
-      return createResponse(false, 'Failed to create submission', null, 500);
-    }
     
     // Track analytics (without user ID)
     await trackSubmissionAnalytics(env, template_id, null, now);
+    const submissionId = meta.last_row_id;
     
     // Get the created submission
-    const submission = await env.DB.prepare(`
-      SELECT fs.*, ft.name as template_name
-      FROM form_submissions fs
-      LEFT JOIN form_templates ft ON fs.template_id = ft.id
-      WHERE fs.id = ?
-    `).bind(result.meta.last_row_id).first();
+    const submission = await getSubmissionById(env, submissionId);
     
-    if (submission.data) {
-      submission.data = JSON.parse(submission.data);
-    }
-    if (submission.client_data) {
-      submission.client_data = JSON.parse(submission.client_data);
-    }
-    
-    return createResponse(true, 'Submission created successfully', { submission }, 201);
+    return createResponse({ submission: submission.submission }, 201);
   } catch (error) {
-    console.error('Create submission error:', error);
-    return createResponse(false, 'Failed to create submission', null, 500);
+    return handleError(error, 'Failed to create submission');
   }
 }
 
@@ -232,7 +214,7 @@ async function handleCreateSubmission(request, env) {
  */
 async function handleUpdateSubmission(request, env, submissionId) {
   if (!submissionId) {
-    return createResponse(false, 'Submission ID is required', null, 400);
+    return handleError('Submission ID is required', 400);
   }
   
   try {
@@ -242,7 +224,7 @@ async function handleUpdateSubmission(request, env, submissionId) {
     `).bind(submissionId).first();
     
     if (!existingSubmission) {
-      return createResponse(false, 'Submission not found', null, 404);
+      return handleError('Submission not found', 404);
     }
     
     const data = await request.json();
@@ -263,7 +245,7 @@ async function handleUpdateSubmission(request, env, submissionId) {
         const validation = validateSubmissionData(formData, templateConfig);
         
         if (!validation.isValid) {
-          return createResponse(false, `Validation failed: ${validation.errors.join(', ')}`, null, 400);
+          return handleError(`Validation failed: ${validation.errors.join(', ')}`, 400);
         }
         
         updateFields.push('data = ?');
@@ -289,7 +271,7 @@ async function handleUpdateSubmission(request, env, submissionId) {
     }
     
     if (updateFields.length === 0) {
-      return createResponse(false, 'No valid fields to update', null, 400);
+      return handleError('No valid fields to update', 400);
     }
     
     const updateQuery = `
@@ -299,31 +281,14 @@ async function handleUpdateSubmission(request, env, submissionId) {
     `;
     updateParams.push(submissionId);
     
-    const result = await env.DB.prepare(updateQuery).bind(...updateParams).run();
-    
-    if (!result.success) {
-      return createResponse(false, 'Failed to update submission', null, 500);
-    }
+    await env.DB.prepare(updateQuery).bind(...updateParams).run();
     
     // Get the updated submission
-    const submission = await env.DB.prepare(`
-      SELECT fs.*, ft.name as template_name
-      FROM form_submissions fs
-      LEFT JOIN form_templates ft ON fs.template_id = ft.id
-      WHERE fs.id = ?
-    `).bind(submissionId).first();
+    const submission = await getSubmissionById(env, submissionId);
     
-    if (submission.data) {
-      submission.data = JSON.parse(submission.data);
-    }
-    if (submission.client_data) {
-      submission.client_data = JSON.parse(submission.client_data);
-    }
-    
-    return createResponse(true, 'Submission updated successfully', { submission });
+    return createResponse({ submission: submission.submission });
   } catch (error) {
-    console.error('Update submission error:', error);
-    return createResponse(false, 'Failed to update submission', null, 500);
+    return handleError(error, 'Failed to update submission');
   }
 }
 
@@ -332,32 +297,27 @@ async function handleUpdateSubmission(request, env, submissionId) {
  */
 async function handleDeleteSubmission(env, submissionId) {
   if (!submissionId) {
-    return createResponse(false, 'Submission ID is required', null, 400);
+    return handleError('Submission ID is required', 400);
   }
   
   try {
     // Check if submission exists
     const existingSubmission = await env.DB.prepare(`
-      SELECT * FROM form_submissions WHERE id = ?
+      SELECT id FROM form_submissions WHERE id = ?
     `).bind(submissionId).first();
     
     if (!existingSubmission) {
-      return createResponse(false, 'Submission not found', null, 404);
+      return handleError('Submission not found', 404);
     }
     
     // Delete submission
-    const result = await env.DB.prepare(`
+    await env.DB.prepare(`
       DELETE FROM form_submissions WHERE id = ?
     `).bind(submissionId).run();
     
-    if (!result.success) {
-      return createResponse(false, 'Failed to delete submission', null, 500);
-    }
-    
-    return createResponse(true, 'Submission deleted successfully', null);
+    return createResponse({ message: 'Submission deleted successfully' });
   } catch (error) {
-    console.error('Delete submission error:', error);
-    return createResponse(false, 'Failed to delete submission', null, 500);
+    return handleError(error, 'Failed to delete submission');
   }
 }
 

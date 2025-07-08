@@ -1,4 +1,4 @@
-import { createResponse, handleCORS } from '../../utils/api-utils.js';
+import { createResponse, handleCORS, handleError } from '../../utils/api-utils.js';
 
 export async function onRequest(context) {
   const { request, env } = context;
@@ -15,16 +15,15 @@ export async function onRequest(context) {
       case 'GET':
         return await handleGetAnalytics(env, url.searchParams);
       case 'POST':
-        return await handleTrackEvent(request, env);
-      default:
-        return createResponse(false, 'Method not allowed', null, 405);
+        case 'POST':
+          return await handleTrackEvent(request, env);
+        default:
+          return handleError(`Method not allowed: ${request.method}`, 405);
+      }
+    } catch (error) {
+      return handleError(error);
     }
-  } catch (error) {
-    console.error('Analytics API error:', error);
-    return createResponse(false, 'Internal server error', null, 500);
   }
-}
-
 /**
  * Handle GET requests - retrieve analytics data
  */
@@ -41,7 +40,7 @@ async function handleGetAnalytics(env, searchParams) {
         return await getOverviewAnalytics(env, timeframe, startDate, endDate);
       case 'template':
         if (!templateId) {
-          return createResponse(false, 'Template ID is required for template analytics', null, 400);
+          return handleError('Template ID is required for template analytics', 400);
         }
         return await getTemplateAnalytics(env, templateId, timeframe, startDate, endDate);
       case 'submissions':
@@ -51,11 +50,10 @@ async function handleGetAnalytics(env, searchParams) {
       case 'performance':
         return await getPerformanceAnalytics(env, templateId, timeframe, startDate, endDate);
       default:
-        return createResponse(false, 'Invalid analytics type', null, 400);
+        return handleError('Invalid analytics type', 400);
     }
   } catch (error) {
-    console.error('Get analytics error:', error);
-    return createResponse(false, 'Failed to retrieve analytics', null, 500);
+    return handleError(error, 'Failed to retrieve analytics');
   }
 }
 
@@ -68,7 +66,7 @@ async function handleTrackEvent(request, env) {
     const { event_type, template_id, metadata } = data;
     
     if (!event_type) {
-      return createResponse(false, 'Event type is required', null, 400);
+      return handleError('Event type is required', 400);
     }
     
     const now = new Date().toISOString();
@@ -84,15 +82,10 @@ async function handleTrackEvent(request, env) {
       now,
       metadata ? JSON.stringify(metadata) : null
     ).run();
-    
-    if (!result.success) {
-      return createResponse(false, 'Failed to track event', null, 500);
-    }
-    
-    return createResponse(true, 'Event tracked successfully', { event_id: result.meta.last_row_id });
+
+    return createResponse({ event_id: result.meta.last_row_id }, 201);
   } catch (error) {
-    console.error('Track event error:', error);
-    return createResponse(false, 'Failed to track event', null, 500);
+    return handleError(error, 'Failed to track event');
   }
 }
 
@@ -183,7 +176,7 @@ async function getTemplateAnalytics(env, templateId, timeframe, startDate, endDa
   `).bind(dateRange.start, dateRange.end, templateId).first();
   
   if (!templateInfo) {
-    return createResponse(false, 'Template not found', null, 404);
+    return handleError('Template not found', 404);
   }
   
   // Submission timeline - all submissions for this template

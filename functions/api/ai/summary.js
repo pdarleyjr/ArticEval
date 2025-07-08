@@ -1,4 +1,4 @@
-import { createResponse, handleCORS } from '../../utils/api-utils.js';
+import { createResponse, handleCORS, handleError } from '../../utils/api-utils.js';
 
 // Helper function for safe JSON parsing
 async function safeJson(req) {
@@ -33,16 +33,15 @@ export async function onRequest(context) {
       case 'POST':
         return await handleGenerateSummary(request, env);
       case 'PUT':
-        return await handleRefineeSummary(request, env);
-      default:
-        return createResponse({ success: false, message: 'Method not allowed' }, 405);
+        case 'PUT':
+          return await handleRefineeSummary(request, env);
+        default:
+          return handleError(`Method not allowed: ${request.method}`, 405);
+      }
+    } catch (error) {
+      return handleError(error);
     }
-  } catch (error) {
-    console.error('AI Summary API error:', error);
-    return createResponse({ success: false, message: 'Internal server error' }, 500);
   }
-}
-
 /**
  * Handle POST requests - generate AI-powered clinical summary
  */
@@ -53,7 +52,7 @@ async function handleGenerateSummary(request, env) {
     
     // Validate required fields
     if (!formData) {
-      return createResponse({ success: false, message: 'Form data is required' }, 400);
+      return handleError('Form data is required', 400);
     }
     
     // Extract clinical data for AI processing
@@ -66,7 +65,7 @@ async function handleGenerateSummary(request, env) {
     const aiResponse = await generateAISummary(env, prompt, clinicalContext);
     
     if (!aiResponse.success) {
-      return createResponse({ success: false, message: aiResponse.error }, 500);
+      return handleError(aiResponse.error, 502); // 502 Bad Gateway from AI service
     }
     
     // Structure the AI response into clinical sections
@@ -99,8 +98,7 @@ async function handleGenerateSummary(request, env) {
     });
     
   } catch (error) {
-    console.error('Generate AI summary error:', error);
-    return createResponse({ success: false, message: 'Failed to generate AI summary' }, 500);
+    return handleError(error, 'Failed to generate AI summary');
   }
 }
 
@@ -113,7 +111,7 @@ async function handleRefineeSummary(request, env) {
     const { summaryId, feedback, refinementType = 'correction' } = data;
     
     if (!summaryId || !feedback) {
-      return createResponse({ success: false, message: 'Summary ID and feedback are required' }, 400);
+      return handleError('Summary ID and feedback are required', 400);
     }
     
     // Get original summary (removed user_id check since auth is removed)
@@ -122,13 +120,13 @@ async function handleRefineeSummary(request, env) {
     `).bind(summaryId).first();
     
     if (!originalSummary) {
-      return createResponse({ success: false, message: 'Summary not found' }, 404);
+      return handleError('Summary not found', 404);
     }
     
     // Parse original data
     const originalData = safeJsonParse(originalSummary.form_data, {});
     if (!originalData || Object.keys(originalData).length === 0) {
-      return createResponse({ success: false, message: 'Invalid form data in original summary' }, 400);
+      return handleError('Invalid form data in original summary', 400);
     }
     const clinicalContext = extractClinicalContext(originalData);
     
@@ -144,7 +142,7 @@ async function handleRefineeSummary(request, env) {
     const aiResponse = await generateAISummary(env, refinementPrompt, clinicalContext);
     
     if (!aiResponse.success) {
-      return createResponse({ success: false, message: aiResponse.error }, 500);
+      return handleError(aiResponse.error, 502); // 502 Bad Gateway from AI service
     }
     
     // Structure refined response
@@ -188,8 +186,7 @@ async function handleRefineeSummary(request, env) {
     });
     
   } catch (error) {
-    console.error('Refine AI summary error:', error);
-    return createResponse({ success: false, message: 'Failed to refine AI summary' }, 500);
+    return handleError(error, 'Failed to refine AI summary');
   }
 }
 

@@ -23,6 +23,33 @@ export function createResponse(data, status = 200) {
 }
 
 /**
+ * Create a standardized JSON error response
+ * @param {Error|string} error - The error object or a string message
+ * @param {number} [status=500] - The HTTP status code
+ * @returns {Response} A formatted JSON error response
+ */
+export function handleError(error, status = 500) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : 'No stack trace available';
+
+    // Log the full error for server-side debugging
+    console.error(`API Error (Status: ${status}): ${errorMessage}`, {
+        stack: errorStack,
+        timestamp: new Date().toISOString()
+    });
+
+    // Return a user-friendly, standardized error response
+    return createResponse(
+        {
+            error: true,
+            message: `An internal server error occurred: ${errorMessage}`,
+            details: 'Please try again later or contact support if the problem persists.'
+        },
+        status
+    );
+}
+
+/**
  * Handle CORS preflight requests
  * @returns {Response} Empty response with CORS headers
  */

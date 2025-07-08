@@ -66,7 +66,7 @@ class IPLCFormBuilder {
                         <h3>Form Builder Initialization Error</h3>
                         <p><strong>Error:</strong> ${error.message}</p>
                         <p>Please refresh the page to try again.</p>
-                        <button onclick="window.location.reload()" class="btn btn-primary" style="background: #dc3545; border-color: #dc3545; color: white; padding: 0.5rem 1rem; border-radius: 0.25rem; cursor: pointer;">
+                        <button onclick="window.location.reload()" class="btn btn-danger touch-target">
                             Refresh Page
                         </button>
                     </div>
@@ -269,18 +269,33 @@ class IPLCFormBuilder {
             // Show loading state
             this.showNotification('Loading template...', 'info');
 
-            // Fetch individual template from API
-            const response = await fetch(`/api/forms/templates/${templateId}`, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
+            // Fetch individual template from API with timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+            
+            let response;
+            try {
+                response = await fetch(`/api/forms/templates/${templateId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+            } catch (fetchError) {
+                clearTimeout(timeoutId);
+                if (fetchError.name === 'AbortError') {
+                    throw new Error('Request timed out. Please check your connection and try again.');
                 }
-            });
+                throw new Error(`Network error: ${fetchError.message}`);
+            }
 
             // Check if request was successful
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const errorText = await response.text();
+                throw new Error(`Failed to load template (HTTP ${response.status}): ${errorText}`);
             }
 
             // Parse JSON response
@@ -290,7 +305,7 @@ class IPLCFormBuilder {
             await this.applyTemplate(template);
 
         } catch (error) {
-            console.error('FormBuilder: Error loading template:', error);
+            console.error('FormBuilder: Error loading quick template:', error);
             this.showNotification('Failed to load template: ' + error.message, 'error');
         }
     }
@@ -863,1239 +878,144 @@ class IPLCFormBuilder {
         const styles = document.createElement('style');
         styles.id = 'form-builder-styles';
         styles.textContent = `
+            :root {
+                --builder-bg: #ffffff;
+                --header-bg: #ffffff;
+                --border-color: #e1e4e8;
+                --toolbox-bg: #ffffff;
+                --canvas-bg: #f8f9fa;
+                --properties-bg: #ffffff;
+                --text-color: #2c3e50;
+                --text-light: #586069;
+                --primary-color: #0B60D1;
+                --primary-hover: #0952a5;
+                --danger-color: #d32f2f;
+                --danger-hover: #c62828;
+                --touch-target-size: 44px;
+                --focus-outline: 3px solid var(--primary-hover);
+            }
             .form-builder-container {
                 height: 100%;
                 width: 100%;
                 display: flex;
                 flex-direction: column;
-                background: #ffffff;
+                background: var(--builder-bg);
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             }
-
             .builder-header {
-                background: white;
+                background: var(--header-bg);
                 padding: 1rem 2rem;
-                border-bottom: 1px solid #e1e4e8;
+                border-bottom: 1px solid var(--border-color);
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
             }
-
             .builder-main {
                 flex: 1;
                 display: flex;
                 overflow: hidden;
                 width: 100%;
             }
-
-            .builder-toolbox {
-                width: 280px;
-                background: white;
-                border-right: 1px solid #e1e4e8;
+            .builder-toolbox, .builder-properties {
+                background: var(--toolbox-bg);
+                border-right: 1px solid var(--border-color);
                 padding: 1rem;
                 overflow-y: auto;
+                flex-shrink: 0;
+            }
+            .builder-toolbox { width: 280px; }
+            .builder-properties { width: 300px; border-left: 1px solid var(--border-color); border-right: none; }
+            
+            .touch-target, .btn, button, input[type="button"], input[type="submit"], [role="button"] {
+                min-width: var(--touch-target-size);
+                min-height: var(--touch-target-size);
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0.5rem 1rem;
+                margin: 4px;
+                cursor: pointer;
+                border-radius: 4px;
+                border: 1px solid var(--border-color);
+                background-color: var(--builder-bg);
+                color: var(--text-color);
+                font-size: 1rem;
+                transition: all 0.2s ease;
+                -webkit-tap-highlight-color: transparent;
+            }
+            .touch-target:focus, .btn:focus, button:focus {
+                outline: none;
+                box-shadow: 0 0 0 2px var(--builder-bg), 0 0 0 4px var(--primary-color);
+            }
+            
+            .btn-primary { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
+            .btn-primary:hover { background-color: var(--primary-hover); border-color: var(--primary-hover); }
+            .btn-danger { background-color: var(--danger-color); color: white; border-color: var(--danger-color); }
+            .btn-danger:hover { background-color: var(--danger-hover); border-color: var(--danger-hover); }
+            
+            /* Element type buttons in modal */
+            .element-type-btn {
+                padding: 10px 20px;
+                border: 1px solid #ddd;
+                background-color: white;
+                color: var(--text-color);
+                transition: all 0.3s ease;
+                cursor: pointer;
+                text-align: center;
+                font-size: 14px;
+                font-weight: 500;
+            }
+            .element-type-btn:hover {
+                background-color: #f5f5f5;
+                border-color: var(--primary-color);
+                transform: translateY(-2px);
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            }
+            .element-type-btn:active {
+                transform: translateY(0);
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             }
 
-            .category {
-                margin-bottom: 1.5rem;
+            .draggable-element, .form-element, .page-tab {
+                min-height: var(--touch-target-size);
+                 align-items: center;
             }
-
-            .category h4 {
-                margin: 0 0 0.5rem 0;
-                color: #586069;
-                font-size: 0.9rem;
-                text-transform: uppercase;
-            }
-
+            
             .draggable-element {
                 background: #f6f8fa;
-                border: 1px solid #e1e4e8;
+                border: 1px solid var(--border-color);
                 border-radius: 4px;
                 padding: 0.75rem;
                 margin-bottom: 0.5rem;
                 cursor: move;
-                transition: all 0.2s;
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                user-select: none;
-            }
-
-            .draggable-element:hover {
-                background: #e9ecef;
-                border-color: #3498db;
-                transform: translateX(2px);
-            }
-            
-            .draggable-element.dragging {
-                opacity: 0.5;
-                cursor: grabbing;
-            }
-
-            .builder-canvas {
-                flex: 1;
-                padding: 2rem;
-                overflow-y: auto;
-                background: #ffffff;
-                min-width: 0;
-                transition: margin-right 0.3s ease;
-            }
-            
-            .builder-canvas.expanded {
-                margin-right: 50px !important;
-            }
-
-            /* Task D: Collapsible Form Metadata Drawer */
-            .form-metadata-drawer {
-                background: white;
-                border-radius: 8px;
-                margin-bottom: 1rem;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                border: 1px solid #e1e4e8;
-                overflow: hidden;
-                transition: all 0.3s ease;
-            }
-            
-            .form-metadata-drawer[open] {
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            }
-            
-            .form-metadata-summary {
-                padding: 1rem 1.5rem;
-                cursor: pointer;
-                user-select: none;
-                background: linear-gradient(90deg, #f8f9fa 0%, #ffffff 100%);
-                border-bottom: 1px solid transparent;
-                display: flex;
-                align-items: center;
-                gap: 0.75rem;
-                font-weight: 500;
-                color: #2c3e50;
-                transition: all 0.2s ease;
-                min-height: 44px; /* Touch target compliance */
-            }
-            
-            .form-metadata-summary:hover {
-                background: linear-gradient(90deg, #e9ecef 0%, #f8f9fa 100%);
-                border-bottom-color: #dee2e6;
-            }
-            
-            .form-metadata-summary:focus {
-                outline: 3px solid #0066cc;
-                outline-offset: 2px;
-            }
-            
-            .summary-icon {
-                font-size: 1.1rem;
-                flex-shrink: 0;
-            }
-            
-            .summary-text {
-                flex: 1;
-                font-size: 1rem;
-            }
-            
-            .summary-chevron {
-                font-size: 0.875rem;
-                transition: transform 0.2s ease;
-                flex-shrink: 0;
-            }
-            
-            .form-metadata-drawer[open] .summary-chevron {
-                transform: rotate(90deg);
-            }
-            
-            .form-metadata-drawer[open] .form-metadata-summary {
-                border-bottom-color: #dee2e6;
-                background: linear-gradient(90deg, #e9ecef 0%, #f8f9fa 100%);
-            }
-            
-            .form-metadata-content {
-                padding: 1.5rem;
-                background: #ffffff;
-                border-top: 1px solid #dee2e6;
-                animation: fadeInDown 0.3s ease;
-            }
-            
-            @keyframes fadeInDown {
-                from {
-                    opacity: 0;
-                    transform: translateY(-10px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateY(0);
-                }
-            }
-            
-            /* Remove default details/summary styling */
-            .form-metadata-summary {
-                list-style: none;
-            }
-            
-            .form-metadata-summary::-webkit-details-marker {
-                display: none;
-            }
-            
-            .form-metadata-summary::marker {
-                display: none;
-            }
-
-            .form-title-input, .page-title-input {
-                width: 100%;
-                font-size: 1.5rem;
-                font-weight: 600;
-                border: none;
-                border-bottom: 2px solid #e1e4e8;
-                padding: 0.5rem 0;
-                margin-bottom: 1rem;
-            }
-
-            .form-description-input {
-                width: 100%;
-                min-height: 60px;
-                border: 1px solid #e1e4e8;
-                border-radius: 4px;
-                padding: 0.75rem;
-                resize: vertical;
-            }
-
-            .page-navigation {
-                display: flex;
-                align-items: center;
-                gap: 1rem;
-                margin-bottom: 1rem;
-            }
-
-            .page-tabs {
                 display: flex;
                 gap: 0.5rem;
-                flex: 1;
-            }
-
-            .page-tab {
-                background: white;
-                border: 1px solid #e1e4e8;
-                border-radius: 4px;
-                padding: 0.5rem 1rem;
-                cursor: pointer;
-            }
-
-            .page-tab.active {
-                background: #3498db;
-                color: white;
-            }
-
-            .form-page {
-                background: white;
-                border-radius: 8px;
-                padding: 2rem;
-                min-height: 400px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            }
-
-            .drop-zone {
-                min-height: 300px;
-                border: 2px dashed #e1e4e8;
-                border-radius: 4px;
-                padding: 1rem;
-            }
-
-            .drop-zone.drag-over {
-                border-color: #3498db;
-                background: #f0f8ff;
-            }
-
-            .empty-state {
-                text-align: center;
-                color: #959da5;
-                padding: 3rem;
+                user-select: none;
             }
 
             .form-element {
                 background: white;
-                border: 1px solid #e1e4e8;
+                border: 1px solid var(--border-color);
                 border-radius: 4px;
                 padding: 1rem;
                 margin-bottom: 1rem;
                 cursor: pointer;
-                transition: all 0.2s ease;
                 position: relative;
             }
-            
-            .form-element.panel-element {
-                background: linear-gradient(to right, #f8f9fa 0%, white 10%);
-                border-left: 4px solid #3498db;
-            }
-            
-            .form-element.pre-configured {
-                border-left-color: #28a745;
-            }
-            
-            /* Enhanced panel-specific styling */
-            .panel-element {
-                position: relative;
-                padding-left: 20px !important;
-            }
-            
-            .panel-badge {
-                display: inline-block;
-                background: #3498db;
-                color: white;
-                font-size: 11px;
-                padding: 2px 8px;
-                border-radius: 12px;
-                margin-left: 8px;
-                font-weight: 500;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-            }
-            
-            .pre-configured .panel-badge {
-                background: #28a745;
-            }
-            
-            .panel-preview {
-                margin-top: 0.75rem;
-                padding: 0.75rem;
-                background: linear-gradient(to bottom, #f8f9fa 0%, #ffffff 100%);
-                border: 1px solid #e9ecef;
-                border-radius: 6px;
-                font-size: 0.85em;
-                color: #6c757d;
-                box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
-            }
-            
-            .panel-preview > div:first-child {
-                margin-bottom: 0.5rem;
-                font-weight: 600;
-                color: #495057;
-                text-transform: uppercase;
-                font-size: 0.8em;
-                letter-spacing: 0.5px;
-            }
-            
-            .panel-preview > div[style*="margin-left"] {
-                position: relative;
-                padding-left: 12px;
-                margin-bottom: 4px;
-                line-height: 1.4;
-            }
-            
-            .panel-preview > div[style*="margin-left"]:before {
-                content: '•';
-                position: absolute;
-                left: 0;
-                color: #3498db;
-                font-weight: bold;
-            }
-            
-            .pre-configured .panel-preview > div[style*="margin-left"]:before {
-                color: #28a745;
-            }
-            
-            /* Panel element type badge styling */
-            .panel-element .element-type {
-                font-weight: 600;
-            }
-            
-            .panel-element .element-type-icon {
-                font-size: 1.2em;
-                filter: brightness(1.2);
-            }
-            
-            /* Sub-element indicator styling */
-            .sub-element-indicator {
-                background: rgba(52, 152, 219, 0.1);
-                padding: 2px 6px;
-                border-radius: 10px;
-                border: 1px solid rgba(52, 152, 219, 0.2);
-            }
-            
-            .pre-configured .sub-element-indicator {
-                background: rgba(40, 167, 69, 0.1);
-                border-color: rgba(40, 167, 69, 0.2);
-            }
-            
-            /* Enhanced pre-configured badge */
-            .pre-configured-badge {
-                animation: pulse 2s ease-in-out infinite;
-            }
-            
-            @keyframes pulse {
-                0%, 100% { opacity: 1; }
-                50% { opacity: 0.8; }
-            }
-            
-            /* Panel edit button special styling */
-            .panel-edit {
-                background: rgba(52, 152, 219, 0.1);
-                border-radius: 4px;
-                padding: 4px 8px !important;
-                transition: all 0.2s ease;
-            }
-            
-            .panel-edit:hover {
-                background: rgba(52, 152, 219, 0.2);
-                transform: scale(1.1);
-            }
-
-            .form-element:hover {
-                border-color: #3498db;
-                background-color: #f8f9fa;
-                transform: translateY(-1px);
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            }
-            
-            .form-element.panel-element:hover {
-                background: linear-gradient(to right, #e9ecef 0%, #f8f9fa 10%);
-            }
-
             .form-element.selected {
-                border-color: #3498db;
-                box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 3px rgba(11, 96, 209, 0.25);
             }
 
-            /* Visual indicator for editable elements */
-            .form-element::after {
-                content: 'Double-click to edit';
-                position: absolute;
-                top: -8px;
-                right: 10px;
-                background: #3498db;
-                color: white;
-                font-size: 11px;
-                padding: 2px 8px;
-                border-radius: 10px;
-                opacity: 0;
-                transition: opacity 0.2s ease;
-                pointer-events: none;
-            }
-            
-            .form-element.panel-element::after {
-                content: 'Double-click to edit panel & elements';
-                background: #6c757d;
-            }
-            
-            .form-element.pre-configured::after {
-                background: #28a745;
-            }
+            .page-tab.active { background: var(--primary-color); color: white; }
 
-            .form-element:hover::after {
-                opacity: 1;
-            }
-            
-            /* Different tooltip for panel elements */
-            .form-element.panel-element:hover::after {
-                content: 'Double-click to edit panel & elements';
-                background: #6c757d;
-            }
-            
-            /* Special color for pre-configured panels */
-            .form-element.pre-configured:hover::after {
-                background: #28a745;
-            }
-
-            .form-element.selected::after {
-                opacity: 0;
-            }
-
-            .element-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-
-            .element-actions button {
-                background: none;
-                border: none;
-                cursor: pointer;
-                padding: 0.25rem;
-                margin-left: 0.25rem;
-                opacity: 0.7;
-                transition: all 0.2s ease;
-            }
-
-            .element-actions button:hover {
-                opacity: 1;
-                transform: scale(1.1);
-            }
-
-            .element-actions button:first-child {
-                color: #3498db;
-                font-weight: bold;
-            }
-
-            .builder-properties {
-                width: 300px;
-                background: white;
-                border-left: 1px solid #e1e4e8;
-                padding: 1rem;
-                overflow-y: auto;
-                transition: width 0.3s ease;
-                position: relative;
-                flex-shrink: 0;
-            }
-            
-            .builder-properties.collapsed {
-                width: 0;
-                padding: 0;
-                overflow: hidden;
-                border-left: none;
-            }
-            
-            .builder-properties.collapsed .properties-content,
-            .builder-properties.collapsed h3,
-            .builder-properties.collapsed .form-settings-section {
-                display: none;
-            }
-            
-            .properties-toggle {
-                position: absolute;
-                left: -32px;
-                top: 50%;
-                transform: translateY(-50%);
-                background: #3498db;
-                color: white;
-                border: none;
-                border-radius: 4px 0 0 4px;
-                padding: 0.75rem 0.25rem;
-                cursor: pointer;
-                font-size: 1rem;
-                z-index: 10;
-                transition: all 0.2s ease;
-                width: 32px;
-                height: 80px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            
-            .properties-toggle:hover {
-                background: #2980b9;
-                left: -36px;
-                width: 36px;
-            }
-            
-            .builder-properties.collapsed .properties-toggle {
-                left: 0;
-                border-radius: 0 4px 4px 0;
-            }
-            
-            /* Responsive adjustments */
-            @media (max-width: 1200px) {
-                .builder-properties {
-                    width: 250px;
-                }
-                .builder-properties.collapsed {
-                    width: 0;
-                }
-            }
-            
-            @media (max-width: 992px) {
-                .builder-toolbox {
-                    width: 200px;
-                }
-                .builder-properties {
-                    width: 200px;
-                }
-                .builder-properties.collapsed {
-                    width: 0;
-                }
-            }
-            
-            @media (max-width: 768px) {
-                .builder-main {
-                    flex-direction: column;
-                }
-                .builder-toolbox,
-                .builder-properties {
-                    width: 100%;
-                    max-height: 200px;
-                }
-                .builder-properties.collapsed {
-                    max-height: 0;
-                    width: 100%;
-                }
-                .builder-canvas {
-                    min-height: 400px;
-                }
-                .properties-toggle {
-                    display: none;
-                }
-            }
-
-            .property-group {
-                margin-bottom: 1.5rem;
-            }
-
-            .property-label {
-                display: block;
-                margin-bottom: 0.25rem;
-                font-weight: 500;
-            }
-
-            .property-input {
-                width: 100%;
-                padding: 0.5rem;
-                border: 1px solid #e1e4e8;
-                border-radius: 4px;
-            }
-
-            .preview-modal {
-                display: none;
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0,0,0,0.5);
-                z-index: 1000;
-                padding: 2rem;
-                overflow: auto;
-            }
-
-            .preview-content {
-                background: white;
-                max-width: 800px;
-                margin: 0 auto;
-                border-radius: 8px;
-                box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-            }
-
-            .preview-header {
-                padding: 1rem 2rem;
-                border-bottom: 1px solid #e1e4e8;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-
-            .preview-body {
-                padding: 2rem;
-                max-height: calc(100vh - 200px);
-                overflow-y: auto;
-            }
-            
-            .conditional-logic-btn {
-                background: #f6f8fa;
-                border: 1px solid #e1e4e8;
-                padding: 0.5rem 1rem;
-                border-radius: 4px;
-                cursor: pointer;
-                transition: all 0.2s;
-                width: 100%;
-                text-align: center;
-            }
-            
-            .conditional-logic-btn:hover {
-                background: #e9ecef;
-                border-color: #3498db;
-            }
-            
-            .current-condition-preview {
-                margin-top: 0.5rem;
-                font-size: 0.85rem;
-                color: #586069;
-            }
-            
-            .current-condition-preview code {
-                background: #f6f8fa;
-                padding: 0.2rem 0.4rem;
-                border-radius: 3px;
-                font-family: monospace;
-            }
-            
-            .ai-summary-field-selector {
-                margin-top: 1rem;
-                padding: 1rem;
-                background: #f6f8fa;
-                border: 1px solid #e1e4e8;
-                border-radius: 4px;
-            }
-            
-            .ai-summary-field-selector h5 {
-                margin: 0 0 0.5rem 0;
-                font-size: 0.9rem;
-            }
-            
-            .field-checkbox {
-                display: block;
-                margin-bottom: 0.5rem;
-                cursor: pointer;
-            }
-            
-            .field-checkbox input {
-                margin-right: 0.5rem;
-            }
-            
-            /* Auto-save indicator styles */
-            .auto-save-indicator {
-                position: fixed;
-                bottom: 20px;
-                left: 20px;
-                background: #333;
-                color: white;
-                padding: 8px 16px;
-                border-radius: 20px;
-                font-size: 14px;
-                display: none;
-                align-items: center;
-                gap: 8px;
-                z-index: 1000;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            }
-            
-            .auto-save-indicator.saving {
-                background: #f39c12;
-            }
-            
-            .auto-save-indicator.saved {
-                background: #27ae60;
-            }
-            
-            .auto-save-indicator.fade-out {
-                animation: fadeOut 0.5s ease-out forwards;
-            }
-            
-            @keyframes fadeOut {
-                to {
-                    opacity: 0;
-                    transform: translateY(10px);
-                }
-            }
-            
-            .save-icon {
-                width: 16px;
-                height: 16px;
-            }
-            
-            .save-icon.saving {
-                animation: spin 1s linear infinite;
-            }
-            
-            @keyframes spin {
-                to {
-                    transform: rotate(360deg);
-                }
-            }
-            
-            /* Hide all design-time elements in preview mode */
-            .preview-modal .sv-action-bar,
-            #surveyPreview .sv-action-bar,
-            #preview-survey .sv-action-bar {
-                display: none !important;
-                visibility: hidden !important;
-            }
-            
-            .preview-modal .sv-designer-button,
-            #surveyPreview .sv-designer-button,
-            #preview-survey .sv-designer-button {
-                display: none !important;
-                visibility: hidden !important;
-            }
-            
-            .preview-modal .sd-element__add-button,
-            #surveyPreview .sd-element__add-button,
-            #preview-survey .sd-element__add-button {
-                display: none !important;
-                visibility: hidden !important;
-            }
-            
-            .preview-modal .sd-page__add-button,
-            #surveyPreview .sd-page__add-button,
-            #preview-survey .sd-page__add-button {
-                display: none !important;
-                visibility: hidden !important;
-            }
-            
-            .preview-modal .sv-action-bar-item,
-            #surveyPreview .sv-action-bar-item,
-            #preview-survey .sv-action-bar-item {
-                display: none !important;
-                visibility: hidden !important;
-            }
-            
-            .preview-modal .sv-add-new-page-btn,
-            #surveyPreview .sv-add-new-page-btn,
-            #preview-survey .sv-add-new-page-btn {
-                display: none !important;
-                visibility: hidden !important;
-            }
-            
-            .preview-modal [class*="designer"],
-            #surveyPreview [class*="designer"],
-            #preview-survey [class*="designer"] {
-                display: none !important;
-                visibility: hidden !important;
-            }
-            
-            .preview-modal [class*="add-new"],
-            #surveyPreview [class*="add-new"],
-            #preview-survey [class*="add-new"] {
-                display: none !important;
-                visibility: hidden !important;
-            }
-            
-            .preview-modal [class*="add-button"],
-            #surveyPreview [class*="add-button"],
-            #preview-survey [class*="add-button"] {
-                display: none !important;
-                visibility: hidden !important;
-            }
-            
-            .preview-modal .add-page-btn,
-            #surveyPreview .add-page-btn,
-            #preview-survey .add-page-btn {
-                display: none !important;
-                visibility: hidden !important;
-            }
-            
-            .preview-modal button[title*="Add"],
-            #surveyPreview button[title*="Add"],
-            #preview-survey button[title*="Add"] {
-                display: none !important;
-                visibility: hidden !important;
-            }
-            
-            /* Task F: Centralized Section Divider System - IPLC Brand Color */
-            .section-divider {
-                border: none;
-                height: 4px;
-                background: #0B60D1;
-                margin: 1.5rem 0;
-                width: 100%;
-                border-radius: 2px;
-                box-shadow: 0 2px 4px rgba(11, 96, 209, 0.3);
-                opacity: 0.8;
-                transition: opacity 0.3s ease;
-                /* Accessibility: Ensure dividers don't interfere with screen readers */
-                role: presentation;
-                aria-hidden: true;
-            }
-            
-            .section-divider:hover {
-                opacity: 1;
-                box-shadow: 0 2px 6px rgba(11, 96, 209, 0.4);
-            }
-            
-            /* Enhanced gradient variant for special sections */
-            .section-divider.gradient {
-                background: linear-gradient(90deg, #0B60D1 0%, #0952a5 50%, #0B60D1 100%);
-            }
-            
-            /* Ensure dividers span full content width */
-            .drop-zone .section-divider {
-                margin-left: -1rem;
-                margin-right: -1rem;
-                width: calc(100% + 2rem);
-            }
-            
-            /* Special styling for first and last dividers */
-            .drop-zone .section-divider:first-child {
-                margin-top: 0;
-            }
-            
-            .drop-zone .section-divider:last-child {
-                margin-bottom: 0;
-            }
-            
-            /* Thicker dividers for panel separation */
-            .section-divider.panel-separator {
-                height: 6px;
-                margin: 2rem 0;
-                background: linear-gradient(90deg, #0B60D1 0%, #0952a5 25%, #0B60D1 50%, #0952a5 75%, #0B60D1 100%);
-                box-shadow: 0 3px 8px rgba(11, 96, 209, 0.4);
-            }
-            
-            /* Subtle dividers for sub-elements */
-            .section-divider.subtle {
-                height: 2px;
-                background: rgba(11, 96, 209, 0.6);
-                margin: 1rem 0;
-                box-shadow: 0 1px 2px rgba(11, 96, 209, 0.2);
-            }
-            
-            /* Task F: Touch Target Accessibility - WCAG 2.1 Success Criterion 2.5.5 (Level AAA) */
-            
-            /* Basic Touch Target Requirements - Minimum 44×44 CSS pixels */
-            .touch-target,
-            button,
-            input[type="button"],
-            input[type="submit"],
-            input[type="reset"],
-            .btn,
-            .draggable-element,
-            .form-element .element-actions button,
-            .page-tab,
-            .element-type-btn,
-            .properties-toggle,
-            .close-button,
-            .btn-close {
-                min-width: 44px;
-                min-height: 44px;
-                margin: 4px; /* 8px total spacing (4px on each side) */
-                cursor: pointer;
-                /* Ensure touch targets don't overlap */
-                position: relative;
-                z-index: 1;
-            }
-            
-            /* Enhanced Touch Targets - 48×48px for frequently used controls */
-            .btn-primary,
-            .btn-success,
-            .form-element .element-actions .edit-btn,
-            .builder-actions .btn,
-            .add-choice,
-            .add-panel-element,
-            .save-btn,
-            .preview-btn {
-                min-width: 48px;
-                min-height: 48px;
-                margin: 6px; /* 12px total spacing for enhanced targets */
-            }
-            
-            /* Form Input Touch Target Compliance */
-            input[type="text"],
-            input[type="email"],
-            input[type="tel"],
-            input[type="number"],
-            input[type="date"],
-            input[type="time"],
-            input[type="password"],
-            input[type="url"],
-            textarea,
-            select,
-            .property-input,
-            .form-control {
-                min-height: 44px;
-                padding: 0.75rem; /* 12px */
-                margin: 4px 0;
-                font-size: 16px; /* Prevent iOS zoom on focus */
-                /* Ensure sufficient color contrast */
-                border: 2px solid #dee2e6;
-                background-color: #ffffff;
-                color: #212529;
-            }
-            
-            /* Checkbox and Radio Button Touch Targets */
-            input[type="checkbox"],
-            input[type="radio"] {
-                min-width: 20px;
-                min-height: 20px;
-                margin: 12px; /* Extra margin for smaller inputs */
-                /* Ensure parent label meets touch target requirements */
-            }
-            
-            /* Label Touch Target for Small Inputs */
-            label:has(input[type="checkbox"]),
-            label:has(input[type="radio"]),
-            .property-label:has(input[type="checkbox"]),
-            .field-checkbox {
-                min-height: 44px;
-                display: flex;
-                align-items: center;
-                padding: 8px;
-                margin: 4px 0;
-                cursor: pointer;
-            }
-            
-            /* Focus Indicators for Accessibility */
-            button:focus,
-            input:focus,
-            select:focus,
-            textarea:focus,
-            .draggable-element:focus,
-            .form-element:focus,
-            .touch-target:focus {
-                outline: 3px solid #0066cc;
-                outline-offset: 2px;
-                /* High contrast focus indicator */
-                box-shadow: 0 0 0 2px #ffffff, 0 0 0 5px #0066cc;
-            }
-            
-            /* Page Tab Touch Targets */
-            .page-tab {
-                min-width: 80px; /* Wider for text content */
-                min-height: 44px;
-                padding: 8px 16px;
-                margin: 4px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            
-            /* Modal and Dialog Touch Targets */
-            .modal-header .btn-close,
-            .close-preview,
-            .conditional-logic-header .close-button {
-                min-width: 44px;
-                min-height: 44px;
-                padding: 8px;
-                margin: 4px;
-            }
-            
-            /* Builder Canvas Element Actions */
-            .element-actions {
-                display: flex;
-                gap: 8px; /* Ensure spacing between touch targets */
-                align-items: center;
-            }
-            
-            .element-actions button {
-                min-width: 36px; /* Slightly smaller but still accessible */
-                min-height: 36px;
-                padding: 6px;
-                margin: 2px;
-            }
-            
-            /* Color Contrast Compliance - WCAG 2.1 Standards */
-            
-            /* High Contrast Text - 4.5:1 minimum ratio */
-            button,
-            .btn {
-                background-color: #ffffff;
-                color: #212529;
-                border: 2px solid #6c757d;
-            }
-            
-            button:hover,
-            .btn:hover {
-                background-color: #e9ecef;
-                color: #000000;
-                border-color: #495057;
-            }
-            
-            /* Primary Actions - High Contrast */
-            .btn-primary {
-                background-color: #0d47a1; /* Higher contrast blue */
-                color: #ffffff;
-                border: 2px solid #0d47a1;
-            }
-            
-            .btn-primary:hover {
-                background-color: #1565c0;
-                color: #ffffff;
-                border-color: #1565c0;
-            }
-            
-            /* Success Actions - High Contrast */
-            .btn-success {
-                background-color: #2e7d32; /* Higher contrast green */
-                color: #ffffff;
-                border: 2px solid #2e7d32;
-            }
-            
-            .btn-success:hover {
-                background-color: #388e3c;
-                color: #ffffff;
-                border-color: #388e3c;
-            }
-            
-            /* Warning Actions - High Contrast */
-            .btn-warning {
-                background-color: #f57c00; /* Higher contrast orange */
-                color: #ffffff;
-                border: 2px solid #f57c00;
-            }
-            
-            .btn-warning:hover {
-                background-color: #ff9800;
-                color: #000000;
-                border-color: #ff9800;
-            }
-            
-            /* Danger Actions - High Contrast */
-            .btn-danger,
-            .remove-btn {
-                background-color: #d32f2f; /* Higher contrast red */
-                color: #ffffff;
-                border: 2px solid #d32f2f;
-            }
-            
-            .btn-danger:hover,
-            .remove-btn:hover {
-                background-color: #f44336;
-                color: #ffffff;
-                border-color: #f44336;
-            }
-            
-            /* Mobile Responsive Touch Targets */
-            @media (max-width: 768px) {
-                /* Larger touch targets on mobile devices */
-                .touch-target,
-                button,
-                .btn,
-                input,
-                select,
-                textarea {
-                    min-width: 48px;
-                    min-height: 48px;
-                    margin: 6px;
-                }
-                
-                /* Enhanced targets even larger on mobile */
-                .btn-primary,
-                .btn-success,
-                .form-element .element-actions .edit-btn {
-                    min-width: 56px;
-                    min-height: 56px;
-                    margin: 8px;
-                }
-                
-                /* Prevent accidental touches */
-                .element-actions {
-                    gap: 12px;
-                }
-                
-                /* Larger text for better readability */
-                button,
-                .btn,
-                input,
-                select,
-                textarea {
-                    font-size: 18px;
-                }
-            }
-            
-            /* Accessibility Media Queries */
-            
-            /* High Contrast Mode Support */
-            @media (prefers-contrast: high) {
-                button,
-                .btn,
-                input,
-                select,
-                textarea {
-                    border-width: 3px;
-                    outline-width: 4px;
-                }
-                
-                /* Enhanced focus indicators in high contrast mode */
-                button:focus,
-                input:focus,
-                select:focus,
-                textarea:focus {
-                    outline: 4px solid;
-                    outline-offset: 3px;
-                }
-            }
-            
-            /* Reduced Motion Support */
-            @media (prefers-reduced-motion: reduce) {
-                /* Remove transitions and animations for users who prefer reduced motion */
-                *,
-                *::before,
-                *::after {
-                    animation-duration: 0.01ms !important;
-                    animation-iteration-count: 1 !important;
-                    transition-duration: 0.01ms !important;
-                }
-                
-                /* Keep essential focus transitions */
-                button:focus,
-                input:focus,
-                select:focus,
-                textarea:focus {
-                    transition: outline 0.15s ease-in-out;
-                }
-            }
-            
-            /* Touch Device Optimizations */
-            @media (hover: none) and (pointer: coarse) {
-                /* Touch device specific styles */
-                .draggable-element {
-                    /* Prevent accidental drags on touch devices */
-                    -webkit-touch-callout: none;
-                    -webkit-user-select: none;
-                    -khtml-user-select: none;
-                    -moz-user-select: none;
-                    -ms-user-select: none;
-                    user-select: none;
-                }
-                
-                /* Larger hit areas for small controls */
-                .element-actions button {
-                    min-width: 44px;
-                    min-height: 44px;
-                    padding: 10px;
-                }
-                
-                /* Prevent hover states on touch devices */
-                button:hover,
-                .btn:hover {
-                    background-color: initial;
-                    border-color: initial;
-                    color: initial;
-                }
-            }
-            
-            /* Fine Pointer Device Optimizations */
-            @media (hover: hover) and (pointer: fine) {
-                /* Mouse/trackpad specific optimizations */
-                .touch-target:hover,
-                button:hover,
-                .btn:hover {
-                    transform: scale(1.05);
-                    transition: transform 0.15s ease-in-out;
-                }
-                
-                /* Smaller margins allowed with precise pointer */
-                .element-actions button {
-                    margin: 1px;
-                }
-            }
-            
-            /* Print Media Accessibility */
-            @media print {
-                /* Ensure sufficient contrast in print */
-                button,
-                .btn {
-                    background: white !important;
-                    color: black !important;
-                    border: 2px solid black !important;
-                }
-                
-                /* Hide interactive elements that don't work in print */
-                .touch-target,
-                .element-actions,
-                .builder-actions {
-                    display: none !important;
-                }
-            }
-            
-            /* Screen Reader and Assistive Technology Support */
-            .sr-only {
-                position: absolute;
-                width: 1px;
-                height: 1px;
-                padding: 0;
-                margin: -1px;
-                overflow: hidden;
-                clip: rect(0, 0, 0, 0);
-                white-space: nowrap;
-                border: 0;
-            }
-            
-            /* Skip to content link for keyboard navigation */
-            .skip-link {
-                position: absolute;
-                top: -40px;
-                left: 6px;
-                background: #000;
-                color: #fff;
-                padding: 8px;
-                text-decoration: none;
-                z-index: 9999;
-                min-width: 44px;
-                min-height: 44px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            
-            .skip-link:focus {
-                top: 6px;
-            }
+            .modal-header .btn-close, .remove-btn {
+                 background: none;
+                 border: none;
+                 font-size: 1.5rem;
+            }
+            .remove-btn { color: var(--danger-color); }
+            .remove-btn:hover { background-color: var(--danger-color); color:white; }
         `;
         document.head.appendChild(styles);
     }
@@ -2655,10 +1575,16 @@ class IPLCFormBuilder {
     
     // Task E: Setup property grid focus/blur debouncing for iPad settings panel closes issue
     setupPropertyGridFocusBlurDebouncing() {
-        
+        // Task C: Declare the isSettingUpHandlers guard variable to prevent infinite loops
+        let isSettingUpHandlers = false;
         
         // Task E: Wait for DOM to be ready and search for property grid elements
         const setupPropertyGridHandlers = () => {
+            // Task C: Prevent concurrent handler setup to avoid infinite loops
+            if (isSettingUpHandlers) {
+                return;
+            }
+            isSettingUpHandlers = true;
             // Task E: Find all SurveyJS Creator property grid components (correct class names)
             const propertyGridElements = document.querySelectorAll([
                 '.svc-property-grid',
@@ -2982,8 +1908,13 @@ class IPLCFormBuilder {
             // Task H: Enhanced pointer up handler with iPad cleanup
             newDraggable.addEventListener('pointerup', (e) => {
                 if (!this.dragState.isDragging) return;
-                
-                
+
+                // Task D: Explicitly release pointer capture on pointerup
+                if (this.dragState.pointerCapture.active) {
+                    try {
+                        newDraggable.releasePointerCapture(e.pointerId);
+                    } catch (err) { /* Ignore errors if capture was already lost */ }
+                }
                 
                 // Task H: iPad-specific cleanup timing
                 if (this.iPadDragFix.isIPad) {
@@ -2999,19 +1930,31 @@ class IPLCFormBuilder {
                 this.cleanupiPadDragOperation(e);
             });
             
-            // Task H: Enhanced pointer cancel handler for iPad reliability
+            // Task D: Enhanced pointer cancel handler for iPad reliability
             newDraggable.addEventListener('pointercancel', (e) => {
                 if (!this.dragState.isDragging) return;
+
+                // Task D: Explicitly release pointer capture directly in the cancel handler
+                if (this.dragState.pointerCapture.active) {
+                    try {
+                        newDraggable.releasePointerCapture(e.pointerId);
+                    } catch (err) { /* Ignore errors if capture was already lost */ }
+                }
                 
-                
-                
-                // Task H: iPad-specific cancel handling
                 if (this.iPadDragFix.isIPad) {
                     e.preventDefault();
                     e.stopPropagation();
                 }
                 
-                // Emergency cleanup for iPad
+                this.emergencyiPadDragCleanup();
+            });
+
+            // Task D: Add lostpointercapture event listener to handle system-level interruptions
+            newDraggable.addEventListener('lostpointercapture', (e) => {
+                if (!this.dragState.isDragging) return;
+
+                // This event fires when capture is lost for any reason (e.g., pointercancel)
+                // It's a reliable way to trigger cleanup.
                 this.emergencyiPadDragCleanup();
             });
         });
@@ -3598,7 +2541,7 @@ class IPLCFormBuilder {
                 cursor: grab;
                 -webkit-touch-callout: none;
                 -webkit-tap-highlight-color: transparent;
-                touch-action: none;
+                touch-action: none; /* Critical for preventing browser scroll on touch */
                 user-select: none;
                 -webkit-user-select: none;
             }
@@ -7080,7 +6023,7 @@ class IPLCFormBuilder {
                 <h5 class="modal-title" style="margin: 0; font-size: 1.25rem; font-weight: 500;">
                     Edit Panel: ${panel.title || panel.name}
                 </h5>
-                <button type="button" class="btn-close touch-target" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; opacity: 0.5;">&times;</button>
+                <button type="button" class="btn-close touch-target">&times;</button>
             </div>
             <div class="modal-body" style="padding: 1.5rem; overflow-y: auto; flex: 1;">
                 <div class="panel-basic-props" style="margin-bottom: 1.5rem;">
@@ -7108,14 +6051,14 @@ class IPLCFormBuilder {
                                         <span style="color: #6c757d; font-size: 0.875rem; margin-left: 0.5rem;">(${el.type})</span>
                                     </div>
                                     <div>
-                                        <button class="btn btn-sm btn-primary edit-sub-element touch-target" data-index="${idx}" style="margin-right: 0.25rem;">Edit</button>
+                                        <button class="btn btn-sm btn-primary edit-sub-element touch-target" data-index="${idx}">Edit</button>
                                         <button class="btn btn-sm btn-danger remove-sub-element touch-target" data-index="${idx}">Remove</button>
                                     </div>
                                 </div>
                             </div>
                         `).join('')}
                     </div>
-                    <button class="btn btn-sm btn-success touch-target" id="addSubElement" style="margin-top: 0.5rem;">
+                    <button class="btn btn-sm btn-success touch-target" id="addSubElement">
                         <span>➕</span> Add Element
                     </button>
                 </div>
@@ -7188,7 +6131,7 @@ class IPLCFormBuilder {
                                     <span style="color: #6c757d; font-size: 0.875rem; margin-left: 0.5rem;">(${el.type})</span>
                                 </div>
                                 <div>
-                                    <button class="btn btn-sm btn-primary edit-sub-element touch-target" data-index="${idx}" style="margin-right: 0.25rem;">Edit</button>
+                                    <button class="btn btn-sm btn-primary edit-sub-element touch-target" data-index="${idx}">Edit</button>
                                     <button class="btn btn-sm btn-danger remove-sub-element touch-target" data-index="${idx}">Remove</button>
                                 </div>
                             </div>
@@ -7221,7 +6164,7 @@ class IPLCFormBuilder {
                                     <span style="color: #6c757d; font-size: 0.875rem; margin-left: 0.5rem;">(${el.type})</span>
                                 </div>
                                 <div>
-                                    <button class="btn btn-sm btn-primary edit-sub-element touch-target" data-index="${idx}" style="margin-right: 0.25rem;">Edit</button>
+                                    <button class="btn btn-sm btn-primary edit-sub-element touch-target" data-index="${idx}">Edit</button>
                                     <button class="btn btn-sm btn-danger remove-sub-element touch-target" data-index="${idx}">Remove</button>
                                 </div>
                             </div>
@@ -7251,7 +6194,7 @@ class IPLCFormBuilder {
                                 <span style="color: #6c757d; font-size: 0.875rem; margin-left: 0.5rem;">(${el.type})</span>
                             </div>
                             <div>
-                                <button class="btn btn-sm btn-primary edit-sub-element touch-target" data-index="${idx}" style="margin-right: 0.25rem;">Edit</button>
+                                <button class="btn btn-sm btn-primary edit-sub-element touch-target" data-index="${idx}">Edit</button>
                                 <button class="btn btn-sm btn-danger remove-sub-element touch-target" data-index="${idx}">Remove</button>
                             </div>
                         </div>
@@ -7308,20 +6251,12 @@ class IPLCFormBuilder {
                 <h5 class="modal-title" style="margin: 0; font-size: 1.25rem; font-weight: 500;">
                     Select Element Type
                 </h5>
-                <button type="button" class="btn-close touch-target" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; opacity: 0.5;">&times;</button>
+                <button type="button" class="btn-close touch-target">&times;</button>
             </div>
             <div class="modal-body" style="padding: 1.5rem;">
                 <div class="element-type-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.5rem;">
                     ${elementTypes.map(type => `
-                        <button class="element-type-btn" data-type="${type.value}" style="
-                            padding: 1rem;
-                            border: 1px solid #dee2e6;
-                            border-radius: 0.25rem;
-                            background: #f8f9fa;
-                            cursor: pointer;
-                            text-align: center;
-                            transition: all 0.2s;
-                        " onmouseover="this.style.background='#e9ecef'" onmouseout="this.style.background='#f8f9fa'">
+                        <button class="element-type-btn btn touch-target" data-type="${type.value}">
                             <div style="font-size: 1.5rem; margin-bottom: 0.25rem;">${type.icon}</div>
                             <div style="font-size: 0.875rem;">${type.label}</div>
                         </button>
@@ -7466,7 +6401,7 @@ class IPLCFormBuilder {
                 <h5 class="modal-title" style="margin: 0; font-size: 1.25rem; font-weight: 500;">
                     Edit ${type.charAt(0).toUpperCase() + type.slice(1)} Element
                 </h5>
-                <button type="button" class="btn-close touch-target" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; opacity: 0.5;">&times;</button>
+                <button type="button" class="btn-close touch-target">&times;</button>
             </div>
             <div class="modal-body" style="padding: 1.5rem; overflow-y: auto; flex: 1;">
                 ${fieldsHtml}
@@ -7578,7 +6513,7 @@ class IPLCFormBuilder {
                                     <span style="color: #6c757d; font-size: 0.875rem; margin-left: 0.5rem;">(${el.type})</span>
                                 </div>
                                 <div>
-                                    <button class="btn btn-sm btn-primary edit-sub-element touch-target" data-index="${idx}" style="margin-right: 0.25rem;">Edit</button>
+                                    <button class="btn btn-sm btn-primary edit-sub-element touch-target" data-index="${idx}">Edit</button>
                                     <button class="btn btn-sm btn-danger remove-sub-element touch-target" data-index="${idx}">Remove</button>
                                 </div>
                             </div>
@@ -7611,7 +6546,7 @@ class IPLCFormBuilder {
                                     <span style="color: #6c757d; font-size: 0.875rem; margin-left: 0.5rem;">(${el.type})</span>
                                 </div>
                                 <div>
-                                    <button class="btn btn-sm btn-primary edit-sub-element touch-target" data-index="${idx}" style="margin-right: 0.25rem;">Edit</button>
+                                    <button class="btn btn-sm btn-primary edit-sub-element touch-target" data-index="${idx}">Edit</button>
                                     <button class="btn btn-sm btn-danger remove-sub-element touch-target" data-index="${idx}">Remove</button>
                                 </div>
                             </div>
@@ -8373,9 +7308,26 @@ class IPLCFormBuilder {
 
     async loadTemplate(templateId) {
         try {
-            const response = await fetch(`/api/forms/templates/${templateId}`);
+            // Fetch with timeout and specific error handling
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+            let response;
+            try {
+                response = await fetch(`/api/forms/templates/${templateId}`, {
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+            } catch (fetchError) {
+                clearTimeout(timeoutId);
+                if (fetchError.name === 'AbortError') {
+                    throw new Error('Request timed out while loading the template.');
+                }
+                throw new Error(`Network error: ${fetchError.message}`);
+            }
+
             if (!response.ok) {
-                throw new Error('Failed to load template');
+                throw new Error(`Failed to load template (HTTP ${response.status})`);
             }
             
             const template = await response.json();
@@ -9037,7 +7989,7 @@ class IPLCFormBuilder {
         dialog.innerHTML = `
             <div class="modal-header" style="padding: 1rem; border-bottom: 1px solid #dee2e6; display: flex; justify-content: space-between; align-items: center;">
                 <h5 class="modal-title" style="margin: 0; font-size: 1.25rem;">Select Element Type</h5>
-                <button type="button" class="btn-close touch-target" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; opacity: 0.5;" aria-label="Close">&times;</button>
+                <button type="button" class="btn-close touch-target" aria-label="Close">&times;</button>
             </div>
             <div class="modal-body" style="padding: 1rem;">
                 <select class="form-select" id="elementTypeSelect" style="width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem; font-size: 1rem;">
@@ -9045,8 +7997,8 @@ class IPLCFormBuilder {
                 </select>
             </div>
             <div class="modal-footer" style="padding: 1rem; border-top: 1px solid #dee2e6; display: flex; justify-content: flex-end; gap: 0.5rem;">
-                <button type="button" class="btn btn-secondary touch-target" style="padding: 0.375rem 0.75rem; border: 1px solid #6c757d; background: #6c757d; color: white; border-radius: 0.25rem; cursor: pointer;">Cancel</button>
-                <button type="button" class="btn btn-primary touch-target" id="confirmElementType" style="padding: 0.375rem 0.75rem; border: 1px solid #0d6efd; background: #0d6efd; color: white; border-radius: 0.25rem; cursor: pointer;">Add Element</button>
+                <button type="button" class="btn btn-secondary touch-target">Cancel</button>
+                <button type="button" class="btn btn-primary touch-target" id="confirmElementType">Add Element</button>
             </div>
         `;
 
@@ -9188,7 +8140,7 @@ class IPLCFormBuilder {
                 <h5 class="modal-title" style="margin: 0; font-size: 1.25rem; font-weight: 500;">
                     Edit ${type ? type.charAt(0).toUpperCase() + type.slice(1) : ''} Element
                 </h5>
-                <button type="button" class="btn-close touch-target" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; opacity: 0.5; padding: 0; width: 1.5rem; height: 1.5rem; display: flex; align-items: center; justify-content: center;">&times;</button>
+                <button type="button" class="btn-close touch-target">&times;</button>
             </div>
             <div class="modal-body" style="padding: 1.5rem; overflow-y: auto; flex: 1;">
                 <form id="elementEditForm">
@@ -9206,8 +8158,8 @@ class IPLCFormBuilder {
                 </form>
             </div>
             <div class="modal-footer" style="padding: 1rem 1.5rem; border-top: 1px solid #dee2e6; display: flex; justify-content: flex-end; gap: 0.5rem; flex-shrink: 0;">
-                <button type="button" class="btn btn-secondary touch-target" style="padding: 0.375rem 0.75rem; border: 1px solid #6c757d; background: #6c757d; color: white; border-radius: 0.25rem; cursor: pointer;">Cancel</button>
-                <button type="button" class="btn btn-primary touch-target" id="saveElementChanges" style="padding: 0.375rem 0.75rem; border: 1px solid #0d6efd; background: #0d6efd; color: white; border-radius: 0.25rem; cursor: pointer;">Save Changes</button>
+                <button type="button" class="btn btn-secondary touch-target">Cancel</button>
+                <button type="button" class="btn btn-primary touch-target" id="saveElementChanges">Save Changes</button>
             </div>
         `;
 
