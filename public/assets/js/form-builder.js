@@ -102,7 +102,7 @@ class IPLCFormBuilder {
 
             // Fetch templates from API endpoint with timeout
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+            const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
             
             try {
                 response = await fetch('/api/forms/templates', {
