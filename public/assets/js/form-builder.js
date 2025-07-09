@@ -271,7 +271,7 @@ class IPLCFormBuilder {
 
             // Fetch individual template from API with timeout
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+            const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
             
             let response;
             try {
@@ -1048,10 +1048,66 @@ class IPLCFormBuilder {
             return;
         }
 
-        dropZone.innerHTML = currentPage.elements.map((element, index) => 
+        dropZone.innerHTML = currentPage.elements.map((element, index) =>
             this.renderFormElement(element, index)
         ).join('');
+        
+        // T-Fix-4: Apply touch-target styles after rendering
+        this.addTouchTargets();
     }
+    // T-Fix-4: Add touch-target class to interactive elements
+    addTouchTargets() {
+        // Query for all interactive elements that need touch compliance
+        const interactiveElements = document.querySelectorAll([
+            'button:not(.touch-target)',
+            'input[type="button"]:not(.touch-target)',
+            'input[type="submit"]:not(.touch-target)',
+            '[role="button"]:not(.touch-target)',
+            '.draggable-element:not(.touch-target)',
+            '.form-element:not(.touch-target)',
+            '.page-tab:not(.touch-target)',
+            '.edit-btn:not(.touch-target)',
+            '.remove-btn:not(.touch-target)',
+            '.element-type-btn:not(.touch-target)',
+            'select:not(.touch-target)',
+            'a[href]:not(.touch-target)',
+            '.clickable:not(.touch-target)'
+        ].join(', '));
+        
+        // Add touch-target class to all interactive elements
+        interactiveElements.forEach(element => {
+            // Skip if element already has adequate size
+            const rect = element.getBoundingClientRect();
+            const width = rect.width;
+            const height = rect.height;
+            
+            // WCAG 2.5.5 requires minimum 44x44 CSS pixels
+            if (width < 44 || height < 44) {
+                element.classList.add('touch-target');
+            }
+        });
+        
+        // Apply touch-target styles to small inputs that need larger hit areas
+        const smallInputs = document.querySelectorAll([
+            'input[type="checkbox"]:not(.touch-target)',
+            'input[type="radio"]:not(.touch-target)'
+        ].join(', '));
+        
+        smallInputs.forEach(input => {
+            // For checkboxes and radios, we need to ensure the label provides adequate target
+            const label = input.closest('label');
+            if (label) {
+                label.classList.add('touch-target');
+            } else {
+                // If no parent label, add touch-target to the input itself
+                input.classList.add('touch-target');
+            }
+        });
+        
+        // Log touch target application for debugging
+        console.log(`FormBuilder: Applied touch-target class to ${interactiveElements.length} interactive elements`);
+    }
+    
     renderFormElement(element, index) {
         // Check if this is a panel with sub-elements
         const isPanelType = element.type === 'panel' || element.type === 'paneldynamic';
@@ -1577,6 +1633,9 @@ class IPLCFormBuilder {
     setupPropertyGridFocusBlurDebouncing() {
         // Task C: Declare the isSettingUpHandlers guard variable to prevent infinite loops
         let isSettingUpHandlers = false;
+        
+        // T-Fix-2: Add missing isDragging flag for property grid drag tracking
+        let isDragging = false;
         
         // Task E: Wait for DOM to be ready and search for property grid elements
         const setupPropertyGridHandlers = () => {
@@ -7137,13 +7196,33 @@ class IPLCFormBuilder {
                 ? `/api/forms/templates/${this.options.templateId}`
                 : '/api/forms/templates';
 
-            const response = await fetch(url, {
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(templateData)
-            });
+            // Add AbortController with 8 second timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+            let response;
+            try {
+                response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(templateData),
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+            } catch (fetchError) {
+                clearTimeout(timeoutId);
+                
+                // Handle specific fetch errors
+                if (fetchError.name === 'AbortError') {
+                    throw new Error('Save request timed out. Please check your connection and try again.');
+                } else if (fetchError instanceof TypeError && fetchError.message.includes('Failed to fetch')) {
+                    throw new Error('Network error while saving. Please check your internet connection.');
+                } else {
+                    throw new Error(`Failed to save form: ${fetchError.message}`);
+                }
+            }
 
             if (!response.ok) {
                 throw new Error('Failed to save template');
@@ -7310,7 +7389,7 @@ class IPLCFormBuilder {
         try {
             // Fetch with timeout and specific error handling
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 15000);
+            const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 second timeout
 
             let response;
             try {

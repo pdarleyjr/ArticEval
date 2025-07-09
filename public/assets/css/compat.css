@@ -217,6 +217,25 @@ a {
     }
 }
 
+/* Touch-target compliance for WCAG 2.5.5 */
+.touch-target {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* iPad drag zone compatibility */
+.drop-zone {
+    touch-action: auto;
+}
+
+/* Ensure draggable elements work properly on touch devices */
+.draggable-element {
+    touch-action: none;
+}
+
 /* High contrast mode support */
 @media (prefers-contrast: more) {
     :root {
