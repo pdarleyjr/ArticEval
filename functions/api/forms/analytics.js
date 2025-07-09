@@ -15,7 +15,6 @@ export async function onRequest(context) {
       case 'GET':
         return await handleGetAnalytics(env, url.searchParams);
       case 'POST':
-        case 'POST':
           return await handleTrackEvent(request, env);
         default:
           return handleError(`Method not allowed: ${request.method}`, 405);

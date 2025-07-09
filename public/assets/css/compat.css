@@ -231,6 +231,11 @@ a {
     touch-action: auto;
 }
 
+/* T-Fix-3: iPad drag-stick bug fix */
+.drag-zone {
+    touch-action: none;
+}
+
 /* Ensure draggable elements work properly on touch devices */
 .draggable-element {
     touch-action: none;

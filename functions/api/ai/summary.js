@@ -33,7 +33,6 @@ export async function onRequest(context) {
       case 'POST':
         return await handleGenerateSummary(request, env);
       case 'PUT':
-        case 'PUT':
           return await handleRefineeSummary(request, env);
         default:
           return handleError(`Method not allowed: ${request.method}`, 405);
