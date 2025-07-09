@@ -48,7 +48,7 @@
     ]
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250705.0",
+    "@cloudflare/workers-types": "^4.20250709.0",
     "@playwright/test": "^1.53.2",
     "esbuild": "^0.21.0",
     "playwright": "^1.53.2",
