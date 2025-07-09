@@ -18,7 +18,7 @@ export async function onRequest(context) {
     
     switch (request.method) {
       case 'GET':
-        return await handleGetTemplates(env, templateId);
+        return await handleGetTemplates(request, env, templateId);
       case 'POST':
         return await handleCreateTemplate(request, env);
       case 'PUT':
@@ -40,6 +40,12 @@ export async function onRequest(context) {
  */
 async function handleGetTemplates(env, templateId) {
   try {
+    // Get query parameters from the URL
+    const url = new URL(env.request?.url || '');
+    const type = url.searchParams.get('type');
+    
+    console.log('handleGetTemplates called:', { templateId, type });
+    
     if (templateId) {
       // Get a single specific template
       const template = await env.DB.prepare(
