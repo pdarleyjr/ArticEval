@@ -77,11 +77,7 @@ async function handleGetTemplates(env, templateId) {
          ORDER BY ft.updated_at DESC`
       ).all();
 
-      const templates = dbResult.results || [];
-
-      if (templates.length === 0) {
-        return createResponse({ templates: [] });
-      }
+      const templates = dbResult && dbResult.results ? dbResult.results : [];
 
       const processedTemplates = templates.map(template => {
         if (template.sections) {
