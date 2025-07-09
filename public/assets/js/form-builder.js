@@ -1637,6 +1637,10 @@ class IPLCFormBuilder {
         // T-Fix-2: Add missing isDragging flag for property grid drag tracking
         let isDragging = false;
         
+        // Add retry counter to prevent infinite loops
+        let retryCount = 0;
+        const maxRetries = 10;
+        
         // Task E: Wait for DOM to be ready and search for property grid elements
         const setupPropertyGridHandlers = () => {
             // Task C: Prevent concurrent handler setup to avoid infinite loops
@@ -1746,13 +1750,16 @@ class IPLCFormBuilder {
             // Task E: Also monitor for dynamically added property grid elements
             if (propertyGridElements.length > 0) {
                 console.log(`FormBuilder: Successfully setup handlers for ${propertyGridElements.length} property grid elements`);
-            } else {
-                console.warn('FormBuilder: Task E - No property grid elements found, will retry');
+            } else if (retryCount < maxRetries) {
+                retryCount++;
+                console.warn(`FormBuilder: Task E - No property grid elements found, will retry (${retryCount}/${maxRetries})`);
                 // Task E: Retry setup after short delay for dynamically loaded content
                 setTimeout(() => {
                     isSettingUpHandlers = false; // Task C: Reset guard before retry
                     setupPropertyGridHandlers();
                 }, 1000);
+            } else {
+                console.warn('FormBuilder: Task E - Property grid elements not found after maximum retries. This form builder may use a custom property panel instead of SurveyJS Creator property grid.');
             }
             
             // Task C: Reset guard flag after setup is complete
