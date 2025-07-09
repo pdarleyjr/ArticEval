@@ -66,7 +66,7 @@ async function handleGetTemplates(env, templateId) {
 
     } else {
       // List all templates
-      const { results: templates } = await env.DB.prepare(
+      const dbResult = await env.DB.prepare(
         `SELECT ft.id, ft.name, ft.description, ft.sections, ft.created_by, ft.created_at, ft.updated_at,
                 ft.is_locked, ft.passcode,
                 'Anonymous' as creator_name,
@@ -77,7 +77,9 @@ async function handleGetTemplates(env, templateId) {
          ORDER BY ft.updated_at DESC`
       ).all();
 
-      if (!templates) {
+      const templates = dbResult.results || [];
+
+      if (templates.length === 0) {
         return createResponse({ templates: [] });
       }
 
