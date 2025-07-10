@@ -1650,12 +1650,18 @@ class IPLCFormBuilder {
             isSettingUpHandlers = true;
             // Task E: Find all SurveyJS Creator property grid components (correct class names)
             const propertyGridElements = document.querySelectorAll([
+                // SurveyJS v2+ selectors
                 '.svc-property-grid',
                 '.svc-property-grid-placeholder',
                 '[class*="svc-property-grid"]',
+                // SurveyJS v1 selectors (CRITICAL FIX)
+                '.svd-property-grid',
+                '.svd-property-grid-placeholder',
+                '[class*="svd-property-grid"]',
                 // Also target any dynamically loaded SurveyJS Creator property grids
                 '[data-sv-drop-target-survey-element*="property"]',
-                '.svc-side-bar__container .svc-property-panel'
+                '.svc-side-bar__container .svc-property-panel',
+                '#propertiesPanel' // Include the properties panel container itself
             ].join(', '));
             
             
@@ -1785,7 +1791,9 @@ class IPLCFormBuilder {
                             if (node.nodeType === Node.ELEMENT_NODE) {
                                 const hasPropertyGrid = node.classList?.contains('svc-property-grid') ||
                                                       node.classList?.contains('svc-property-grid-placeholder') ||
-                                                      node.querySelector?.('.svc-property-grid, .svc-property-grid-placeholder');
+                                                      node.classList?.contains('svd-property-grid') ||
+                                                      node.classList?.contains('svd-property-grid-placeholder') ||
+                                                      node.querySelector?.('.svc-property-grid, .svc-property-grid-placeholder, .svd-property-grid, .svd-property-grid-placeholder');
                                 if (hasPropertyGrid) {
                                     shouldResetup = true;
                                 }
