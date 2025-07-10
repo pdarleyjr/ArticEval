@@ -14,6 +14,11 @@
     <script src="https://unpkg.com/survey-core/survey.core.min.js"></script>
     <script src="https://unpkg.com/survey-js-ui/survey-js-ui.min.js"></script>
     
+    <!-- SurveyJS Creator resources (Commercial License Required) -->
+    <link href="https://unpkg.com/survey-creator-core/survey-creator-core.min.css" type="text/css" rel="stylesheet">
+    <script src="https://unpkg.com/survey-creator-core/survey-creator-core.min.js"></script>
+    <script src="https://unpkg.com/survey-creator-js/survey-creator-js.min.js"></script>
+    
     <!-- SurveyJS Widgets for signature support -->
     <script src="/assets/js/surveyjs-widgets.min.js"></script>
     <!-- Note: surveyjs-widgets doesn't include a CSS file - styles are embedded in the JS -->
@@ -696,6 +701,19 @@
                 if (window.SurveyJS && window.SurveyJS.widgets && window.SurveyJS.widgets.signaturepad) {
                     window.SurveyJS.widgets.signaturepad(Survey);
                 }
+                
+                // Initialize SurveyJS Creator
+                const creatorOptions = {
+                    showLogicTab: true,
+                    showJSONEditorTab: true,
+                    showTranslationTab: false,
+                    showEmbeddedSurveyTab: false,
+                    showTestSurveyTab: true,
+                    showThemeTab: false
+                };
+                
+                // Create the creator instance and assign to window for global access
+                window.creator = new SurveyCreator.SurveyCreator(creatorOptions);
                 
                 formBuilder = new IPLCFormBuilder('builder-container');
                 
