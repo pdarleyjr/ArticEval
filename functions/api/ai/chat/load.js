@@ -1,7 +1,7 @@
 import { CloudflareVectorizeStore } from '@langchain/cloudflare';
 import { CloudflareWorkersAIEmbeddings } from '@langchain/cloudflare';
 import { Document } from '@langchain/core/documents';
-import { createResponse } from '../../utils/api-utils.js';
+import { createResponse } from '../../../utils/api-utils.js';
 
 // Helper function for safe JSON parsing
 async function safeJson(request) {
