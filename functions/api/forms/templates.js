@@ -38,10 +38,10 @@ export async function onRequest(context) {
 /**
  * Handle GET requests - list templates or get a specific template
  */
-async function handleGetTemplates(env, templateId) {
+async function handleGetTemplates(request, env, templateId) {
   try {
     // Get query parameters from the URL
-    const url = new URL(env.request?.url || '');
+    const url = new URL(request.url);
     const type = url.searchParams.get('type');
     
     console.log('handleGetTemplates called:', { templateId, type });
