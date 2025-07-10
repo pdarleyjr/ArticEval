@@ -226,6 +226,7 @@
             color: white;
         }
     </style>
+    <script src="assets/js/html-escape.js"></script>
 </head>
 <body>
     <!-- Navbar -->
@@ -309,26 +310,67 @@
                 return;
             }
             
-            container.innerHTML = `
-                <div class="template-grid">
-                    ${templatesToRender.map(template => `
-                        <div class="template-card" onclick="selectTemplate('${template.id}')">
-                            ${template.aiEnabled ? '<span class="template-badge ai-enabled">AI Enabled</span>' : ''}
-                            <div class="template-icon">
-                                ${getTemplateIcon(template.category)}
-                            </div>
-                            <h3 class="template-title">${template.name}</h3>
-                            <p class="template-description">
-                                ${template.description || 'Professional evaluation template for clinical assessment.'}
-                            </p>
-                            <div class="template-meta">
-                                <span><i class="fas fa-list"></i> ${template.questionCount || 0} questions</span>
-                                <span><i class="fas fa-clock"></i> ~${estimateTime(template.questionCount)} min</span>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
+            // Clear container
+            container.innerHTML = '';
+            
+            // Create template grid
+            const grid = HtmlEscape.createElement('div', { className: 'template-grid' });
+            
+            templatesToRender.forEach(template => {
+                // Create template card
+                const card = HtmlEscape.createElement('div', {
+                    className: 'template-card',
+                    onclick: () => selectTemplate(template.id)
+                });
+                
+                // Add AI badge if enabled
+                if (template.aiEnabled) {
+                    const badge = HtmlEscape.createElement('span', {
+                        className: 'template-badge ai-enabled',
+                        textContent: 'AI Enabled'
+                    });
+                    card.appendChild(badge);
+                }
+                
+                // Add template icon
+                const iconDiv = HtmlEscape.createElement('div', { className: 'template-icon' });
+                iconDiv.innerHTML = getTemplateIcon(template.category); // Icon HTML is trusted
+                card.appendChild(iconDiv);
+                
+                // Add title
+                const title = HtmlEscape.createElement('h3', {
+                    className: 'template-title',
+                    textContent: template.name
+                });
+                card.appendChild(title);
+                
+                // Add description
+                const description = HtmlEscape.createElement('p', {
+                    className: 'template-description',
+                    textContent: template.description || 'Professional evaluation template for clinical assessment.'
+                });
+                card.appendChild(description);
+                
+                // Add metadata
+                const meta = HtmlEscape.createElement('div', { className: 'template-meta' });
+                
+                const questionsSpan = HtmlEscape.createElement('span');
+                const questionsIcon = HtmlEscape.createElement('i', { className: 'fas fa-list' });
+                questionsSpan.appendChild(questionsIcon);
+                questionsSpan.appendChild(document.createTextNode(` ${template.questionCount || 0} questions`));
+                meta.appendChild(questionsSpan);
+                
+                const timeSpan = HtmlEscape.createElement('span');
+                const timeIcon = HtmlEscape.createElement('i', { className: 'fas fa-clock' });
+                timeSpan.appendChild(timeIcon);
+                timeSpan.appendChild(document.createTextNode(` ~${estimateTime(template.questionCount)} min`));
+                meta.appendChild(timeSpan);
+                
+                card.appendChild(meta);
+                grid.appendChild(card);
+            });
+            
+            container.appendChild(grid);
         }
 
         function getTemplateIcon(category) {
@@ -351,29 +393,57 @@
         }
 
         function showEmptyState() {
-            document.getElementById('templatesContainer').innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-folder-open"></i>
-                    <h3>No Templates Found</h3>
-                    <p>No evaluation templates match your current filter.</p>
-                    <button class="btn btn-primary mt-3" onclick="clearFilters()">
-                        Clear Filters
-                    </button>
-                </div>
-            `;
+            const container = document.getElementById('templatesContainer');
+            container.innerHTML = '';
+            
+            const emptyState = HtmlEscape.createElement('div', { className: 'empty-state' });
+            
+            const icon = HtmlEscape.createElement('i', { className: 'fas fa-folder-open' });
+            emptyState.appendChild(icon);
+            
+            const title = HtmlEscape.createElement('h3', { textContent: 'No Templates Found' });
+            emptyState.appendChild(title);
+            
+            const message = HtmlEscape.createElement('p', {
+                textContent: 'No evaluation templates match your current filter.'
+            });
+            emptyState.appendChild(message);
+            
+            const button = HtmlEscape.createElement('button', {
+                className: 'btn btn-primary mt-3',
+                textContent: 'Clear Filters',
+                onclick: clearFilters
+            });
+            emptyState.appendChild(button);
+            
+            container.appendChild(emptyState);
         }
 
         function showErrorState() {
-            document.getElementById('templatesContainer').innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <h3>Error Loading Templates</h3>
-                    <p>Unable to load evaluation templates. Please try again.</p>
-                    <button class="btn btn-primary mt-3" onclick="loadTemplates()">
-                        Retry
-                    </button>
-                </div>
-            `;
+            const container = document.getElementById('templatesContainer');
+            container.innerHTML = '';
+            
+            const emptyState = HtmlEscape.createElement('div', { className: 'empty-state' });
+            
+            const icon = HtmlEscape.createElement('i', { className: 'fas fa-exclamation-triangle' });
+            emptyState.appendChild(icon);
+            
+            const title = HtmlEscape.createElement('h3', { textContent: 'Error Loading Templates' });
+            emptyState.appendChild(title);
+            
+            const message = HtmlEscape.createElement('p', {
+                textContent: 'Unable to load evaluation templates. Please try again.'
+            });
+            emptyState.appendChild(message);
+            
+            const button = HtmlEscape.createElement('button', {
+                className: 'btn btn-primary mt-3',
+                textContent: 'Retry',
+                onclick: loadTemplates
+            });
+            emptyState.appendChild(button);
+            
+            container.appendChild(emptyState);
         }
 
         function initializeFilters() {

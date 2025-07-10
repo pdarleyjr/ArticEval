@@ -141,14 +141,17 @@ async function getOverviewAnalytics(env, timeframe, startDate, endDate) {
     GROUP BY u.role
   `).bind(dateRange.start, dateRange.end).all();
   
-  return createResponse(true, 'Overview analytics retrieved', {
-    stats: totalStats,
-    trends: {
-      submissions: submissionTrends.results || []
-    },
-    top_templates: topTemplates.results || [],
-    user_activity: userActivity.results || [],
-    date_range: dateRange
+  return createResponse({
+    success: true,
+    data: {
+      stats: totalStats,
+      trends: {
+        submissions: submissionTrends.results || []
+      },
+      top_templates: topTemplates.results || [],
+      user_activity: userActivity.results || [],
+      date_range: dateRange
+    }
   });
 }
 
@@ -233,13 +236,16 @@ async function getTemplateAnalytics(env, templateId, timeframe, startDate, endDa
     LIMIT 20
   `).bind(templateId, dateRange.start, dateRange.end).all();
   
-  return createResponse(true, 'Template analytics retrieved', {
-    template: templateInfo,
-    timeline: submissionTimeline.results || [],
-    score_distribution: scoreDistribution.results || [],
-    completion_stats: completionStats.results || [],
-    recent_submissions: recentSubmissions.results || [],
-    date_range: dateRange
+  return createResponse({
+    success: true,
+    data: {
+      template: templateInfo,
+      timeline: submissionTimeline.results || [],
+      score_distribution: scoreDistribution.results || [],
+      completion_stats: completionStats.results || [],
+      recent_submissions: recentSubmissions.results || [],
+      date_range: dateRange
+    }
   });
 }
 
@@ -380,12 +386,15 @@ async function getUserAnalytics(env, timeframe, startDate, endDate) {
     ORDER BY activity_count DESC
   `).bind(dateRange.start, dateRange.end).all();
   
-  return createResponse(true, 'User analytics retrieved', {
-    registration_trends: registrationTrends.results || [],
-    role_distribution: roleDistribution.results || [],
-    active_users: activeUsers.results || [],
-    activity_patterns: activityPatterns.results || [],
-    date_range: dateRange
+  return createResponse({
+    success: true,
+    data: {
+      registration_trends: registrationTrends.results || [],
+      role_distribution: roleDistribution.results || [],
+      active_users: activeUsers.results || [],
+      activity_patterns: activityPatterns.results || [],
+      date_range: dateRange
+    }
   });
 }
 
@@ -450,11 +459,14 @@ async function getPerformanceAnalytics(env, templateId, timeframe, startDate, en
     ORDER BY date DESC
   `).bind(dateRange.start, dateRange.end).all();
   
-  return createResponse(true, 'Performance analytics retrieved', {
-    event_distribution: eventDistribution.results || [],
-    template_performance: templatePerformance.results || [],
-    error_events: errorEvents.results || [],
-    date_range: dateRange
+  return createResponse({
+    success: true,
+    data: {
+      event_distribution: eventDistribution.results || [],
+      template_performance: templatePerformance.results || [],
+      error_events: errorEvents.results || [],
+      date_range: dateRange
+    }
   });
 }
 

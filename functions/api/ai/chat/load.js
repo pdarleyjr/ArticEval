@@ -1,6 +1,7 @@
 import { CloudflareVectorizeStore } from '@langchain/cloudflare';
 import { CloudflareWorkersAIEmbeddings } from '@langchain/cloudflare';
 import { Document } from '@langchain/core/documents';
+import { createResponse } from '../../utils/api-utils.js';
 
 // Helper function for safe JSON parsing
 async function safeJson(request) {
@@ -78,14 +79,14 @@ export async function onRequest(context) {
         
         if (count >= rateLimitMax) {
           console.error(`[Load] Rate limit exceeded for IP: ${clientIP}`);
-          return new Response(JSON.stringify({
-            error: 'Rate limit exceeded',
-            message: 'Too many requests. Please try again later.',
-            retryAfter: rateLimitWindow
-          }), {
-            status: 429,
-            headers: corsHeaders()
-          });
+          return createResponse({
+            success: false,
+            error: {
+              error: 'Rate limit exceeded',
+              message: 'Too many requests. Please try again later.',
+              retryAfter: rateLimitWindow
+            }
+          }, 429);
         }
         
         // Increment count and store with TTL
@@ -109,24 +110,24 @@ export async function onRequest(context) {
         chunks = body.chunks;
       } catch (jsonError) {
         console.error('Invalid JSON in request body:', jsonError);
-        return new Response(JSON.stringify({
-          error: 'Invalid JSON in request body',
-          details: jsonError instanceof Error ? jsonError.message : 'Malformed JSON'
-        }), {
-          status: 400,
-          headers: corsHeaders()
-        });
+        return createResponse({
+          success: false,
+          error: {
+            error: 'Invalid JSON in request body',
+            details: jsonError instanceof Error ? jsonError.message : 'Malformed JSON'
+          }
+        }, 400);
       }
       
       console.log(`Received ${chunks?.length || 0} chunks to load`);
       
       if (!chunks || !Array.isArray(chunks)) {
-        return new Response(JSON.stringify({ 
-          error: 'Invalid request: chunks array required' 
-        }), {
-          status: 400,
-          headers: corsHeaders()
-        });
+        return createResponse({
+          success: false,
+          error: {
+            error: 'Invalid request: chunks array required'
+          }
+        }, 400);
       }
 
       console.log('Creating embeddings instance...');
@@ -174,37 +175,28 @@ export async function onRequest(context) {
       }
 
       console.log('Load operation completed successfully');
-      return new Response(JSON.stringify({
+      return createResponse({
         success: true,
-        message: `Successfully indexed ${chunks.length} chunks`,
-        timestamp: new Date().toISOString()
-      }), {
-        status: 200,
-        headers: corsHeaders()
+        data: {
+          message: `Successfully indexed ${chunks.length} chunks`,
+          timestamp: new Date().toISOString()
+        }
       });
     } catch (error) {
       console.error('Error in load endpoint:', error);
       console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-      return new Response(JSON.stringify({
+      return createResponse({
+        success: false,
         error: 'Failed to index data',
-        details: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined
-      }), {
-        status: 500,
-        headers: corsHeaders()
-      });
+        details: error instanceof Error ? error.message : 'Unknown error'
+      }, 500);
     }
   }
   
   // Method not allowed
-  return new Response(JSON.stringify({
+  return createResponse({
+    success: false,
     error: 'Method not allowed',
     message: 'This endpoint only supports POST requests'
-  }), {
-    status: 405,
-    headers: {
-      ...corsHeaders(),
-      'Allow': 'POST, OPTIONS'
-    }
-  });
+  }, 405);
 }

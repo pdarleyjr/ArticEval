@@ -176,12 +176,15 @@ ${contextContent}`;
     }
     
     return createResponse({
-      response: aiResponse.response,
-      sources: searchResults.map(doc => ({
-        id: doc.metadata?.id,
-        snippet: doc.pageContent.substring(0, 200) + '...'
-      })),
-      conversationId
+      success: true,
+      data: {
+        response: aiResponse.response,
+        sources: searchResults.map(doc => ({
+          id: doc.metadata?.id,
+          snippet: doc.pageContent.substring(0, 200) + '...'
+        })),
+        conversationId
+      }
     });
     
   } catch (error) {

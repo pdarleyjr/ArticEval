@@ -66,7 +66,7 @@ async function handleGetTemplates(request, env, templateId) {
         }
       }
       
-      return createResponse({ template });
+      return createResponse({ success: true, data: { template } });
 
     } else {
       // List all templates
@@ -100,7 +100,12 @@ async function handleGetTemplates(request, env, templateId) {
         return template;
       });
 
-      return createResponse({ templates: processedTemplates });
+      return createResponse({
+        success: true,
+        data: {
+          templates: processedTemplates
+        }
+      });
     }
   } catch (error) {
     return handleError(error);
@@ -148,7 +153,7 @@ async function handleCreateTemplate(request, env) {
       template.sections = JSON.parse(template.sections);
     }
     
-    return createResponse({ template }, 201);
+    return createResponse({ success: true, data: { template } }, 201);
   } catch (error) {
     return handleError(error);
   }
@@ -202,7 +207,7 @@ async function handleUpdateTemplate(request, env, templateId) {
       template.sections = JSON.parse(template.sections);
     }
     
-    return createResponse({ template });
+    return createResponse({ success: true, data: { template } });
   } catch (error) {
     return handleError(error);
   }
@@ -220,7 +225,7 @@ async function handleDeleteTemplate(env, templateId) {
 
     await env.DB.prepare('DELETE FROM form_templates WHERE id = ?').bind(templateId).run();
     
-    return createResponse({ message: 'Template deleted successfully' });
+    return createResponse({ success: true, message: 'Template deleted successfully' });
   } catch (error) {
     if (error.message && error.message.includes('FOREIGN KEY constraint failed')) {
       return handleError('This template cannot be deleted because it has existing submissions.', 409);

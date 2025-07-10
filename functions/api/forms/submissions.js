@@ -73,7 +73,7 @@ async function getSubmissionById(env, submissionId) {
     submission.client_data = JSON.parse(submission.client_data);
   }
   
-  return createResponse(true, 'Submission retrieved successfully', { submission });
+  return createResponse({ success: true, data: { submission } });
 }
 
 /**
@@ -137,13 +137,16 @@ async function listSubmissions(env, templateId, searchParams) {
   
   const submissions = await env.DB.prepare(query).bind(...params, limit, offset).all();
   
-  return createResponse(true, 'Submissions retrieved successfully', {
-    submissions: submissions.results || [],
-    pagination: {
-      page,
-      limit,
-      total,
-      pages: Math.ceil(total / limit)
+  return createResponse({
+    success: true,
+    data: {
+      submissions: submissions.results || [],
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
     }
   });
 }
@@ -203,7 +206,7 @@ async function handleCreateSubmission(request, env) {
     // Get the created submission
     const submission = await getSubmissionById(env, submissionId);
     
-    return createResponse({ submission: submission.submission }, 201);
+    return createResponse({ success: true, data: { submission: submission.submission } }, 201);
   } catch (error) {
     return handleError(error, 'Failed to create submission');
   }
@@ -286,7 +289,7 @@ async function handleUpdateSubmission(request, env, submissionId) {
     // Get the updated submission
     const submission = await getSubmissionById(env, submissionId);
     
-    return createResponse({ submission: submission.submission });
+    return createResponse({ success: true, data: { submission: submission.submission } });
   } catch (error) {
     return handleError(error, 'Failed to update submission');
   }
@@ -315,7 +318,7 @@ async function handleDeleteSubmission(env, submissionId) {
       DELETE FROM form_submissions WHERE id = ?
     `).bind(submissionId).run();
     
-    return createResponse({ message: 'Submission deleted successfully' });
+    return createResponse({ success: true, data: { message: 'Submission deleted successfully' } });
   } catch (error) {
     return handleError(error, 'Failed to delete submission');
   }

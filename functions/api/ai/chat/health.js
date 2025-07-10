@@ -1,5 +1,6 @@
 import { CloudflareVectorizeStore } from '@langchain/cloudflare';
 import { CloudflareWorkersAIEmbeddings } from '@langchain/cloudflare';
+import { createResponse } from '../../../utils/api-utils.js';
 
 // Helper function for exponential backoff retry
 async function retryWithBackoff(fn, maxRetries = 3, initialDelay = 1000) {
@@ -93,39 +94,36 @@ export async function onRequest(context) {
         }
       }
       
-      return new Response(JSON.stringify({
-        status: 'healthy',
-        timestamp: new Date().toISOString(),
-        bindings,
-        vectorIndex: {
-          status: vectorIndexStatus,
-          hasDocuments: documentCount > 0
+      return createResponse({
+        success: true,
+        data: {
+          status: 'healthy',
+          timestamp: new Date().toISOString(),
+          bindings,
+          vectorIndex: {
+            status: vectorIndexStatus,
+            hasDocuments: documentCount > 0
+          }
         }
-      }), {
-        status: 200,
-        headers: corsHeaders()
       });
     } catch (error) {
       console.error('[Health Check] Error:', error);
-      return new Response(JSON.stringify({
-        status: 'error',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      }), {
-        status: 500,
-        headers: corsHeaders()
-      });
+      return createResponse({
+        success: false,
+        error: {
+          status: 'error',
+          message: error instanceof Error ? error.message : 'Unknown error'
+        }
+      }, 500);
     }
   }
   
   // Method not allowed
-  return new Response(JSON.stringify({
-    error: 'Method not allowed',
-    message: 'This endpoint only supports GET requests'
-  }), {
-    status: 405,
-    headers: {
-      ...corsHeaders(),
-      'Allow': 'GET, OPTIONS'
+  return createResponse({
+    success: false,
+    error: {
+      error: 'Method not allowed',
+      message: 'This endpoint only supports GET requests'
     }
-  });
+  }, 405);
 }

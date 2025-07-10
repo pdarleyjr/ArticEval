@@ -61,16 +61,38 @@ class IPLCFormBuilder {
             // Show fallback error state
             const container = this.container;
             if (container) {
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 2rem; color: #dc3545; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 0.25rem; margin: 1rem;">
-                        <h3>Form Builder Initialization Error</h3>
-                        <p><strong>Error:</strong> ${error.message}</p>
-                        <p>Please refresh the page to try again.</p>
-                        <button onclick="window.location.reload()" class="btn btn-danger touch-target">
-                            Refresh Page
-                        </button>
-                    </div>
-                `;
+                // Clear container using secure DOM manipulation
+                while (container.firstChild) {
+                    container.removeChild(container.firstChild);
+                }
+                
+                const errorDiv = HtmlEscape.createElement('div', {
+                    style: 'text-align: center; padding: 2rem; color: #dc3545; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 0.25rem; margin: 1rem;'
+                });
+                
+                const title = HtmlEscape.createElement('h3');
+                HtmlEscape.setTextContent(title, 'Form Builder Initialization Error');
+                errorDiv.appendChild(title);
+                
+                const errorPara = HtmlEscape.createElement('p');
+                const errorStrong = HtmlEscape.createElement('strong');
+                HtmlEscape.setTextContent(errorStrong, 'Error: ');
+                errorPara.appendChild(errorStrong);
+                errorPara.appendChild(HtmlEscape.createTextNode(error.message));
+                errorDiv.appendChild(errorPara);
+                
+                const refreshPara = HtmlEscape.createElement('p');
+                HtmlEscape.setTextContent(refreshPara, 'Please refresh the page to try again.');
+                errorDiv.appendChild(refreshPara);
+                
+                const refreshButton = HtmlEscape.createElement('button', {
+                    className: 'btn btn-danger touch-target'
+                });
+                HtmlEscape.setTextContent(refreshButton, 'Refresh Page');
+                refreshButton.addEventListener('click', () => window.location.reload());
+                errorDiv.appendChild(refreshButton);
+                
+                container.appendChild(errorDiv);
             }
             
             // Re-throw for debugging in development
@@ -93,7 +115,18 @@ class IPLCFormBuilder {
         
         try {
             // Show loading state with visual feedback
-            dropdown.innerHTML = '<option value="">Loading templates...</option>';
+            // Clear existing options safely
+            while (dropdown.firstChild) {
+                dropdown.removeChild(dropdown.firstChild);
+            }
+            
+            // Create loading option using HtmlEscape
+            const loadingOption = HtmlEscape.createElement('option', {
+                value: ''
+            });
+            HtmlEscape.setTextContent(loadingOption, 'Loading templates...');
+            dropdown.appendChild(loadingOption);
+            
             dropdown.disabled = true;
             dropdown.style.cursor = 'wait';
             
@@ -178,8 +211,17 @@ class IPLCFormBuilder {
                 throw new Error('Invalid templates data received from server');
             }
 
-            // Clear dropdown and add default option
-            dropdown.innerHTML = '<option value="">Select a template...</option>';
+            // Clear dropdown safely
+            while (dropdown.firstChild) {
+                dropdown.removeChild(dropdown.firstChild);
+            }
+            
+            // Add default option using HtmlEscape
+            const defaultOption = HtmlEscape.createElement('option', {
+                value: ''
+            });
+            HtmlEscape.setTextContent(defaultOption, 'Select a template...');
+            dropdown.appendChild(defaultOption);
 
             // Populate dropdown with templates
             if (templates.length > 0) {
@@ -224,8 +266,16 @@ class IPLCFormBuilder {
             console.error('FormBuilder: Error loading quick templates:', error);
             console.error('FormBuilder: Error stack:', error.stack);
             
-            // Show detailed error state in dropdown
-            dropdown.innerHTML = `<option value="">⚠️ ${error.message}</option>`;
+            // Show detailed error state in dropdown safely
+            while (dropdown.firstChild) {
+                dropdown.removeChild(dropdown.firstChild);
+            }
+            
+            const errorOption = HtmlEscape.createElement('option', {
+                value: ''
+            });
+            HtmlEscape.setTextContent(errorOption, `⚠️ ${error.message}`);
+            dropdown.appendChild(errorOption);
             
             // Add retry option
             const retryOption = document.createElement('option');
@@ -374,7 +424,17 @@ class IPLCFormBuilder {
             // Clear properties panel
             const propertiesPanel = document.getElementById('propertiesPanel');
             if (propertiesPanel) {
-                propertiesPanel.innerHTML = '<div class="empty-properties">Select an element to edit its properties</div>';
+                // Clear panel content safely
+                while (propertiesPanel.firstChild) {
+                    propertiesPanel.removeChild(propertiesPanel.firstChild);
+                }
+                
+                // Create empty properties message
+                const emptyDiv = HtmlEscape.createElement('div', {
+                    className: 'empty-properties'
+                });
+                HtmlEscape.setTextContent(emptyDiv, 'Select an element to edit its properties');
+                propertiesPanel.appendChild(emptyDiv);
             }
 
             // Mark as unsaved changes
@@ -602,150 +662,327 @@ class IPLCFormBuilder {
     }
 
     render() {
-        this.container.innerHTML = `
-            <div class="form-builder-container">
-                <div class="builder-header">
-                    <h2>${this.options.mode === 'edit' ? 'Edit Form' : 'Create New Form'}</h2>
-                    <div class="builder-actions">
-                        <button class="btn btn-secondary btn-sm touch-target" data-action="undo" title="Undo (Ctrl+Z)">
-                            <span class="icon">↶</span>
-                        </button>
-                        <button class="btn btn-secondary btn-sm touch-target" data-action="redo" title="Redo (Ctrl+Y)">
-                            <span class="icon">↷</span>
-                        </button>
-                        <span style="width: 1px; height: 24px; background: #ddd; margin: 0 0.5rem;"></span>
-                        <button class="btn btn-secondary touch-target" data-action="startTour" title="Start Tour (?)">
-                            <span class="icon">🎓</span> Tour
-                        </button>
-                        <button class="btn btn-secondary touch-target" data-action="showHelp" title="Help (F1)">
-                            <span class="icon">❓</span> Help
-                        </button>
-                        <span style="width: 1px; height: 24px; background: #ddd; margin: 0 0.5rem;"></span>
-                        <button class="btn btn-secondary touch-target" data-action="preview">
-                            <span class="icon">👁️</span> Preview
-                        </button>
-                        <button class="btn btn-info touch-target" data-action="saveAsTemplate" title="Save as Template">
-                            <span class="icon">📋</span> Save as Template
-                        </button>
-                        <button class="btn btn-warning touch-target" data-action="toggleFormLock" title="Lock/Unlock Form">
-                            <span class="icon" id="lockIcon">🔓</span> <span id="lockText">Lock Form</span>
-                        </button>
-                        <button class="btn btn-primary touch-target" data-action="save">
-                            <span class="icon">💾</span> Save Form
-                        </button>
-                    </div>
-                </div>
+        // Clear container using secure DOM manipulation
+        while (this.container.firstChild) {
+            this.container.removeChild(this.container.firstChild);
+        }
 
-                <div class="builder-main">
-                    <!-- Left Panel: Toolbox -->
-                    <div class="builder-toolbox">
-                        <div class="creator-field">
-                            <label for="creatorName">Created by</label>
-                            <input type="text" id="creatorName" placeholder="Your name" />
-                        </div>
-                        
-                        <!-- Quick Templates -->
-                        <div class="quick-templates-section">
-                            <h3>Quick Templates</h3>
-                            <select id="quickTemplateSelect" class="template-select" onchange="formBuilder.loadQuickTemplate(this.value)">
-                                <option value="">Select a template...</option>
-                            </select>
-                            <button class="btn btn-sm btn-secondary touch-target" data-action="refreshTemplates" title="Refresh Templates">
-                                <span class="icon">🔄</span>
-                            </button>
-                        </div>
-                        
-                        <!-- Field Templates -->
-                        <div class="field-templates-section">
-                            <h3>Field Templates</h3>
-                            <select id="fieldTemplateSelect" class="template-select" onchange="formBuilder.insertFieldTemplate(this.value)">
-                                <option value="">Select a field template...</option>
-                                ${Object.entries(this.fieldTemplates).map(([key, template]) =>
-                                    `<option value="${key}">${template.name}</option>`
-                                ).join('')}
-                            </select>
-                        </div>
-                        
-                        <h3>Form Elements</h3>
-                        <div class="element-categories">
-                            ${this.renderToolboxCategories()}
-                        </div>
-                    </div>
+        // Create main container
+        const mainContainer = document.createElement('div');
+        mainContainer.className = 'form-builder-container';
 
-                    <!-- Center Panel: Form Design Area -->
-                    <div class="builder-canvas">
-                        <details id="metaDrawer" class="form-metadata-drawer">
-                            <summary class="form-metadata-summary">
-                                <span class="summary-icon">📝</span>
-                                <span class="summary-text">Form Details</span>
-                                <span class="summary-chevron">▶</span>
-                            </summary>
-                            <div class="form-metadata-content">
-                                <input type="text" id="formTitle" placeholder="Form Title"
-                                       value="${this.formData.title}" class="form-title-input">
-                                <textarea id="formDescription" placeholder="Form Description"
-                                          class="form-description-input">${this.formData.description || ''}</textarea>
-                            </div>
-                        </details>
+        // Create header
+        const header = document.createElement('div');
+        header.className = 'builder-header';
+        
+        const h2 = document.createElement('h2');
+        h2.textContent = this.options.mode === 'edit' ? 'Edit Form' : 'Create New Form';
+        header.appendChild(h2);
 
-                        <div class="page-navigation">
-                            <div class="page-tabs" id="pageTabs"></div>
-                            <button class="btn btn-sm btn-secondary touch-target" data-action="addPage">
-                                <span class="icon">➕</span> Add Page
-                            </button>
-                        </div>
+        // Create builder actions
+        const actions = document.createElement('div');
+        actions.className = 'builder-actions';
 
-                        <div class="form-page" id="formPage">
-                            <div class="page-title-container">
-                                <input type="text" id="pageTitle" placeholder="Page Title" 
-                                       class="page-title-input">
-                            </div>
-                            <div class="drop-zone" id="dropZone">
-                                <div class="empty-state">
-                                    Drag elements here to build your form
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+        // Create action buttons
+        const actionButtons = [
+            { action: 'undo', class: 'btn btn-secondary btn-sm touch-target', title: 'Undo (Ctrl+Z)', icon: '↶', text: '' },
+            { action: 'redo', class: 'btn btn-secondary btn-sm touch-target', title: 'Redo (Ctrl+Y)', icon: '↷', text: '' },
+            { separator: true },
+            { action: 'startTour', class: 'btn btn-secondary touch-target', title: 'Start Tour (?)', icon: '🎓', text: ' Tour' },
+            { action: 'showHelp', class: 'btn btn-secondary touch-target', title: 'Help (F1)', icon: '❓', text: ' Help' },
+            { separator: true },
+            { action: 'preview', class: 'btn btn-secondary touch-target', title: '', icon: '👁️', text: ' Preview' },
+            { action: 'saveAsTemplate', class: 'btn btn-info touch-target', title: 'Save as Template', icon: '📋', text: ' Save as Template' },
+            { action: 'toggleFormLock', class: 'btn btn-warning touch-target', title: 'Lock/Unlock Form', icon: '🔓', text: ' Lock Form', lockButton: true },
+            { action: 'save', class: 'btn btn-primary touch-target', title: '', icon: '💾', text: ' Save Form' }
+        ];
 
-                    <!-- Right Panel: Properties -->
-                    <div class="builder-properties" id="builderProperties">
-                        <button class="properties-toggle touch-target" data-action="togglePropertiesPanel" title="Toggle Properties Panel">
-                            <span id="toggleIcon">◀</span>
-                        </button>
-                        <h3>Element Properties</h3>
-                        <div id="propertiesPanel" class="properties-content">
-                            <div class="empty-properties">
-                                Select an element to edit its properties
-                            </div>
-                        </div>
-                        
-                        <!-- Form Settings Section -->
-                        <div class="form-settings-section" style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e1e4e8;">
-                            <h3>Form Settings</h3>
-                            <div class="property-group">
-                                <label class="property-label">
-                                    <input type="checkbox" id="showLogoCheckbox"
-                                           ${this.formData.showLogo !== false ? 'checked' : ''}
-                                           onchange="formBuilder.updateFormSetting('showLogo', this.checked)">
-                                    Show IPLC Logo
-                                </label>
-                                <small style="display: block; color: #666; margin-top: 0.25rem;">
-                                    Displays the IPLC logo at the top of the form
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
+        actionButtons.forEach(buttonInfo => {
+            if (buttonInfo.separator) {
+                const sep = document.createElement('span');
+                sep.style.cssText = 'width: 1px; height: 24px; background: #ddd; margin: 0 0.5rem;';
+                actions.appendChild(sep);
+            } else {
+                const btn = document.createElement('button');
+                btn.className = buttonInfo.class;
+                btn.setAttribute('data-action', buttonInfo.action);
+                if (buttonInfo.title) btn.title = buttonInfo.title;
+                
+                const iconSpan = document.createElement('span');
+                iconSpan.className = 'icon';
+                if (buttonInfo.lockButton) iconSpan.id = 'lockIcon';
+                iconSpan.textContent = buttonInfo.icon;
+                btn.appendChild(iconSpan);
+                
+                if (buttonInfo.text) {
+                    if (buttonInfo.lockButton) {
+                        const textSpan = document.createElement('span');
+                        textSpan.id = 'lockText';
+                        textSpan.textContent = 'Lock Form';
+                        btn.appendChild(textSpan);
+                    } else {
+                        btn.appendChild(document.createTextNode(buttonInfo.text));
+                    }
+                }
+                
+                actions.appendChild(btn);
+            }
+        });
+
+        header.appendChild(actions);
+        mainContainer.appendChild(header);
+
+        // Create main builder section
+        const builderMain = document.createElement('div');
+        builderMain.className = 'builder-main';
+
+        // Create left panel (toolbox)
+        const toolbox = document.createElement('div');
+        toolbox.className = 'builder-toolbox';
+
+        // Creator field
+        const creatorField = document.createElement('div');
+        creatorField.className = 'creator-field';
+        const creatorLabel = document.createElement('label');
+        creatorLabel.setAttribute('for', 'creatorName');
+        creatorLabel.textContent = 'Created by';
+        const creatorInput = document.createElement('input');
+        creatorInput.type = 'text';
+        creatorInput.id = 'creatorName';
+        creatorInput.placeholder = 'Your name';
+        creatorField.appendChild(creatorLabel);
+        creatorField.appendChild(creatorInput);
+        toolbox.appendChild(creatorField);
+
+        // Quick Templates section
+        const quickTemplates = document.createElement('div');
+        quickTemplates.className = 'quick-templates-section';
+        const quickH3 = document.createElement('h3');
+        quickH3.textContent = 'Quick Templates';
+        quickTemplates.appendChild(quickH3);
+        
+        const quickSelect = document.createElement('select');
+        quickSelect.id = 'quickTemplateSelect';
+        quickSelect.className = 'template-select';
+        quickSelect.addEventListener('change', (e) => this.loadQuickTemplate(e.target.value));
+        const quickDefaultOption = document.createElement('option');
+        quickDefaultOption.value = '';
+        quickDefaultOption.textContent = 'Select a template...';
+        quickSelect.appendChild(quickDefaultOption);
+        quickTemplates.appendChild(quickSelect);
+        
+        const refreshBtn = document.createElement('button');
+        refreshBtn.className = 'btn btn-sm btn-secondary touch-target';
+        refreshBtn.setAttribute('data-action', 'refreshTemplates');
+        refreshBtn.title = 'Refresh Templates';
+        const refreshIcon = document.createElement('span');
+        refreshIcon.className = 'icon';
+        refreshIcon.textContent = '🔄';
+        refreshBtn.appendChild(refreshIcon);
+        quickTemplates.appendChild(refreshBtn);
+        toolbox.appendChild(quickTemplates);
+
+        // Field Templates section
+        const fieldTemplates = document.createElement('div');
+        fieldTemplates.className = 'field-templates-section';
+        const fieldH3 = document.createElement('h3');
+        fieldH3.textContent = 'Field Templates';
+        fieldTemplates.appendChild(fieldH3);
+        
+        const fieldSelect = document.createElement('select');
+        fieldSelect.id = 'fieldTemplateSelect';
+        fieldSelect.className = 'template-select';
+        fieldSelect.addEventListener('change', (e) => this.insertFieldTemplate(e.target.value));
+        const fieldDefaultOption = document.createElement('option');
+        fieldDefaultOption.value = '';
+        fieldDefaultOption.textContent = 'Select a field template...';
+        fieldSelect.appendChild(fieldDefaultOption);
+        
+        // Add field template options
+        Object.entries(this.fieldTemplates).forEach(([key, template]) => {
+            const option = document.createElement('option');
+            option.value = key;
+            option.textContent = template.name;
+            fieldSelect.appendChild(option);
+        });
+        
+        fieldTemplates.appendChild(fieldSelect);
+        toolbox.appendChild(fieldTemplates);
+
+        // Form Elements section
+        const elementsH3 = document.createElement('h3');
+        elementsH3.textContent = 'Form Elements';
+        toolbox.appendChild(elementsH3);
+        
+        const elementCategories = document.createElement('div');
+        elementCategories.className = 'element-categories';
+        this.renderToolboxCategories(elementCategories);
+        toolbox.appendChild(elementCategories);
+
+        builderMain.appendChild(toolbox);
+
+        // Create center panel (canvas)
+        const canvas = document.createElement('div');
+        canvas.className = 'builder-canvas';
+
+        // Form metadata drawer
+        const details = document.createElement('details');
+        details.id = 'metaDrawer';
+        details.className = 'form-metadata-drawer';
+        
+        const summary = document.createElement('summary');
+        summary.className = 'form-metadata-summary';
+        const summaryIcon = document.createElement('span');
+        summaryIcon.className = 'summary-icon';
+        summaryIcon.textContent = '📝';
+        const summaryText = document.createElement('span');
+        summaryText.className = 'summary-text';
+        summaryText.textContent = 'Form Details';
+        const summaryChevron = document.createElement('span');
+        summaryChevron.className = 'summary-chevron';
+        summaryChevron.textContent = '▶';
+        summary.appendChild(summaryIcon);
+        summary.appendChild(summaryText);
+        summary.appendChild(summaryChevron);
+        details.appendChild(summary);
+        
+        const metaContent = document.createElement('div');
+        metaContent.className = 'form-metadata-content';
+        const titleInput = document.createElement('input');
+        titleInput.type = 'text';
+        titleInput.id = 'formTitle';
+        titleInput.placeholder = 'Form Title';
+        titleInput.value = this.formData.title || '';
+        titleInput.className = 'form-title-input';
+        const descTextarea = document.createElement('textarea');
+        descTextarea.id = 'formDescription';
+        descTextarea.placeholder = 'Form Description';
+        descTextarea.className = 'form-description-input';
+        descTextarea.textContent = this.formData.description || '';
+        metaContent.appendChild(titleInput);
+        metaContent.appendChild(descTextarea);
+        details.appendChild(metaContent);
+        canvas.appendChild(details);
+
+        // Page navigation
+        const pageNav = document.createElement('div');
+        pageNav.className = 'page-navigation';
+        const pageTabs = document.createElement('div');
+        pageTabs.className = 'page-tabs';
+        pageTabs.id = 'pageTabs';
+        pageNav.appendChild(pageTabs);
+        
+        const addPageBtn = document.createElement('button');
+        addPageBtn.className = 'btn btn-sm btn-secondary touch-target';
+        addPageBtn.setAttribute('data-action', 'addPage');
+        const addPageIcon = document.createElement('span');
+        addPageIcon.className = 'icon';
+        addPageIcon.textContent = '➕';
+        addPageBtn.appendChild(addPageIcon);
+        addPageBtn.appendChild(document.createTextNode(' Add Page'));
+        pageNav.appendChild(addPageBtn);
+        canvas.appendChild(pageNav);
+
+        // Form page
+        const formPage = document.createElement('div');
+        formPage.className = 'form-page';
+        formPage.id = 'formPage';
+        
+        const pageTitleContainer = document.createElement('div');
+        pageTitleContainer.className = 'page-title-container';
+        const pageTitleInput = document.createElement('input');
+        pageTitleInput.type = 'text';
+        pageTitleInput.id = 'pageTitle';
+        pageTitleInput.placeholder = 'Page Title';
+        pageTitleInput.className = 'page-title-input';
+        pageTitleContainer.appendChild(pageTitleInput);
+        formPage.appendChild(pageTitleContainer);
+        
+        const dropZone = document.createElement('div');
+        dropZone.className = 'drop-zone';
+        dropZone.id = 'dropZone';
+        const emptyState = document.createElement('div');
+        emptyState.className = 'empty-state';
+        emptyState.textContent = 'Drag elements here to build your form';
+        dropZone.appendChild(emptyState);
+        formPage.appendChild(dropZone);
+        canvas.appendChild(formPage);
+
+        builderMain.appendChild(canvas);
+
+        // Create right panel (properties)
+        const properties = document.createElement('div');
+        properties.className = 'builder-properties';
+        properties.id = 'builderProperties';
+        
+        const toggleBtn = document.createElement('button');
+        toggleBtn.className = 'properties-toggle touch-target';
+        toggleBtn.setAttribute('data-action', 'togglePropertiesPanel');
+        toggleBtn.title = 'Toggle Properties Panel';
+        const toggleIcon = document.createElement('span');
+        toggleIcon.id = 'toggleIcon';
+        toggleIcon.textContent = '◀';
+        toggleBtn.appendChild(toggleIcon);
+        properties.appendChild(toggleBtn);
+        
+        const propsH3 = document.createElement('h3');
+        propsH3.textContent = 'Element Properties';
+        properties.appendChild(propsH3);
+        
+        const propsPanel = document.createElement('div');
+        propsPanel.id = 'propertiesPanel';
+        propsPanel.className = 'properties-content';
+        const emptyProps = document.createElement('div');
+        emptyProps.className = 'empty-properties';
+        emptyProps.textContent = 'Select an element to edit its properties';
+        propsPanel.appendChild(emptyProps);
+        properties.appendChild(propsPanel);
+
+        // Form Settings Section
+        const formSettings = document.createElement('div');
+        formSettings.className = 'form-settings-section';
+        formSettings.style.cssText = 'margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e1e4e8;';
+        
+        const settingsH3 = document.createElement('h3');
+        settingsH3.textContent = 'Form Settings';
+        formSettings.appendChild(settingsH3);
+        
+        const propGroup = document.createElement('div');
+        propGroup.className = 'property-group';
+        
+        const propLabel = document.createElement('label');
+        propLabel.className = 'property-label';
+        
+        const logoCheckbox = document.createElement('input');
+        logoCheckbox.type = 'checkbox';
+        logoCheckbox.id = 'showLogoCheckbox';
+        logoCheckbox.checked = this.formData.showLogo !== false;
+        logoCheckbox.addEventListener('change', (e) => this.updateFormSetting('showLogo', e.target.checked));
+        
+        propLabel.appendChild(logoCheckbox);
+        propLabel.appendChild(document.createTextNode(' Show IPLC Logo'));
+        propGroup.appendChild(propLabel);
+        
+        const small = document.createElement('small');
+        small.style.cssText = 'display: block; color: #666; margin-top: 0.25rem;';
+        small.textContent = 'Displays the IPLC logo at the top of the form';
+        propGroup.appendChild(small);
+        
+        formSettings.appendChild(propGroup);
+        properties.appendChild(formSettings);
+
+        builderMain.appendChild(properties);
+        mainContainer.appendChild(builderMain);
+
+        // Add to container
+        this.container.appendChild(mainContainer);
 
         this.renderPageTabs();
         this.renderFormElements();
         this.addStyles();
     }
 
-    renderToolboxCategories() {
+    renderToolboxCategories(container) {
         const categories = [
             {
                 name: 'Basic Elements',
@@ -817,19 +1054,38 @@ class IPLCFormBuilder {
             }
         ];
 
-        return categories.map(category => `
-            <div class="category">
-                <h4>${category.name}</h4>
-                ${category.elements.map(el => `
-                    <div class="draggable-element" data-type="${el.type}"
-                         ${el.custom ? 'data-custom="true"' : ''}
-                         ${el.category ? `data-category="${el.category}"` : ''}
-                         draggable="true">
-                        <span class="icon">${el.icon}</span> ${el.label}
-                    </div>
-                `).join('')}
-            </div>
-        `).join('');
+        categories.forEach(category => {
+            const categoryDiv = document.createElement('div');
+            categoryDiv.className = 'category';
+            
+            const categoryTitle = document.createElement('h4');
+            categoryTitle.textContent = category.name;
+            categoryDiv.appendChild(categoryTitle);
+            
+            category.elements.forEach(el => {
+                const elementDiv = document.createElement('div');
+                elementDiv.className = 'draggable-element';
+                elementDiv.setAttribute('data-type', el.type);
+                if (el.custom) {
+                    elementDiv.setAttribute('data-custom', 'true');
+                }
+                if (el.category) {
+                    elementDiv.setAttribute('data-category', el.category);
+                }
+                elementDiv.setAttribute('draggable', 'true');
+                
+                const iconSpan = document.createElement('span');
+                iconSpan.className = 'icon';
+                iconSpan.textContent = el.icon;
+                elementDiv.appendChild(iconSpan);
+                
+                elementDiv.appendChild(document.createTextNode(' ' + el.label));
+                
+                categoryDiv.appendChild(elementDiv);
+            });
+            
+            container.appendChild(categoryDiv);
+        });
     }
 
     // Toggle properties panel visibility
@@ -1022,20 +1278,26 @@ class IPLCFormBuilder {
 
     renderPageTabs() {
         const tabsContainer = document.getElementById('pageTabs');
-        tabsContainer.innerHTML = this.formData.pages.map((page, index) => `
-            <div class="page-tab touch-target ${index === this.currentPageIndex ? 'active' : ''}"
-                 data-page-index="${index}">
-                ${page.title || `Page ${index + 1}`}
-            </div>
-        `).join('');
+        // Clear container safely
+        while (tabsContainer.firstChild) {
+            tabsContainer.removeChild(tabsContainer.firstChild);
+        }
         
-        // Add pointer event handlers for page tabs
-        tabsContainer.querySelectorAll('.page-tab').forEach(tab => {
+        // Create tabs using DOM manipulation
+        this.formData.pages.forEach((page, index) => {
+            const tab = document.createElement('div');
+            tab.className = `page-tab touch-target ${index === this.currentPageIndex ? 'active' : ''}`;
+            tab.setAttribute('data-page-index', index);
+            tab.textContent = page.title || `Page ${index + 1}`;
+            
+            // Add pointer event handler
             tab.addEventListener('pointerdown', (e) => {
                 e.preventDefault();
                 const pageIndex = parseInt(tab.dataset.pageIndex);
                 this.switchPage(pageIndex);
             });
+            
+            tabsContainer.appendChild(tab);
         });
     }
 
@@ -1043,14 +1305,25 @@ class IPLCFormBuilder {
         const dropZone = document.getElementById('dropZone');
         const currentPage = this.formData.pages[this.currentPageIndex];
         
+        // Clear drop zone safely
+        while (dropZone.firstChild) {
+            dropZone.removeChild(dropZone.firstChild);
+        }
+        
         if (!currentPage.elements || currentPage.elements.length === 0) {
-            dropZone.innerHTML = '<div class="empty-state">Drag elements here to build your form</div>';
+            // Create empty state using DOM manipulation
+            const emptyState = document.createElement('div');
+            emptyState.className = 'empty-state';
+            emptyState.textContent = 'Drag elements here to build your form';
+            dropZone.appendChild(emptyState);
             return;
         }
 
-        dropZone.innerHTML = currentPage.elements.map((element, index) =>
-            this.renderFormElement(element, index)
-        ).join('');
+        // Use secure DOM manipulation to render elements
+        currentPage.elements.forEach((element, index) => {
+            const elementDOM = this.renderFormElementDOM(element, index);
+            dropZone.appendChild(elementDOM);
+        });
         
         // T-Fix-4: Apply touch-target styles after rendering
         this.addTouchTargets();
@@ -4727,119 +5000,166 @@ class IPLCFormBuilder {
         const element = this.formData.pages[this.currentPageIndex].elements[this.selectedElement];
         const propertiesPanel = document.getElementById('propertiesPanel');
 
-        let propertiesHTML = `
-            <div class="property-group">
-                <label class="property-label">Name (ID)</label>
-                <input type="text" class="property-input" value="${element.name || ''}"
-                       onchange="formBuilder.updateElementProperty('name', this.value)">
-            </div>
-            <div class="property-group">
-                <label class="property-label">Title</label>
-                <input type="text" class="property-input" value="${element.title || ''}"
-                       onchange="formBuilder.updateElementProperty('title', this.value)">
-            </div>
-            <div class="property-group">
-                <label class="property-label">Description</label>
-                <textarea class="property-input" rows="2"
-                       onchange="formBuilder.updateElementProperty('description', this.value)">${element.description || ''}</textarea>
-            </div>
-            <div class="property-group">
-                <label class="property-label">
-                    <input type="checkbox" class="property-checkbox"
-                           ${element.isRequired ? 'checked' : ''}
-                           onchange="formBuilder.updateElementProperty('isRequired', this.checked)">
-                    Required
-                </label>
-            </div>
-        `;
+        // Clear the panel
+        while (propertiesPanel.firstChild) {
+            propertiesPanel.removeChild(propertiesPanel.firstChild);
+        }
+
+        // Create Name (ID) property group
+        const nameGroup = HtmlEscape.createElement('div', { className: 'property-group' });
+        const nameLabel = HtmlEscape.createElement('label', { className: 'property-label', textContent: 'Name (ID)' });
+        const nameInput = HtmlEscape.createElement('input', {
+            type: 'text',
+            className: 'property-input',
+            value: element.name || ''
+        });
+        nameInput.addEventListener('change', (e) => this.updateElementProperty('name', e.target.value));
+        nameGroup.appendChild(nameLabel);
+        nameGroup.appendChild(nameInput);
+        propertiesPanel.appendChild(nameGroup);
+
+        // Create Title property group
+        const titleGroup = HtmlEscape.createElement('div', { className: 'property-group' });
+        const titleLabel = HtmlEscape.createElement('label', { className: 'property-label', textContent: 'Title' });
+        const titleInput = HtmlEscape.createElement('input', {
+            type: 'text',
+            className: 'property-input',
+            value: element.title || ''
+        });
+        titleInput.addEventListener('change', (e) => this.updateElementProperty('title', e.target.value));
+        titleGroup.appendChild(titleLabel);
+        titleGroup.appendChild(titleInput);
+        propertiesPanel.appendChild(titleGroup);
+
+        // Create Description property group
+        const descGroup = HtmlEscape.createElement('div', { className: 'property-group' });
+        const descLabel = HtmlEscape.createElement('label', { className: 'property-label', textContent: 'Description' });
+        const descTextarea = HtmlEscape.createElement('textarea', {
+            className: 'property-input',
+            rows: '2'
+        });
+        descTextarea.value = element.description || '';
+        descTextarea.addEventListener('change', (e) => this.updateElementProperty('description', e.target.value));
+        descGroup.appendChild(descLabel);
+        descGroup.appendChild(descTextarea);
+        propertiesPanel.appendChild(descGroup);
+
+        // Create Required checkbox group
+        const requiredGroup = HtmlEscape.createElement('div', { className: 'property-group' });
+        const requiredLabel = HtmlEscape.createElement('label', { className: 'property-label' });
+        const requiredCheckbox = HtmlEscape.createElement('input', {
+            type: 'checkbox',
+            className: 'property-checkbox'
+        });
+        if (element.isRequired) requiredCheckbox.checked = true;
+        requiredCheckbox.addEventListener('change', (e) => this.updateElementProperty('isRequired', e.target.checked));
+        requiredLabel.appendChild(requiredCheckbox);
+        requiredLabel.appendChild(document.createTextNode(' Required'));
+        requiredGroup.appendChild(requiredLabel);
+        propertiesPanel.appendChild(requiredGroup);
 
         // Add type-specific properties
         if (element.type === 'dropdown' || element.type === 'radiogroup' || element.type === 'checkbox') {
-            propertiesHTML += this.getChoicesEditorHTML(element);
+            this.appendChoicesEditor(propertiesPanel, element);
         }
 
         // Add panel-specific properties
         if (element.type === 'panel') {
-            propertiesHTML += this.getPanelPropertiesHTML(element);
+            this.appendPanelProperties(propertiesPanel, element);
         }
 
         // Add matrix-specific properties
         if (element.type === 'matrix') {
-            propertiesHTML += this.getMatrixPropertiesHTML(element);
+            this.appendMatrixProperties(propertiesPanel, element);
         }
 
         // Add dynamic matrix properties
         if (element.type === 'matrixdynamic') {
-            propertiesHTML += this.getMatrixDynamicPropertiesHTML(element);
+            this.appendMatrixDynamicProperties(propertiesPanel, element);
         }
 
         // Add dynamic panel properties
         if (element.type === 'paneldynamic') {
-            propertiesHTML += this.getPanelDynamicPropertiesHTML(element);
+            this.appendPanelDynamicProperties(propertiesPanel, element);
         }
 
         // Add text-specific properties
         if (element.type === 'text') {
-            propertiesHTML += this.getTextPropertiesHTML(element);
+            this.appendTextProperties(propertiesPanel, element);
         }
 
         // Add comment-specific properties
         if (element.type === 'comment') {
-            propertiesHTML += this.getCommentPropertiesHTML(element);
+            this.appendCommentProperties(propertiesPanel, element);
         }
 
         // Add rating-specific properties
         if (element.type === 'rating') {
-            propertiesHTML += this.getRatingPropertiesHTML(element);
+            this.appendRatingProperties(propertiesPanel, element);
         }
 
         // Add boolean-specific properties
         if (element.type === 'boolean') {
-            propertiesHTML += this.getBooleanPropertiesHTML(element);
+            this.appendBooleanProperties(propertiesPanel, element);
         }
 
         // Add signature-specific properties
         if (element.type === 'signaturepad') {
-            propertiesHTML += this.getSignaturePropertiesHTML(element);
+            this.appendSignatureProperties(propertiesPanel, element);
         }
 
         // Add HTML element properties
         if (element.type === 'html') {
-            propertiesHTML += this.getHtmlPropertiesHTML(element);
+            this.appendHtmlProperties(propertiesPanel, element);
         }
 
         // Add styling controls section for all elements
-        propertiesHTML += `
-            <div class="property-group">
-                <h4 style="margin-bottom: 0.5rem;">Styling Controls</h4>
-                ${this.getStylingControlsHTML(element)}
-            </div>
-        `;
+        const stylingGroup = HtmlEscape.createElement('div', { className: 'property-group' });
+        const stylingH4 = HtmlEscape.createElement('h4', { textContent: 'Styling Controls' });
+        stylingH4.style.marginBottom = '0.5rem';
+        stylingGroup.appendChild(stylingH4);
+        this.appendStylingControls(stylingGroup, element);
+        propertiesPanel.appendChild(stylingGroup);
 
         // Add validation rules section
-        propertiesHTML += `
-            <div class="property-group">
-                <h4 style="margin-bottom: 0.5rem;">Validation Rules</h4>
-                ${this.getValidationRulesHTML(element)}
-            </div>
-        `;
+        const validationGroup = HtmlEscape.createElement('div', { className: 'property-group' });
+        const validationH4 = HtmlEscape.createElement('h4', { textContent: 'Validation Rules' });
+        validationH4.style.marginBottom = '0.5rem';
+        validationGroup.appendChild(validationH4);
+        this.appendValidationRules(validationGroup, element);
+        propertiesPanel.appendChild(validationGroup);
 
         // Add AI Summary specific properties
         if (element.type === 'ai-summary' || element.customType === 'ai-summary') {
-            propertiesHTML += this.getAISummaryPropertiesHTML(element);
+            this.appendAISummaryProperties(propertiesPanel, element);
         }
 
         // Add conditional logic section
-        propertiesHTML += `
-            <div class="property-group">
-                <h4 style="margin-bottom: 0.5rem;">Conditional Logic</h4>
-                <button class="btn btn-sm btn-secondary conditional-logic-btn touch-target" data-action="showConditionalLogicEditor">
-                    <span class="icon">⚙️</span> Configure Conditions
-                </button>
-                ${element.visibleIf ? `<div class="current-condition-preview">Current: <code>${element.visibleIf}</code></div>` : ''}
-            </div>
-        `;
-        propertiesPanel.innerHTML = propertiesHTML;
+        const conditionalGroup = HtmlEscape.createElement('div', { className: 'property-group' });
+        const conditionalH4 = HtmlEscape.createElement('h4', { textContent: 'Conditional Logic' });
+        conditionalH4.style.marginBottom = '0.5rem';
+        conditionalGroup.appendChild(conditionalH4);
+        
+        const conditionalBtn = HtmlEscape.createElement('button', {
+            className: 'btn btn-sm btn-secondary conditional-logic-btn touch-target'
+        });
+        conditionalBtn.setAttribute('data-action', 'showConditionalLogicEditor');
+        const btnIcon = HtmlEscape.createElement('span', { className: 'icon', textContent: '⚙️' });
+        conditionalBtn.appendChild(btnIcon);
+        conditionalBtn.appendChild(document.createTextNode(' Configure Conditions'));
+        conditionalGroup.appendChild(conditionalBtn);
+
+        if (element.visibleIf) {
+            const conditionPreview = HtmlEscape.createElement('div', {
+                className: 'current-condition-preview',
+                textContent: 'Current: '
+            });
+            const codeElement = HtmlEscape.createElement('code', { textContent: element.visibleIf });
+            conditionPreview.appendChild(codeElement);
+            conditionalGroup.appendChild(conditionPreview);
+        }
+
+        propertiesPanel.appendChild(conditionalGroup);
     }
 
     // Get choices editor HTML for dropdown/radio/checkbox
@@ -5191,6 +5511,789 @@ class IPLCFormBuilder {
         return div.innerHTML;
     }
 
+    // Helper function to render panel elements list
+    renderPanelElementsList(container, elements) {
+        // Clear container safely
+        while (container.firstChild) {
+            container.removeChild(container.firstChild);
+        }
+
+        // Iterate through elements and create DOM
+        elements.forEach((el, idx) => {
+            // Create main item container
+            const itemDiv = HtmlEscape.createElement('div', {
+                className: 'panel-element-item',
+                'data-index': idx,
+                style: 'background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 0.25rem; padding: 0.75rem; margin-bottom: 0.5rem;'
+            });
+
+            // Create flex container
+            const flexDiv = HtmlEscape.createElement('div', {
+                style: 'display: flex; justify-content: space-between; align-items: center;'
+            });
+
+            // Create info container
+            const infoDiv = HtmlEscape.createElement('div');
+            
+            // Create title
+            const titleStrong = HtmlEscape.createElement('strong');
+            HtmlEscape.setTextContent(titleStrong, el.title || el.name || 'Untitled');
+            infoDiv.appendChild(titleStrong);
+
+            // Create type span
+            const typeSpan = HtmlEscape.createElement('span', {
+                style: 'color: #6c757d; font-size: 0.875rem; margin-left: 0.5rem;'
+            });
+            HtmlEscape.setTextContent(typeSpan, `(${el.type})`);
+            infoDiv.appendChild(typeSpan);
+
+            // Create buttons container
+            const buttonsDiv = HtmlEscape.createElement('div');
+
+            // Create edit button
+            const editBtn = HtmlEscape.createElement('button', {
+                className: 'btn btn-sm btn-primary edit-sub-element touch-target',
+                'data-index': idx
+            });
+            HtmlEscape.setTextContent(editBtn, 'Edit');
+            buttonsDiv.appendChild(editBtn);
+
+            // Create remove button
+            const removeBtn = HtmlEscape.createElement('button', {
+                className: 'btn btn-sm btn-danger remove-sub-element touch-target',
+                'data-index': idx,
+                style: 'margin-left: 0.25rem;'
+            });
+            HtmlEscape.setTextContent(removeBtn, 'Remove');
+            buttonsDiv.appendChild(removeBtn);
+
+            // Assemble the structure
+            flexDiv.appendChild(infoDiv);
+            flexDiv.appendChild(buttonsDiv);
+            itemDiv.appendChild(flexDiv);
+            container.appendChild(itemDiv);
+        });
+    }
+
+    // Helper function to render form elements using DOM manipulation instead of innerHTML
+    renderFormElementDOM(container, elements) {
+        // Clear container safely
+        while (container.firstChild) {
+            container.removeChild(container.firstChild);
+        }
+
+        // Iterate through elements and create DOM
+        elements.forEach((element, index) => {
+            // Skip if element is marked as hidden
+            if (element.visibleIf === false) return;
+
+            // Handle section dividers
+            if (element.type === 'section') {
+                const divider = this.createSectionDivider(element.title || 'Section');
+                container.appendChild(divider);
+                return;
+            }
+
+            // Create main element container
+            const elementDiv = HtmlEscape.createElement('div', {
+                className: 'form-element',
+                'data-element-index': index
+            });
+
+            // Add selected class if this is the selected element
+            if (index === this.selectedElement) {
+                elementDiv.classList.add('selected');
+            }
+
+            // Create element header
+            const headerDiv = HtmlEscape.createElement('div', {
+                className: 'element-header'
+            });
+
+            // Add element type icon
+            const iconSpan = HtmlEscape.createElement('span', {
+                className: 'element-type-icon',
+                style: 'margin-right: 8px;'
+            });
+            iconSpan.textContent = this.getElementTypeIcon(element.type); // Use textContent for emoji
+            headerDiv.appendChild(iconSpan);
+
+            // Add element title
+            const titleSpan = HtmlEscape.createElement('span', {
+                className: 'element-title'
+            });
+            HtmlEscape.setTextContent(titleSpan, element.title || element.name || 'Untitled');
+            headerDiv.appendChild(titleSpan);
+
+            // Add pre-configured panel badge if applicable
+            const preConfiguredPanels = [
+                'oralMotorPanel', 'phoneticInventoryPanel', 'syllableStructurePanel',
+                'inconsistencyPanel', 'prosodyPanel', 'stimulabilityPanel'
+            ];
+            if (preConfiguredPanels.includes(element.name)) {
+                const badge = HtmlEscape.createElement('span', {
+                    className: 'badge bg-info ms-2'
+                });
+                HtmlEscape.setTextContent(badge, 'Pre-configured Panel');
+                headerDiv.appendChild(badge);
+            }
+
+            // Create actions container
+            const actionsDiv = HtmlEscape.createElement('div', {
+                className: 'element-actions'
+            });
+
+            // Create select button
+            const selectBtn = HtmlEscape.createElement('button', {
+                className: 'btn btn-sm btn-outline-primary',
+                onclick: `window.formBuilder.selectElement(${index})`
+            });
+            const editIcon = HtmlEscape.createElement('i', {
+                className: 'bi bi-pencil'
+            });
+            selectBtn.appendChild(editIcon);
+            selectBtn.appendChild(document.createTextNode(' Edit'));
+            actionsDiv.appendChild(selectBtn);
+
+            // Create duplicate button
+            const duplicateBtn = HtmlEscape.createElement('button', {
+                className: 'btn btn-sm btn-outline-secondary',
+                onclick: `window.formBuilder.duplicateElement(${index})`
+            });
+            const duplicateIcon = HtmlEscape.createElement('i', {
+                className: 'bi bi-files'
+            });
+            duplicateBtn.appendChild(duplicateIcon);
+            actionsDiv.appendChild(duplicateBtn);
+
+            // Create delete button
+            const deleteBtn = HtmlEscape.createElement('button', {
+                className: 'btn btn-sm btn-outline-danger',
+                onclick: `window.formBuilder.deleteElement(${index})`
+            });
+            const deleteIcon = HtmlEscape.createElement('i', {
+                className: 'bi bi-trash'
+            });
+            deleteBtn.appendChild(deleteIcon);
+            actionsDiv.appendChild(deleteBtn);
+
+            // Assemble header
+            headerDiv.appendChild(actionsDiv);
+            elementDiv.appendChild(headerDiv);
+
+            // Add panel preview for panel elements
+            if (element.type === 'panel' && element.elements && element.elements.length > 0) {
+                const previewDiv = this.renderPanelPreviewDOM(element.elements);
+                elementDiv.appendChild(previewDiv);
+            }
+
+            container.appendChild(elementDiv);
+        });
+    }
+
+    // Helper function to render panel preview using DOM manipulation
+    renderPanelPreviewDOM(elements) {
+        const previewDiv = HtmlEscape.createElement('div', {
+            className: 'panel-preview',
+            style: 'margin-top: 10px; padding: 10px; background-color: #f8f9fa; border-radius: 4px;'
+        });
+
+        const titleDiv = HtmlEscape.createElement('div', {
+            style: 'font-size: 0.9em; color: #6c757d; margin-bottom: 5px;'
+        });
+        HtmlEscape.setTextContent(titleDiv, 'Panel Elements:');
+        previewDiv.appendChild(titleDiv);
+
+        const listDiv = HtmlEscape.createElement('div', {
+            style: 'display: flex; flex-wrap: wrap; gap: 5px;'
+        });
+
+        elements.forEach(subElement => {
+            const itemSpan = HtmlEscape.createElement('span', {
+                className: 'badge bg-secondary'
+            });
+            HtmlEscape.setTextContent(itemSpan, subElement.title || subElement.name || 'Untitled');
+            listDiv.appendChild(itemSpan);
+        });
+
+        previewDiv.appendChild(listDiv);
+        return previewDiv;
+    }
+
+    // Helper function to create panel edit modal using DOM manipulation
+    createPanelEditModal(panel, panelIndex) {
+        // Create modal backdrop
+        const backdrop = HtmlEscape.createElement('div', {
+            style: 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 2000; display: flex; align-items: center; justify-content: center;',
+            id: 'panel-edit-backdrop'
+        });
+
+        // Create modal dialog
+        const dialog = HtmlEscape.createElement('div', {
+            className: 'modal-dialog modal-lg',
+            style: 'background-color: white; border-radius: 0.5rem; box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); width: 90%; max-width: 800px; max-height: 90vh; display: flex; flex-direction: column;'
+        });
+
+        // Create modal header
+        const header = HtmlEscape.createElement('div', {
+            className: 'modal-header',
+            style: 'padding: 1rem 1.5rem; border-bottom: 1px solid #dee2e6; flex-shrink: 0;'
+        });
+
+        const title = HtmlEscape.createElement('h5', {
+            className: 'modal-title',
+            style: 'margin: 0; font-size: 1.25rem; font-weight: 500;'
+        });
+        HtmlEscape.setTextContent(title, `Edit Panel: ${panel.title || panel.name}`);
+        header.appendChild(title);
+
+        const closeBtn = HtmlEscape.createElement('button', {
+            type: 'button',
+            className: 'btn-close',
+            style: 'background: transparent; border: none; font-size: 1.5rem; cursor: pointer;',
+            onclick: 'window.formBuilder.closePanelEditModal()'
+        });
+        HtmlEscape.setTextContent(closeBtn, '×');
+        header.appendChild(closeBtn);
+
+        // Create modal body
+        const body = HtmlEscape.createElement('div', {
+            className: 'modal-body',
+            style: 'padding: 1.5rem; overflow-y: auto; flex: 1 1 auto;'
+        });
+
+        // Panel Properties section
+        const propertiesSection = HtmlEscape.createElement('div', {
+            className: 'mb-4'
+        });
+
+        const propertiesTitle = HtmlEscape.createElement('h6', {
+            style: 'font-weight: 600; margin-bottom: 1rem;'
+        });
+        HtmlEscape.setTextContent(propertiesTitle, 'Panel Properties');
+        propertiesSection.appendChild(propertiesTitle);
+
+        // Name field
+        const nameGroup = HtmlEscape.createElement('div', {
+            className: 'mb-3'
+        });
+        const nameLabel = HtmlEscape.createElement('label', {
+            className: 'form-label',
+            for: 'panel-name'
+        });
+        HtmlEscape.setTextContent(nameLabel, 'Panel Name (Internal ID)');
+        nameGroup.appendChild(nameLabel);
+
+        const nameInput = HtmlEscape.createElement('input', {
+            type: 'text',
+            className: 'form-control',
+            id: 'panel-name',
+            value: panel.name || '',
+            placeholder: 'e.g., personal_info'
+        });
+        nameGroup.appendChild(nameInput);
+
+        propertiesSection.appendChild(nameGroup);
+
+        // Title field
+        const titleGroup = HtmlEscape.createElement('div', {
+            className: 'mb-3'
+        });
+        const titleLabel = HtmlEscape.createElement('label', {
+            className: 'form-label',
+            for: 'panel-title'
+        });
+        HtmlEscape.setTextContent(titleLabel, 'Panel Title (Display Name)');
+        titleGroup.appendChild(titleLabel);
+
+        const titleInput = HtmlEscape.createElement('input', {
+            type: 'text',
+            className: 'form-control',
+            id: 'panel-title',
+            value: panel.title || '',
+            placeholder: 'e.g., Personal Information'
+        });
+        titleGroup.appendChild(titleInput);
+
+        propertiesSection.appendChild(titleGroup);
+        body.appendChild(propertiesSection);
+
+        // Panel Elements section
+        const elementsSection = HtmlEscape.createElement('div');
+
+        const elementsTitle = HtmlEscape.createElement('h6', {
+            style: 'font-weight: 600; margin-bottom: 1rem;'
+        });
+        HtmlEscape.setTextContent(elementsTitle, 'Panel Elements');
+        elementsSection.appendChild(elementsTitle);
+
+        const elementsListContainer = HtmlEscape.createElement('div', {
+            id: 'panel-elements-list',
+            className: 'panel-elements-container',
+            style: 'min-height: 100px; padding: 15px; background-color: #f8f9fa; border: 2px dashed #dee2e6; border-radius: 4px;'
+        });
+
+        // Use the existing renderPanelElementsList helper
+        this.renderPanelElementsList(elementsListContainer, panel.elements || []);
+
+        elementsSection.appendChild(elementsListContainer);
+        body.appendChild(elementsSection);
+
+        // Create modal footer
+        const footer = HtmlEscape.createElement('div', {
+            className: 'modal-footer',
+            style: 'padding: 1rem 1.5rem; border-top: 1px solid #dee2e6; flex-shrink: 0;'
+        });
+
+        const cancelBtn = HtmlEscape.createElement('button', {
+            type: 'button',
+            className: 'btn btn-secondary',
+            onclick: 'window.formBuilder.closePanelEditModal()'
+        });
+        HtmlEscape.setTextContent(cancelBtn, 'Cancel');
+        footer.appendChild(cancelBtn);
+
+        const saveBtn = HtmlEscape.createElement('button', {
+            type: 'button',
+            className: 'btn btn-primary',
+            onclick: `window.formBuilder.savePanelChanges(${panelIndex})`
+        });
+        HtmlEscape.setTextContent(saveBtn, 'Save Changes');
+        footer.appendChild(saveBtn);
+
+        // Assemble modal
+        dialog.appendChild(header);
+        dialog.appendChild(body);
+        dialog.appendChild(footer);
+        backdrop.appendChild(dialog);
+
+        // Add event handlers
+        backdrop.addEventListener('pointerdown', (e) => {
+            if (e.target === backdrop) {
+                window.formBuilder.closePanelEditModal();
+            }
+        });
+
+        dialog.addEventListener('pointerdown', (e) => {
+            e.stopPropagation();
+        });
+
+        return backdrop;
+    }
+
+    // Helper function to create element edit modal using DOM manipulation
+    createElementEditModalDOM(element, type, callback) {
+        // Create modal backdrop
+        const backdrop = HtmlEscape.createElement('div', {
+            style: 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 2001; display: flex; align-items: center; justify-content: center;'
+        });
+
+        // Create modal dialog
+        const dialog = HtmlEscape.createElement('div', {
+            className: 'element-edit-dialog',
+            style: 'background: white; border-radius: 0.5rem; box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); max-width: 600px; width: 90%; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column;'
+        });
+
+        // Create modal header
+        const header = HtmlEscape.createElement('div', {
+            className: 'modal-header',
+            style: 'padding: 1rem 1.5rem; border-bottom: 1px solid #dee2e6; flex-shrink: 0;'
+        });
+
+        const title = HtmlEscape.createElement('h5', {
+            className: 'modal-title',
+            style: 'margin: 0; font-size: 1.25rem; font-weight: 500;'
+        });
+        HtmlEscape.setTextContent(title, `Edit ${type.charAt(0).toUpperCase() + type.slice(1)} Element`);
+        header.appendChild(title);
+
+        const closeBtn = HtmlEscape.createElement('button', {
+            type: 'button',
+            className: 'btn-close touch-target',
+            style: 'background: transparent; border: none; font-size: 1.5rem; cursor: pointer;'
+        });
+        HtmlEscape.setTextContent(closeBtn, '×');
+        header.appendChild(closeBtn);
+
+        // Create modal body
+        const body = HtmlEscape.createElement('div', {
+            className: 'modal-body',
+            style: 'padding: 1.5rem; overflow-y: auto; flex: 1;'
+        });
+
+        // Element Name field
+        const nameGroup = HtmlEscape.createElement('div', {
+            className: 'mb-3'
+        });
+        const nameLabel = HtmlEscape.createElement('label', {
+            className: 'form-label'
+        });
+        HtmlEscape.setTextContent(nameLabel, 'Element Name (ID):');
+        nameGroup.appendChild(nameLabel);
+
+        const nameInput = HtmlEscape.createElement('input', {
+            type: 'text',
+            className: 'form-control',
+            id: 'elementName',
+            value: element.name || '',
+            style: 'width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem;'
+        });
+        nameGroup.appendChild(nameInput);
+        body.appendChild(nameGroup);
+
+        // Element Title field
+        const titleGroup = HtmlEscape.createElement('div', {
+            className: 'mb-3'
+        });
+        const titleLabel = HtmlEscape.createElement('label', {
+            className: 'form-label'
+        });
+        HtmlEscape.setTextContent(titleLabel, 'Element Title:');
+        titleGroup.appendChild(titleLabel);
+
+        const titleInput = HtmlEscape.createElement('input', {
+            type: 'text',
+            className: 'form-control',
+            id: 'elementTitle',
+            value: element.title || '',
+            style: 'width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem;'
+        });
+        titleGroup.appendChild(titleInput);
+        body.appendChild(titleGroup);
+
+        // Type-specific fields
+        if (type === 'radiogroup' || type === 'dropdown' || type === 'checkbox') {
+            const choicesGroup = HtmlEscape.createElement('div', {
+                className: 'mb-3'
+            });
+            const choicesLabel = HtmlEscape.createElement('label', {
+                className: 'form-label'
+            });
+            HtmlEscape.setTextContent(choicesLabel, 'Choices:');
+            choicesGroup.appendChild(choicesLabel);
+
+            const choicesList = HtmlEscape.createElement('div', {
+                id: 'choicesList'
+            });
+
+            // Render existing choices
+            const choices = element.choices || [];
+            choices.forEach((choice, idx) => {
+                const choiceItem = this.createChoiceItem(choice);
+                choicesList.appendChild(choiceItem);
+            });
+
+            choicesGroup.appendChild(choicesList);
+
+            const addChoiceBtn = HtmlEscape.createElement('button', {
+                className: 'btn btn-sm btn-success touch-target',
+                id: 'addChoice'
+            });
+            HtmlEscape.setTextContent(addChoiceBtn, 'Add Choice');
+            choicesGroup.appendChild(addChoiceBtn);
+
+            body.appendChild(choicesGroup);
+
+            // Add choice handler
+            addChoiceBtn.addEventListener('pointerdown', (e) => {
+                e.preventDefault();
+                const newChoice = this.createChoiceItem('');
+                choicesList.appendChild(newChoice);
+            });
+        }
+
+        if (type === 'rating') {
+            // Rate Max field
+            const rateMaxGroup = HtmlEscape.createElement('div', {
+                className: 'mb-3'
+            });
+            const rateMaxLabel = HtmlEscape.createElement('label', {
+                className: 'form-label'
+            });
+            HtmlEscape.setTextContent(rateMaxLabel, 'Rate Max:');
+            rateMaxGroup.appendChild(rateMaxLabel);
+
+            const rateMaxInput = HtmlEscape.createElement('input', {
+                type: 'number',
+                className: 'form-control',
+                id: 'rateMax',
+                value: element.rateMax || 5,
+                min: 2,
+                max: 10,
+                style: 'width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem;'
+            });
+            rateMaxGroup.appendChild(rateMaxInput);
+            body.appendChild(rateMaxGroup);
+
+            // Min Rate Description field
+            const minDescGroup = HtmlEscape.createElement('div', {
+                className: 'mb-3'
+            });
+            const minDescLabel = HtmlEscape.createElement('label', {
+                className: 'form-label'
+            });
+            HtmlEscape.setTextContent(minDescLabel, 'Min Rate Description:');
+            minDescGroup.appendChild(minDescLabel);
+
+            const minDescInput = HtmlEscape.createElement('input', {
+                type: 'text',
+                className: 'form-control',
+                id: 'minRateDescription',
+                value: element.minRateDescription || '',
+                style: 'width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem;'
+            });
+            minDescGroup.appendChild(minDescInput);
+            body.appendChild(minDescGroup);
+
+            // Max Rate Description field
+            const maxDescGroup = HtmlEscape.createElement('div', {
+                className: 'mb-3'
+            });
+            const maxDescLabel = HtmlEscape.createElement('label', {
+                className: 'form-label'
+            });
+            HtmlEscape.setTextContent(maxDescLabel, 'Max Rate Description:');
+            maxDescGroup.appendChild(maxDescLabel);
+
+            const maxDescInput = HtmlEscape.createElement('input', {
+                type: 'text',
+                className: 'form-control',
+                id: 'maxRateDescription',
+                value: element.maxRateDescription || '',
+                style: 'width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem;'
+            });
+            maxDescGroup.appendChild(maxDescInput);
+            body.appendChild(maxDescGroup);
+        }
+
+        if (type === 'comment' || type === 'text') {
+            const placeholderGroup = HtmlEscape.createElement('div', {
+                className: 'mb-3'
+            });
+            const placeholderLabel = HtmlEscape.createElement('label', {
+                className: 'form-label'
+            });
+            HtmlEscape.setTextContent(placeholderLabel, 'Placeholder:');
+            placeholderGroup.appendChild(placeholderLabel);
+
+            const placeholderInput = HtmlEscape.createElement('input', {
+                type: 'text',
+                className: 'form-control',
+                id: 'placeholder',
+                value: element.placeholder || '',
+                style: 'width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem;'
+            });
+            placeholderGroup.appendChild(placeholderInput);
+            body.appendChild(placeholderGroup);
+        }
+
+        // Required field checkbox
+        const requiredGroup = HtmlEscape.createElement('div', {
+            className: 'mb-3'
+        });
+        const requiredLabel = HtmlEscape.createElement('label');
+        const requiredCheckbox = HtmlEscape.createElement('input', {
+            type: 'checkbox',
+            id: 'isRequired',
+            checked: element.isRequired || false
+        });
+        requiredLabel.appendChild(requiredCheckbox);
+        const requiredText = HtmlEscape.createTextNode(' Required Field');
+        requiredLabel.appendChild(requiredText);
+        requiredGroup.appendChild(requiredLabel);
+        body.appendChild(requiredGroup);
+
+        // Create modal footer
+        const footer = HtmlEscape.createElement('div', {
+            className: 'modal-footer',
+            style: 'padding: 1rem 1.5rem; border-top: 1px solid #dee2e6; display: flex; justify-content: flex-end; gap: 0.5rem; flex-shrink: 0;'
+        });
+
+        const cancelBtn = HtmlEscape.createElement('button', {
+            type: 'button',
+            className: 'btn btn-secondary touch-target',
+            id: 'cancelElementEdit'
+        });
+        HtmlEscape.setTextContent(cancelBtn, 'Cancel');
+        footer.appendChild(cancelBtn);
+
+        const saveBtn = HtmlEscape.createElement('button', {
+            type: 'button',
+            className: 'btn btn-primary touch-target',
+            id: 'saveElementChanges'
+        });
+        HtmlEscape.setTextContent(saveBtn, 'Save Changes');
+        footer.appendChild(saveBtn);
+
+        // Assemble modal
+        dialog.appendChild(header);
+        dialog.appendChild(body);
+        dialog.appendChild(footer);
+        backdrop.appendChild(dialog);
+
+        // Event handlers
+        const closeModal = () => {
+            backdrop.remove();
+        };
+
+        closeBtn.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            closeModal();
+        });
+
+        cancelBtn.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            closeModal();
+        });
+
+        saveBtn.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            const updatedElement = { ...element };
+            
+            updatedElement.name = nameInput.value;
+            updatedElement.title = titleInput.value;
+            updatedElement.isRequired = requiredCheckbox.checked;
+
+            if (type === 'radiogroup' || type === 'dropdown' || type === 'checkbox') {
+                const choiceItems = dialog.querySelectorAll('.choice-item');
+                updatedElement.choices = Array.from(choiceItems).map(item => {
+                    const value = item.querySelector('.choice-value').value;
+                    const text = item.querySelector('.choice-text').value;
+                    return text && text !== value ? { value, text } : value;
+                });
+            }
+
+            if (type === 'rating') {
+                updatedElement.rateMax = parseInt(rateMaxInput.value);
+                updatedElement.minRateDescription = dialog.querySelector('#minRateDescription').value;
+                updatedElement.maxRateDescription = dialog.querySelector('#maxRateDescription').value;
+            }
+
+            if (type === 'comment' || type === 'text') {
+                updatedElement.placeholder = dialog.querySelector('#placeholder').value;
+            }
+
+            closeModal();
+            if (callback) callback(updatedElement);
+        });
+
+        // Prevent event bubbling for dialog clicks
+        dialog.addEventListener('pointerdown', (e) => {
+            e.stopPropagation();
+        });
+
+        // Close on backdrop click
+        backdrop.addEventListener('pointerdown', (e) => {
+            if (e.target === backdrop) {
+                closeModal();
+            }
+        });
+
+        return backdrop;
+    }
+
+    // Helper method to create a choice item element
+    createChoiceItem(choice) {
+        const choiceItem = HtmlEscape.createElement('div', {
+            className: 'choice-item mb-2',
+            style: 'display: flex; gap: 0.5rem;'
+        });
+
+        const valueInput = HtmlEscape.createElement('input', {
+            type: 'text',
+            className: 'form-control choice-value',
+            value: typeof choice === 'string' ? choice : choice.value || '',
+            placeholder: 'Value',
+            style: 'flex: 1;'
+        });
+        choiceItem.appendChild(valueInput);
+
+        const textInput = HtmlEscape.createElement('input', {
+            type: 'text',
+            className: 'form-control choice-text',
+            value: typeof choice === 'string' ? choice : choice.text || '',
+            placeholder: 'Display Text',
+            style: 'flex: 1;'
+        });
+        choiceItem.appendChild(textInput);
+
+        const removeBtn = HtmlEscape.createElement('button', {
+            className: 'btn btn-sm btn-danger remove-choice touch-target'
+        });
+        HtmlEscape.setTextContent(removeBtn, '×');
+        removeBtn.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            choiceItem.remove();
+        });
+        choiceItem.appendChild(removeBtn);
+
+        return choiceItem;
+    }
+
+    // Helper function to create preview modal DOM
+    createPreviewModalDOM(closeCallback) {
+        const modal = HtmlEscape.createElement('div', {
+            className: 'preview-modal active'
+        });
+        
+        const content = HtmlEscape.createElement('div', {
+            className: 'preview-content'
+        });
+        
+        // Header
+        const header = HtmlEscape.createElement('div', {
+            className: 'preview-header'
+        });
+        
+        const title = HtmlEscape.createElement('h3');
+        HtmlEscape.setTextContent(title, 'Form Preview');
+        
+        const closeBtn = HtmlEscape.createElement('button', {
+            className: 'close-preview touch-target',
+            dataset: { action: 'closeModal' }
+        });
+        HtmlEscape.setTextContent(closeBtn, '×');
+        closeBtn.addEventListener('click', closeCallback);
+        
+        header.appendChild(title);
+        header.appendChild(closeBtn);
+        
+        // Body
+        const body = HtmlEscape.createElement('div', {
+            className: 'preview-body'
+        });
+        
+        const surveyDiv = HtmlEscape.createElement('div', {
+            id: 'surveyPreview'
+        });
+        
+        body.appendChild(surveyDiv);
+        
+        content.appendChild(header);
+        content.appendChild(body);
+        modal.appendChild(content);
+        
+        return modal;
+    }
+    
+    // Helper function to create preview error DOM
+    createPreviewErrorDOM(error) {
+        const container = HtmlEscape.createElement('div', {
+            style: 'text-align: center; padding: 2rem; color: #dc3545;'
+        });
+        
+        const message = HtmlEscape.createElement('p');
+        HtmlEscape.setTextContent(message, 'Error creating preview. Please check your form configuration.');
+        
+        const errorDetail = HtmlEscape.createElement('small');
+        HtmlEscape.setTextContent(errorDetail, error.message);
+        
+        container.appendChild(message);
+        container.appendChild(errorDetail);
+        
+        return container;
+    }
+
     updateElementProperty(property, value) {
         if (this.selectedElement === null) return;
         
@@ -5445,63 +6548,126 @@ class IPLCFormBuilder {
         // Create modal for conditional logic editor
         const modal = document.createElement('div');
         modal.className = 'conditional-logic-modal';
-        modal.innerHTML = `
-            <div class="conditional-logic-content">
-                <div class="conditional-logic-header">
-                    <h3>Conditional Logic for: ${element.title || element.name}</h3>
-                    <button class="close-button touch-target" data-action="closeModal">×</button>
-                </div>
-                <div class="conditional-logic-body">
-                    <div class="enable-conditional">
-                        <label>
-                            <input type="checkbox" id="enableConditional"
-                                   ${element.visibleIf ? 'checked' : ''}
-                                   onchange="formBuilder.toggleConditionalLogic(this.checked)">
-                            Enable conditional visibility
-                        </label>
-                    </div>
-                    
-                    <div id="conditionalRules" class="conditional-rules"
-                         style="${element.visibleIf ? 'display: block;' : 'display: none;'}">
-                        <p class="help-text">Show this field when:</p>
-                        
-                        <div class="condition-builder">
-                            <select id="conditionField" class="condition-select">
-                                <option value="">Select a field...</option>
-                                ${allElements.filter(el => el.name !== element.name).map(el => `
-                                    <option value="${el.name}">${el.title || el.name}</option>
-                                `).join('')}
-                            </select>
-                            
-                            <select id="conditionOperator" class="condition-select">
-                                <option value="equals">equals</option>
-                                <option value="notequals">does not equal</option>
-                                <option value="contains">contains</option>
-                                <option value="notcontains">does not contain</option>
-                                <option value="empty">is empty</option>
-                                <option value="notempty">is not empty</option>
-                            </select>
-                            
-                            <input type="text" id="conditionValue" class="condition-value"
-                                   placeholder="Value to compare">
-                        </div>
-                        
-                        <div class="current-conditions">
-                            <h4>Current Condition:</h4>
-                            <code id="conditionExpression">${element.visibleIf || 'None'}</code>
-                        </div>
-                    </div>
-                </div>
-                <div class="conditional-logic-footer">
-                    <button class="btn btn-secondary touch-target" data-action="closeModal">
-                        Cancel
-                    </button>
-                    <button class="btn btn-primary touch-target" data-action="saveConditionalLogic">
-                        Save Condition
-                    </button>
-                </div>
-            </div>
-        `;
+        
+        // Create content container
+        const content = HtmlEscape.createElement('div', { className: 'conditional-logic-content' });
+        
+        // Create header
+        const header = HtmlEscape.createElement('div', { className: 'conditional-logic-header' });
+        const h3 = HtmlEscape.createElement('h3', {}, `Conditional Logic for: ${element.title || element.name}`);
+        const closeBtn = HtmlEscape.createElement('button', {
+            className: 'close-button touch-target',
+            'data-action': 'closeModal'
+        }, '×');
+        header.appendChild(h3);
+        header.appendChild(closeBtn);
+        
+        // Create body
+        const body = HtmlEscape.createElement('div', { className: 'conditional-logic-body' });
+        
+        // Enable conditional section
+        const enableDiv = HtmlEscape.createElement('div', { className: 'enable-conditional' });
+        const label = HtmlEscape.createElement('label');
+        const checkbox = HtmlEscape.createElement('input', {
+            type: 'checkbox',
+            id: 'enableConditional'
+        });
+        if (element.visibleIf) {
+            checkbox.checked = true;
+        }
+        checkbox.addEventListener('change', function() {
+            formBuilder.toggleConditionalLogic(this.checked);
+        });
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(' Enable conditional visibility'));
+        enableDiv.appendChild(label);
+        
+        // Conditional rules section
+        const rulesDiv = HtmlEscape.createElement('div', {
+            id: 'conditionalRules',
+            className: 'conditional-rules'
+        });
+        rulesDiv.style.display = element.visibleIf ? 'block' : 'none';
+        
+        const helpText = HtmlEscape.createElement('p', { className: 'help-text' }, 'Show this field when:');
+        rulesDiv.appendChild(helpText);
+        
+        // Condition builder
+        const conditionBuilder = HtmlEscape.createElement('div', { className: 'condition-builder' });
+        
+        // Field select
+        const fieldSelect = HtmlEscape.createElement('select', {
+            id: 'conditionField',
+            className: 'condition-select'
+        });
+        const defaultOption = HtmlEscape.createElement('option', { value: '' }, 'Select a field...');
+        fieldSelect.appendChild(defaultOption);
+        
+        allElements.filter(el => el.name !== element.name).forEach(el => {
+            const option = HtmlEscape.createElement('option', { value: el.name }, el.title || el.name);
+            fieldSelect.appendChild(option);
+        });
+        conditionBuilder.appendChild(fieldSelect);
+        
+        // Operator select
+        const operatorSelect = HtmlEscape.createElement('select', {
+            id: 'conditionOperator',
+            className: 'condition-select'
+        });
+        const operators = [
+            { value: 'equals', text: 'equals' },
+            { value: 'notequals', text: 'does not equal' },
+            { value: 'contains', text: 'contains' },
+            { value: 'notcontains', text: 'does not contain' },
+            { value: 'empty', text: 'is empty' },
+            { value: 'notempty', text: 'is not empty' }
+        ];
+        operators.forEach(op => {
+            const option = HtmlEscape.createElement('option', { value: op.value }, op.text);
+            operatorSelect.appendChild(option);
+        });
+        conditionBuilder.appendChild(operatorSelect);
+        
+        // Value input
+        const valueInput = HtmlEscape.createElement('input', {
+            type: 'text',
+            id: 'conditionValue',
+            className: 'condition-value',
+            placeholder: 'Value to compare'
+        });
+        conditionBuilder.appendChild(valueInput);
+        
+        rulesDiv.appendChild(conditionBuilder);
+        
+        // Current conditions
+        const currentConditions = HtmlEscape.createElement('div', { className: 'current-conditions' });
+        const h4 = HtmlEscape.createElement('h4', {}, 'Current Condition:');
+        const code = HtmlEscape.createElement('code', { id: 'conditionExpression' }, element.visibleIf || 'None');
+        currentConditions.appendChild(h4);
+        currentConditions.appendChild(code);
+        rulesDiv.appendChild(currentConditions);
+        
+        body.appendChild(enableDiv);
+        body.appendChild(rulesDiv);
+        
+        // Create footer
+        const footer = HtmlEscape.createElement('div', { className: 'conditional-logic-footer' });
+        const cancelBtn = HtmlEscape.createElement('button', {
+            className: 'btn btn-secondary touch-target',
+            'data-action': 'closeModal'
+        }, 'Cancel');
+        const saveBtn = HtmlEscape.createElement('button', {
+            className: 'btn btn-primary touch-target',
+            'data-action': 'saveConditionalLogic'
+        }, 'Save Condition');
+        footer.appendChild(cancelBtn);
+        footer.appendChild(saveBtn);
+        
+        // Assemble modal
+        content.appendChild(header);
+        content.appendChild(body);
+        content.appendChild(footer);
+        modal.appendChild(content);
         
         document.body.appendChild(modal);
         modal.style.display = 'block';
@@ -6092,56 +7258,14 @@ class IPLCFormBuilder {
             flex-direction: column;
         `;
 
-        dialog.innerHTML = `
-            <div class="modal-header" style="padding: 1rem 1.5rem; border-bottom: 1px solid #dee2e6; flex-shrink: 0;">
-                <h5 class="modal-title" style="margin: 0; font-size: 1.25rem; font-weight: 500;">
-                    Edit Panel: ${panel.title || panel.name}
-                </h5>
-                <button type="button" class="btn-close touch-target">&times;</button>
-            </div>
-            <div class="modal-body" style="padding: 1.5rem; overflow-y: auto; flex: 1;">
-                <div class="panel-basic-props" style="margin-bottom: 1.5rem;">
-                    <h6 style="color: #495057; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem;">Panel Properties</h6>
-                    <div class="mb-3">
-                        <label class="form-label">Panel Name (ID):</label>
-                        <input type="text" class="form-control" id="panelName" value="${panel.name || ''}"
-                               style="width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem;">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Panel Title:</label>
-                        <input type="text" class="form-control" id="panelTitle" value="${panel.title || ''}"
-                               style="width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem;">
-                    </div>
-                </div>
-                
-                <div class="panel-elements-section">
-                    <h6 style="color: #495057; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.5rem;">Panel Elements</h6>
-                    <div id="panelElementsList">
-                        ${panel.elements.map((el, idx) => `
-                            <div class="panel-element-item" data-index="${idx}" style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 0.25rem; padding: 0.75rem; margin-bottom: 0.5rem;">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <div>
-                                        <strong>${el.title || el.name || 'Untitled'}</strong>
-                                        <span style="color: #6c757d; font-size: 0.875rem; margin-left: 0.5rem;">(${el.type})</span>
-                                    </div>
-                                    <div>
-                                        <button class="btn btn-sm btn-primary edit-sub-element touch-target" data-index="${idx}">Edit</button>
-                                        <button class="btn btn-sm btn-danger remove-sub-element touch-target" data-index="${idx}">Remove</button>
-                                    </div>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <button class="btn btn-sm btn-success touch-target" id="addSubElement">
-                        <span>➕</span> Add Element
-                    </button>
-                </div>
-            </div>
-            <div class="modal-footer" style="padding: 1rem 1.5rem; border-top: 1px solid #dee2e6; display: flex; justify-content: flex-end; gap: 0.5rem; flex-shrink: 0;">
-                <button type="button" class="btn btn-secondary touch-target" id="cancelPanelEdit">Cancel</button>
-                <button type="button" class="btn btn-primary touch-target" id="savePanelChanges">Save Changes</button>
-            </div>
-        `;
+        // Use the secure DOM manipulation helper function
+        const modalContent = this.createPanelEditModal(panel, panelIndex);
+        
+        // Clear the dialog and append the secure content
+        while (dialog.firstChild) {
+            dialog.removeChild(dialog.firstChild);
+        }
+        dialog.appendChild(modalContent);
 
         backdrop.appendChild(dialog);
         document.body.appendChild(backdrop);
@@ -6197,20 +7321,7 @@ class IPLCFormBuilder {
                     
                     // Refresh the panel elements list
                     const listContainer = dialog.querySelector('#panelElementsList');
-                    listContainer.innerHTML = panel.elements.map((el, idx) => `
-                        <div class="panel-element-item" data-index="${idx}" style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 0.25rem; padding: 0.75rem; margin-bottom: 0.5rem;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <strong>${el.title || el.name || 'Untitled'}</strong>
-                                    <span style="color: #6c757d; font-size: 0.875rem; margin-left: 0.5rem;">(${el.type})</span>
-                                </div>
-                                <div>
-                                    <button class="btn btn-sm btn-primary edit-sub-element touch-target" data-index="${idx}">Edit</button>
-                                    <button class="btn btn-sm btn-danger remove-sub-element touch-target" data-index="${idx}">Remove</button>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('');
+                    this.renderPanelElementsList(listContainer, panel.elements);
                     
                     // Re-attach event handlers
                     this.attachPanelElementHandlers(dialog, panel);
@@ -6230,20 +7341,7 @@ class IPLCFormBuilder {
                     
                     // Refresh the panel elements list
                     const listContainer = dialog.querySelector('#panelElementsList');
-                    listContainer.innerHTML = panel.elements.map((el, idx) => `
-                        <div class="panel-element-item" data-index="${idx}" style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 0.25rem; padding: 0.75rem; margin-bottom: 0.5rem;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <strong>${el.title || el.name || 'Untitled'}</strong>
-                                    <span style="color: #6c757d; font-size: 0.875rem; margin-left: 0.5rem;">(${el.type})</span>
-                                </div>
-                                <div>
-                                    <button class="btn btn-sm btn-primary edit-sub-element touch-target" data-index="${idx}">Edit</button>
-                                    <button class="btn btn-sm btn-danger remove-sub-element touch-target" data-index="${idx}">Remove</button>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('');
+                    this.renderPanelElementsList(listContainer, elements);
                     
                     // Re-attach event handlers
                     this.attachPanelElementHandlers(dialog, panel);
@@ -6260,20 +7358,7 @@ class IPLCFormBuilder {
                 
                 // Refresh the panel elements list
                 const listContainer = dialog.querySelector('#panelElementsList');
-                listContainer.innerHTML = panel.elements.map((el, idx) => `
-                    <div class="panel-element-item" data-index="${idx}" style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 0.25rem; padding: 0.75rem; margin-bottom: 0.5rem;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <strong>${el.title || el.name || 'Untitled'}</strong>
-                                <span style="color: #6c757d; font-size: 0.875rem; margin-left: 0.5rem;">(${el.type})</span>
-                            </div>
-                            <div>
-                                <button class="btn btn-sm btn-primary edit-sub-element touch-target" data-index="${idx}">Edit</button>
-                                <button class="btn btn-sm btn-danger remove-sub-element touch-target" data-index="${idx}">Remove</button>
-                            </div>
-                        </div>
-                    </div>
-                `).join('');
+                this.renderPanelElementsList(listContainer, panel.elements);
                 
                 // Re-attach event handlers
                 this.attachPanelElementHandlers(dialog, panel);
@@ -6320,24 +7405,64 @@ class IPLCFormBuilder {
             { value: 'panel', label: 'Panel/Section', icon: '📦' }
         ];
 
-        dialog.innerHTML = `
-            <div class="modal-header" style="padding: 1rem 1.5rem; border-bottom: 1px solid #dee2e6;">
-                <h5 class="modal-title" style="margin: 0; font-size: 1.25rem; font-weight: 500;">
-                    Select Element Type
-                </h5>
-                <button type="button" class="btn-close touch-target">&times;</button>
-            </div>
-            <div class="modal-body" style="padding: 1.5rem;">
-                <div class="element-type-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.5rem;">
-                    ${elementTypes.map(type => `
-                        <button class="element-type-btn btn touch-target" data-type="${type.value}">
-                            <div style="font-size: 1.5rem; margin-bottom: 0.25rem;">${type.icon}</div>
-                            <div style="font-size: 0.875rem;">${type.label}</div>
-                        </button>
-                    `).join('')}
-                </div>
-            </div>
-        `;
+        // Create modal header
+        const modalHeader = HtmlEscape.createElement('div', {
+            className: 'modal-header',
+            style: 'padding: 1rem 1.5rem; border-bottom: 1px solid #dee2e6;'
+        });
+
+        const modalTitle = HtmlEscape.createElement('h5', {
+            className: 'modal-title',
+            style: 'margin: 0; font-size: 1.25rem; font-weight: 500;'
+        });
+        HtmlEscape.setTextContent(modalTitle, 'Select Element Type');
+        modalHeader.appendChild(modalTitle);
+
+        const closeBtn = HtmlEscape.createElement('button', {
+            type: 'button',
+            className: 'btn-close touch-target'
+        });
+        HtmlEscape.setTextContent(closeBtn, '×');
+        modalHeader.appendChild(closeBtn);
+
+        // Create modal body
+        const modalBody = HtmlEscape.createElement('div', {
+            className: 'modal-body',
+            style: 'padding: 1.5rem;'
+        });
+
+        const grid = HtmlEscape.createElement('div', {
+            className: 'element-type-grid',
+            style: 'display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.5rem;'
+        });
+
+        // Create element type buttons
+        elementTypes.forEach(type => {
+            const btn = HtmlEscape.createElement('button', {
+                className: 'element-type-btn btn touch-target',
+                'data-type': type.value
+            });
+
+            const iconDiv = HtmlEscape.createElement('div', {
+                style: 'font-size: 1.5rem; margin-bottom: 0.25rem;'
+            });
+            HtmlEscape.setTextContent(iconDiv, type.icon);
+            btn.appendChild(iconDiv);
+
+            const labelDiv = HtmlEscape.createElement('div', {
+                style: 'font-size: 0.875rem;'
+            });
+            HtmlEscape.setTextContent(labelDiv, type.label);
+            btn.appendChild(labelDiv);
+
+            grid.appendChild(btn);
+        });
+
+        modalBody.appendChild(grid);
+
+        // Assemble dialog
+        dialog.appendChild(modalHeader);
+        dialog.appendChild(modalBody);
 
         backdrop.appendChild(dialog);
         document.body.appendChild(backdrop);
@@ -6382,110 +7507,7 @@ class IPLCFormBuilder {
             justify-content: center;
         `;
 
-        const dialog = document.createElement('div');
-        dialog.className = 'custom-modal-dialog';
-        dialog.style.cssText = `
-            background: white;
-            border-radius: 0.5rem;
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
-            max-width: 600px;
-            width: 90%;
-            max-height: 80vh;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        `;
-
-        let fieldsHtml = `
-            <div class="mb-3">
-                <label class="form-label">Element Name (ID):</label>
-                <input type="text" class="form-control" id="elementName" value="${element.name || ''}"
-                       style="width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem;">
-            </div>
-            <div class="mb-3">
-                <label class="form-label">Element Title:</label>
-                <input type="text" class="form-control" id="elementTitle" value="${element.title || ''}"
-                       style="width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem;">
-            </div>
-        `;
-
-        // Add type-specific fields
-        if (type === 'radiogroup' || type === 'dropdown' || type === 'checkbox') {
-            const choices = element.choices || [];
-            fieldsHtml += `
-                <div class="mb-3">
-                    <label class="form-label">Choices:</label>
-                    <div id="choicesList">
-                        ${choices.map((choice, idx) => `
-                            <div class="choice-item mb-2" style="display: flex; gap: 0.5rem;">
-                                <input type="text" class="form-control choice-value" value="${typeof choice === 'string' ? choice : choice.value || ''}"
-                                       placeholder="Value" style="flex: 1;">
-                                <input type="text" class="form-control choice-text" value="${typeof choice === 'string' ? choice : choice.text || ''}"
-                                       placeholder="Display Text" style="flex: 1;">
-                                <button class="btn btn-sm btn-danger remove-choice touch-target">&times;</button>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <button class="btn btn-sm btn-success touch-target" id="addChoice">Add Choice</button>
-                </div>
-            `;
-        }
-
-        if (type === 'rating') {
-            fieldsHtml += `
-                <div class="mb-3">
-                    <label class="form-label">Rate Max:</label>
-                    <input type="number" class="form-control" id="rateMax" value="${element.rateMax || 5}"
-                           min="2" max="10" style="width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem;">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Min Rate Description:</label>
-                    <input type="text" class="form-control" id="minRateDescription" value="${element.minRateDescription || ''}"
-                           style="width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem;">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Max Rate Description:</label>
-                    <input type="text" class="form-control" id="maxRateDescription" value="${element.maxRateDescription || ''}"
-                           style="width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem;">
-                </div>
-            `;
-        }
-
-        if (type === 'comment' || type === 'text') {
-            fieldsHtml += `
-                <div class="mb-3">
-                    <label class="form-label">Placeholder:</label>
-                    <input type="text" class="form-control" id="placeholder" value="${element.placeholder || ''}"
-                           style="width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem;">
-                </div>
-            `;
-        }
-
-        fieldsHtml += `
-            <div class="mb-3">
-                <label>
-                    <input type="checkbox" id="isRequired" ${element.isRequired ? 'checked' : ''}>
-                    Required Field
-                </label>
-            </div>
-        `;
-
-        dialog.innerHTML = `
-            <div class="modal-header" style="padding: 1rem 1.5rem; border-bottom: 1px solid #dee2e6; flex-shrink: 0;">
-                <h5 class="modal-title" style="margin: 0; font-size: 1.25rem; font-weight: 500;">
-                    Edit ${type.charAt(0).toUpperCase() + type.slice(1)} Element
-                </h5>
-                <button type="button" class="btn-close touch-target">&times;</button>
-            </div>
-            <div class="modal-body" style="padding: 1.5rem; overflow-y: auto; flex: 1;">
-                ${fieldsHtml}
-            </div>
-            <div class="modal-footer" style="padding: 1rem 1.5rem; border-top: 1px solid #dee2e6; display: flex; justify-content: flex-end; gap: 0.5rem; flex-shrink: 0;">
-                <button type="button" class="btn btn-secondary touch-target" id="cancelElementEdit">Cancel</button>
-                <button type="button" class="btn btn-primary touch-target" id="saveElementChanges">Save Changes</button>
-            </div>
-        `;
-
+        const dialog = this.createElementEditModalDOM(element, type);
         backdrop.appendChild(dialog);
 
         const closeModal = () => {
@@ -6506,14 +7528,7 @@ class IPLCFormBuilder {
             dialog.querySelector('#addChoice')?.addEventListener('pointerdown', (e) => {
                 e.preventDefault();
                 const choicesList = dialog.querySelector('#choicesList');
-                const newChoice = document.createElement('div');
-                newChoice.className = 'choice-item mb-2';
-                newChoice.style = 'display: flex; gap: 0.5rem;';
-                newChoice.innerHTML = `
-                    <input type="text" class="form-control choice-value" placeholder="Value" style="flex: 1;">
-                    <input type="text" class="form-control choice-text" placeholder="Display Text" style="flex: 1;">
-                    <button class="btn btn-sm btn-danger remove-choice touch-target">&times;</button>
-                `;
+                const newChoice = this.createChoiceItem();
                 choicesList.appendChild(newChoice);
                 
                 newChoice.querySelector('.remove-choice').addEventListener('pointerdown', (e) => {
@@ -6579,20 +7594,7 @@ class IPLCFormBuilder {
                     
                     // Refresh the panel elements list
                     const listContainer = dialog.querySelector('#panelElementsList');
-                    listContainer.innerHTML = panel.elements.map((el, idx) => `
-                        <div class="panel-element-item" data-index="${idx}" style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 0.25rem; padding: 0.75rem; margin-bottom: 0.5rem;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <strong>${el.title || el.name || 'Untitled'}</strong>
-                                    <span style="color: #6c757d; font-size: 0.875rem; margin-left: 0.5rem;">(${el.type})</span>
-                                </div>
-                                <div>
-                                    <button class="btn btn-sm btn-primary edit-sub-element touch-target" data-index="${idx}">Edit</button>
-                                    <button class="btn btn-sm btn-danger remove-sub-element touch-target" data-index="${idx}">Remove</button>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('');
+                    this.renderPanelElementsList(listContainer, panel.elements);
                     
                     // Re-attach event handlers
                     this.attachPanelElementHandlers(dialog, panel);
@@ -6612,20 +7614,7 @@ class IPLCFormBuilder {
                     
                     // Refresh the panel elements list
                     const listContainer = dialog.querySelector('#panelElementsList');
-                    listContainer.innerHTML = panel.elements.map((el, idx) => `
-                        <div class="panel-element-item" data-index="${idx}" style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 0.25rem; padding: 0.75rem; margin-bottom: 0.5rem;">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <div>
-                                    <strong>${el.title || el.name || 'Untitled'}</strong>
-                                    <span style="color: #6c757d; font-size: 0.875rem; margin-left: 0.5rem;">(${el.type})</span>
-                                </div>
-                                <div>
-                                    <button class="btn btn-sm btn-primary edit-sub-element touch-target" data-index="${idx}">Edit</button>
-                                    <button class="btn btn-sm btn-danger remove-sub-element touch-target" data-index="${idx}">Remove</button>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('');
+                    this.renderPanelElementsList(listContainer, panel.elements);
                     
                     // Re-attach event handlers
                     this.attachPanelElementHandlers(dialog, panel);
@@ -6644,7 +7633,16 @@ class IPLCFormBuilder {
         this.formData.pages[this.currentPageIndex].elements.splice(index, 1);
         this.selectedElement = null;
         this.renderFormElements();
-        document.getElementById('propertiesPanel').innerHTML = '<div class="empty-properties">Select an element to edit its properties</div>';
+        const propertiesPanel = document.getElementById('propertiesPanel');
+        // Clear properties panel safely
+        while (propertiesPanel.firstChild) {
+            propertiesPanel.removeChild(propertiesPanel.firstChild);
+        }
+        // Create empty state
+        const emptyDiv = document.createElement('div');
+        emptyDiv.className = 'empty-properties';
+        emptyDiv.textContent = 'Select an element to edit its properties';
+        propertiesPanel.appendChild(emptyDiv);
         this.hasUnsavedChanges = true;
         this.debouncedSave();
     }
@@ -6711,7 +7709,16 @@ class IPLCFormBuilder {
         this.renderPageTabs();
         this.renderFormElements();
         document.getElementById('pageTitle').value = this.formData.pages[index].title || '';
-        document.getElementById('propertiesPanel').innerHTML = '<div class="empty-properties">Select an element to edit its properties</div>';
+        const propertiesPanel = document.getElementById('propertiesPanel');
+        // Clear properties panel safely
+        while (propertiesPanel.firstChild) {
+            propertiesPanel.removeChild(propertiesPanel.firstChild);
+        }
+        // Create empty state
+        const emptyDiv = document.createElement('div');
+        emptyDiv.className = 'empty-properties';
+        emptyDiv.textContent = 'Select an element to edit its properties';
+        propertiesPanel.appendChild(emptyDiv);
     }
 
     addPage() {
@@ -7014,20 +8021,7 @@ class IPLCFormBuilder {
             // Inject builder CSS styles into preview to ensure visual consistency
             this.injectBuilderCSSIntoPreview();
             
-            const modal = document.createElement('div');
-            modal.className = 'preview-modal';
-            modal.innerHTML = `
-                <div class="preview-content">
-                    <div class="preview-header">
-                        <h3>Form Preview</h3>
-                        <button class="close-preview touch-target" data-action="closeModal">×</button>
-                    </div>
-                    <div class="preview-body">
-                        <div id="surveyPreview"></div>
-                    </div>
-                </div>
-            `;
-            
+            const modal = this.createPreviewModalDOM();
             document.body.appendChild(modal);
             modal.style.display = 'block';
 
@@ -7088,12 +8082,16 @@ class IPLCFormBuilder {
                 
             } catch (error) {
                 console.error('Error creating preview:', error);
-                document.getElementById('surveyPreview').innerHTML = `
-                    <div style="text-align: center; padding: 2rem; color: #dc3545;">
-                        <p>Error creating preview. Please check your form configuration.</p>
-                        <small>${error.message}</small>
-                    </div>
-                `;
+                const surveyPreview = document.getElementById('surveyPreview');
+                if (surveyPreview) {
+                    // Clear existing content
+                    while (surveyPreview.firstChild) {
+                        surveyPreview.removeChild(surveyPreview.firstChild);
+                    }
+                    // Add error content
+                    const errorContent = this.createPreviewErrorDOM(error.message);
+                    surveyPreview.appendChild(errorContent);
+                }
             }
             
             // Add event listener for close button using Pointer Events API for unified touch/mouse/pen input
@@ -7301,25 +8299,82 @@ class IPLCFormBuilder {
         const indicator = document.getElementById('autoSaveIndicator');
         if (indicator) {
             // Show saving state with spinning icon
-            indicator.innerHTML = `
-                <svg class="save-icon saving" width="16" height="16" viewBox="0 0 16 16">
-                    <circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-dasharray="38" stroke-dashoffset="10" />
-                </svg>
-                <span>Saving...</span>
-            `;
+            // Clear indicator safely
+            while (indicator.firstChild) {
+                indicator.removeChild(indicator.firstChild);
+            }
+            
+            // Create SVG element
+            const savingSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            savingSvg.setAttribute('class', 'save-icon saving');
+            savingSvg.setAttribute('width', '16');
+            savingSvg.setAttribute('height', '16');
+            savingSvg.setAttribute('viewBox', '0 0 16 16');
+            
+            // Create circle element
+            const savingCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            savingCircle.setAttribute('cx', '8');
+            savingCircle.setAttribute('cy', '8');
+            savingCircle.setAttribute('r', '6');
+            savingCircle.setAttribute('fill', 'none');
+            savingCircle.setAttribute('stroke', 'currentColor');
+            savingCircle.setAttribute('stroke-width', '2');
+            savingCircle.setAttribute('stroke-dasharray', '38');
+            savingCircle.setAttribute('stroke-dashoffset', '10');
+            
+            savingSvg.appendChild(savingCircle);
+            
+            // Create span element
+            const savingSpan = document.createElement('span');
+            savingSpan.textContent = 'Saving...';
+            
+            // Append elements
+            indicator.appendChild(savingSvg);
+            indicator.appendChild(savingSpan);
             indicator.className = 'auto-save-indicator saving';
             indicator.style.display = 'flex';
             
             // After a short delay, show saved state with checkmark
             setTimeout(() => {
-                indicator.innerHTML = `
-                    <svg class="save-icon saved" width="16" height="16" viewBox="0 0 16 16">
-                        <path d="M5 8l2 2 4-4" fill="none" stroke="currentColor" stroke-width="2" />
-                        <circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5" />
-                    </svg>
-                    <span>Draft saved</span>
-                `;
+                // Clear the indicator element safely
+                while (indicator.firstChild) {
+                    indicator.removeChild(indicator.firstChild);
+                }
+                
+                // Create saved SVG element with checkmark and circle
+                const savedSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                savedSvg.setAttribute('class', 'save-icon saved');
+                savedSvg.setAttribute('width', '16');
+                savedSvg.setAttribute('height', '16');
+                savedSvg.setAttribute('viewBox', '0 0 16 16');
+                
+                // Create path element for checkmark
+                const checkPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                checkPath.setAttribute('d', 'M5 8l2 2 4-4');
+                checkPath.setAttribute('fill', 'none');
+                checkPath.setAttribute('stroke', 'currentColor');
+                checkPath.setAttribute('stroke-width', '2');
+                
+                // Create circle element
+                const checkCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                checkCircle.setAttribute('cx', '8');
+                checkCircle.setAttribute('cy', '8');
+                checkCircle.setAttribute('r', '7');
+                checkCircle.setAttribute('fill', 'none');
+                checkCircle.setAttribute('stroke', 'currentColor');
+                checkCircle.setAttribute('stroke-width', '1.5');
+                
+                // Create span for saved text
+                const savedSpan = document.createElement('span');
+                savedSpan.textContent = 'Draft saved';
+                
+                // Append SVG elements
+                savedSvg.appendChild(checkPath);
+                savedSvg.appendChild(checkCircle);
+                
+                // Append to indicator
+                indicator.appendChild(savedSvg);
+                indicator.appendChild(savedSpan);
                 indicator.className = 'auto-save-indicator saved';
                 
                 // Fade out after showing saved state
