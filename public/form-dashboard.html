@@ -1071,28 +1071,69 @@
             const grid = document.getElementById('forms-grid');
             
             if (templateList.length === 0) {
-                grid.innerHTML = `
-                    <div class="col-12 text-center py-5">
-                        <i class="fas fa-folder-open fa-4x text-muted mb-3"></i>
-                        <p class="text-muted">No forms available yet.</p>
-                        <a href="/builder.html" class="btn btn-primary">Create Your First Form</a>
-                    </div>
-                `;
+                // Clear grid and create empty state
+                grid.innerHTML = '';
+                
+                const colDiv = document.createElement('div');
+                colDiv.className = 'col-12 text-center py-5';
+                
+                const icon = document.createElement('i');
+                icon.className = 'fas fa-folder-open fa-4x text-muted mb-3';
+                colDiv.appendChild(icon);
+                
+                const message = document.createElement('p');
+                message.className = 'text-muted';
+                message.textContent = 'No forms available yet.';
+                colDiv.appendChild(message);
+                
+                const link = document.createElement('a');
+                link.href = '/builder.html';
+                link.className = 'btn btn-primary';
+                link.textContent = 'Create Your First Form';
+                colDiv.appendChild(link);
+                
+                grid.appendChild(colDiv);
                 return;
             }
 
-            grid.innerHTML = templateList.map(template => `
-                <div class="col-md-4 mb-4">
-                    <div class="dashboard-card h-100" style="cursor: pointer;" onclick="selectTemplate('${template.id}')">
-                        <h5>${template.name}</h5>
-                        <p class="text-muted">${template.description || 'Clinical evaluation form'}</p>
-                        <div class="d-flex justify-content-between align-items-center mt-3">
-                            <span class="badge bg-primary">${template.category || 'General'}</span>
-                            <span class="text-muted small">${template.questionCount || 0} questions</span>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
+            // Clear grid and create template cards
+            grid.innerHTML = '';
+            
+            templateList.forEach(template => {
+                const colDiv = document.createElement('div');
+                colDiv.className = 'col-md-4 mb-4';
+                
+                const cardDiv = document.createElement('div');
+                cardDiv.className = 'dashboard-card h-100';
+                cardDiv.style.cursor = 'pointer';
+                cardDiv.addEventListener('click', () => selectTemplate(template.id));
+                
+                const title = document.createElement('h5');
+                title.textContent = template.name;
+                cardDiv.appendChild(title);
+                
+                const description = document.createElement('p');
+                description.className = 'text-muted';
+                description.textContent = template.description || 'Clinical evaluation form';
+                cardDiv.appendChild(description);
+                
+                const flexDiv = document.createElement('div');
+                flexDiv.className = 'd-flex justify-content-between align-items-center mt-3';
+                
+                const categoryBadge = document.createElement('span');
+                categoryBadge.className = 'badge bg-primary';
+                categoryBadge.textContent = template.category || 'General';
+                flexDiv.appendChild(categoryBadge);
+                
+                const questionCount = document.createElement('span');
+                questionCount.className = 'text-muted small';
+                questionCount.textContent = `${template.questionCount || 0} questions`;
+                flexDiv.appendChild(questionCount);
+                
+                cardDiv.appendChild(flexDiv);
+                colDiv.appendChild(cardDiv);
+                grid.appendChild(colDiv);
+            });
         }
 
         // Select a template
@@ -1117,31 +1158,55 @@
             const tableBody = document.getElementById('saved-forms-table');
             
             if (savedForms.length === 0) {
-                tableBody.innerHTML = `
-                    <tr>
-                        <td colspan="4" class="text-center py-4 text-muted">
-                            No saved forms yet
-                        </td>
-                    </tr>
-                `;
+                tableBody.innerHTML = '';
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.setAttribute('colspan', '4');
+                td.className = 'text-center py-4 text-muted';
+                td.textContent = 'No saved forms yet';
+                tr.appendChild(td);
+                tableBody.appendChild(tr);
                 return;
             }
-
-            tableBody.innerHTML = savedForms.map(form => `
-                <tr>
-                    <td>${form.name}</td>
-                    <td>${form.type}</td>
-                    <td>${new Date(form.created).toLocaleDateString()}</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary" onclick="editForm('${form.id}')">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteForm('${form.id}')">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
+tableBody.innerHTML = '';
+savedForms.forEach(form => {
+    const tr = document.createElement('tr');
+    
+    const tdName = document.createElement('td');
+    tdName.textContent = form.name;
+    tr.appendChild(tdName);
+    
+    const tdType = document.createElement('td');
+    tdType.textContent = form.type;
+    tr.appendChild(tdType);
+    
+    const tdDate = document.createElement('td');
+    tdDate.textContent = new Date(form.created).toLocaleDateString();
+    tr.appendChild(tdDate);
+    
+    const tdActions = document.createElement('td');
+    
+    const editBtn = document.createElement('button');
+    editBtn.className = 'btn btn-sm btn-primary';
+    editBtn.addEventListener('click', () => editForm(form.id));
+    const editIcon = document.createElement('i');
+    editIcon.className = 'fas fa-edit';
+    editBtn.appendChild(editIcon);
+    tdActions.appendChild(editBtn);
+    
+    tdActions.appendChild(document.createTextNode(' '));
+    
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'btn btn-sm btn-danger';
+    deleteBtn.addEventListener('click', () => deleteForm(form.id));
+    const deleteIcon = document.createElement('i');
+    deleteIcon.className = 'fas fa-trash';
+    deleteBtn.appendChild(deleteIcon);
+    tdActions.appendChild(deleteBtn);
+    
+    tr.appendChild(tdActions);
+    tableBody.appendChild(tr);
+});
         }
 
         // Load submissions
@@ -1165,36 +1230,63 @@
             const tableBody = document.getElementById('submissions-table');
             
             if (submissions.length === 0) {
-                tableBody.innerHTML = `
-                    <tr>
-                        <td colspan="5" class="text-center py-4 text-muted">
-                            No submissions yet
-                        </td>
-                    </tr>
-                `;
+                tableBody.innerHTML = '';
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.setAttribute('colspan', '5');
+                td.className = 'text-center py-4 text-muted';
+                td.textContent = 'No submissions yet';
+                tr.appendChild(td);
+                tableBody.appendChild(tr);
                 return;
             }
 
-            tableBody.innerHTML = submissions.map(sub => `
-                <tr>
-                    <td>${sub.clientName || 'Anonymous'}</td>
-                    <td>${sub.formName}</td>
-                    <td>${new Date(sub.createdAt).toLocaleDateString()}</td>
-                    <td>
-                        <span class="badge bg-${sub.status === 'completed' ? 'success' : 'warning'}">
-                            ${sub.status}
-                        </span>
-                    </td>
-                    <td>
-                        <button class="btn btn-sm btn-primary" onclick="viewSubmission('${sub.id}')">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn btn-sm btn-info" onclick="generateReport('${sub.id}')">
-                            <i class="fas fa-file-pdf"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
+            tableBody.innerHTML = '';
+            submissions.forEach(sub => {
+                const tr = document.createElement('tr');
+                
+                const tdClient = document.createElement('td');
+                tdClient.textContent = sub.clientName || 'Anonymous';
+                tr.appendChild(tdClient);
+                
+                const tdForm = document.createElement('td');
+                tdForm.textContent = sub.formName;
+                tr.appendChild(tdForm);
+                
+                const tdDate = document.createElement('td');
+                tdDate.textContent = new Date(sub.createdAt).toLocaleDateString();
+                tr.appendChild(tdDate);
+                
+                const tdStatus = document.createElement('td');
+                const statusBadge = document.createElement('span');
+                statusBadge.className = 'badge bg-' + (sub.status === 'completed' ? 'success' : 'warning');
+                statusBadge.textContent = sub.status;
+                tdStatus.appendChild(statusBadge);
+                tr.appendChild(tdStatus);
+                
+                const tdActions = document.createElement('td');
+                
+                const viewBtn = document.createElement('button');
+                viewBtn.className = 'btn btn-sm btn-primary';
+                viewBtn.addEventListener('click', () => viewSubmission(sub.id));
+                const viewIcon = document.createElement('i');
+                viewIcon.className = 'fas fa-eye';
+                viewBtn.appendChild(viewIcon);
+                tdActions.appendChild(viewBtn);
+                
+                tdActions.appendChild(document.createTextNode(' '));
+                
+                const reportBtn = document.createElement('button');
+                reportBtn.className = 'btn btn-sm btn-info';
+                reportBtn.addEventListener('click', () => generateReport(sub.id));
+                const reportIcon = document.createElement('i');
+                reportIcon.className = 'fas fa-file-pdf';
+                reportBtn.appendChild(reportIcon);
+                tdActions.appendChild(reportBtn);
+                
+                tr.appendChild(tdActions);
+                tableBody.appendChild(tr);
+            });
         }
 
         // Load recent activity
@@ -1209,17 +1301,35 @@
                 return; // Keep the empty state
             }
 
-            activityList.innerHTML = activities.map(activity => `
-                <li class="activity-item">
-                    <div class="activity-icon">
-                        <i class="fas ${activity.icon}"></i>
-                    </div>
-                    <div class="activity-details">
-                        <div class="activity-title">${activity.title}</div>
-                        <div class="activity-time">${activity.time}</div>
-                    </div>
-                </li>
-            `).join('');
+            activityList.innerHTML = '';
+            activities.forEach(activity => {
+                const li = document.createElement('li');
+                li.className = 'activity-item';
+                
+                const iconDiv = document.createElement('div');
+                iconDiv.className = 'activity-icon';
+                const icon = document.createElement('i');
+                icon.className = 'fas ' + activity.icon;
+                iconDiv.appendChild(icon);
+                
+                const detailsDiv = document.createElement('div');
+                detailsDiv.className = 'activity-details';
+                
+                const titleDiv = document.createElement('div');
+                titleDiv.className = 'activity-title';
+                titleDiv.textContent = activity.title;
+                
+                const timeDiv = document.createElement('div');
+                timeDiv.className = 'activity-time';
+                timeDiv.textContent = activity.time;
+                
+                detailsDiv.appendChild(titleDiv);
+                detailsDiv.appendChild(timeDiv);
+                
+                li.appendChild(iconDiv);
+                li.appendChild(detailsDiv);
+                activityList.appendChild(li);
+            });
         }
 
         // Initialize charts
@@ -1330,36 +1440,61 @@
             const tableBody = document.getElementById('reports-table');
             
             if (reports.length === 0) {
-                tableBody.innerHTML = `
-                    <tr>
-                        <td colspan="4" class="text-center py-4 text-muted">
-                            No reports generated yet
-                        </td>
-                    </tr>
-                `;
+                tableBody.innerHTML = '';
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = 4;
+                td.className = 'text-center py-4 text-muted';
+                td.textContent = 'No reports generated yet';
+                tr.appendChild(td);
+                tableBody.appendChild(tr);
                 return;
             }
 
-            tableBody.innerHTML = reports.map(report => `
-                <tr>
-                    <td>${report.name}</td>
-                    <td>${report.clientName}</td>
-                    <td>${new Date(report.date).toLocaleDateString()}</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary" onclick="viewReport('${report.id}')">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button class="btn btn-sm btn-info" onclick="downloadReport('${report.id}')">
-                            <i class="fas fa-download"></i>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
+            tableBody.innerHTML = '';
+            reports.forEach(report => {
+                const tr = document.createElement('tr');
+                
+                const nameTd = document.createElement('td');
+                nameTd.textContent = report.name;
+                tr.appendChild(nameTd);
+                
+                const clientTd = document.createElement('td');
+                clientTd.textContent = report.clientName;
+                tr.appendChild(clientTd);
+                
+                const dateTd = document.createElement('td');
+                dateTd.textContent = new Date(report.date).toLocaleDateString();
+                tr.appendChild(dateTd);
+                
+                const actionsTd = document.createElement('td');
+                
+                const viewBtn = document.createElement('button');
+                viewBtn.className = 'btn btn-sm btn-primary';
+                viewBtn.onclick = () => viewReport(report.id);
+                const viewIcon = document.createElement('i');
+                viewIcon.className = 'fas fa-eye';
+                viewBtn.appendChild(viewIcon);
+                
+                const downloadBtn = document.createElement('button');
+                downloadBtn.className = 'btn btn-sm btn-info';
+                downloadBtn.onclick = () => downloadReport(report.id);
+                const downloadIcon = document.createElement('i');
+                downloadIcon.className = 'fas fa-download';
+                downloadBtn.appendChild(downloadIcon);
+                
+                actionsTd.appendChild(viewBtn);
+                actionsTd.appendChild(document.createTextNode(' '));
+                actionsTd.appendChild(downloadBtn);
+                
+                tr.appendChild(actionsTd);
+                tableBody.appendChild(tr);
+            });
         }
 
         // Helper functions
         function editForm(formId) {
-            window.location.href = `/edit-forms.html?id=${formId}`;
+            window.location.href = '/edit-forms.html?id=' + formId;
         }
 
         function deleteForm(formId) {
@@ -1370,15 +1505,15 @@
         }
 
         function viewSubmission(submissionId) {
-            window.location.href = `/evaluation-report.html?submission=${submissionId}`;
+            window.location.href = '/evaluation-report.html?submission=' + submissionId;
         }
 
         function generateReport(submissionId) {
-            window.location.href = `/evaluation-report.html?submission=${submissionId}&generate=true`;
+            window.location.href = '/evaluation-report.html?submission=' + submissionId + '&generate=true';
         }
 
         function viewReport(reportId) {
-            window.location.href = `/evaluation-report.html?report=${reportId}`;
+            window.location.href = '/evaluation-report.html?report=' + reportId;
         }
 
         function downloadReport(reportId) {
@@ -1433,7 +1568,7 @@
                     }
                 } else {
                     console.error('AI Chat health check failed:', healthResponse.status, responseText);
-                    showChatError(`AI Chat service is currently unavailable (Status: ${healthResponse.status}). Please try again later.`);
+                    showChatError('AI Chat service is currently unavailable (Status: ' + healthResponse.status + '). Please try again later.');
                 }
             } catch (error) {
                 console.error('Failed to connect to AI Chat service:', error);
@@ -1464,10 +1599,11 @@
             const chatBody = document.getElementById('chat-messages');
             const errorDiv = document.createElement('div');
             errorDiv.className = 'alert alert-warning m-3';
-            errorDiv.innerHTML = `
-                <i class="fas fa-exclamation-triangle me-2"></i>
-                ${message}
-            `;
+            errorDiv.innerHTML = '';
+            const icon = document.createElement('i');
+            icon.className = 'fas fa-exclamation-triangle me-2';
+            errorDiv.appendChild(icon);
+            errorDiv.appendChild(document.createTextNode(message));
             chatBody.appendChild(errorDiv);
         }
 
@@ -1536,14 +1672,14 @@
                 // Check if response is HTML (common error page indicator)
                 if (responseText.trim().startsWith('<!DOCTYPE') || responseText.trim().startsWith('<html')) {
                     console.error('Received HTML response instead of JSON:', responseText.substring(0, 500));
-                    throw new Error(`Server returned HTML instead of JSON. Status: ${response.status}`);
+                    throw new Error('Server returned HTML instead of JSON. Status: ' + response.status);
                 }
                 
                 // Check if response is plain text error
                 if (!contentType || !contentType.includes('application/json')) {
                     console.warn('Response is not JSON. Content-Type:', contentType);
                     if (!response.ok) {
-                        throw new Error(`Server error: ${response.status} ${response.statusText}. Response: ${responseText.substring(0, 100)}`);
+                        throw new Error('Server error: ' + response.status + ' ' + response.statusText + '. Response: ' + responseText.substring(0, 100));
                     }
                 }
                 
@@ -1559,7 +1695,7 @@
                         throw new Error('Network error: Unable to reach the AI Chat service. Please check your connection.');
                     }
                     
-                    throw new Error(`Invalid JSON response from server. Status: ${response.status}. Error: ${parseError.message}`);
+                    throw new Error('Invalid JSON response from server. Status: ' + response.status + '. Error: ' + parseError.message);
                 }
                 
                 // Check response status
@@ -1594,7 +1730,7 @@
                 } else if (error.message.includes('network')) {
                     errorMessage += ' Please check your internet connection and try again.';
                 } else {
-                    errorMessage += ` Error: ${error.message}`;
+                    errorMessage += ' Error: ' + error.message;
                 }
                 
                 appendMessage('assistant', errorMessage);
@@ -1614,24 +1750,37 @@
             const chatBody = document.getElementById('chat-messages');
             
             const messageDiv = document.createElement('div');
-            messageDiv.className = `chat-message ${role}`;
+            messageDiv.className = 'chat-message ' + role;
             
             const time = timestamp || new Date().toLocaleTimeString([], {
                 hour: '2-digit',
                 minute: '2-digit'
             });
             
-            messageDiv.innerHTML = `
-                <div class="chat-message-avatar">
-                    <i class="fas fa-${role === 'user' ? 'user' : 'robot'}"></i>
-                </div>
-                <div class="chat-message-wrapper">
-                    <div class="chat-message-content">
-                        ${escapeHtml(content)}
-                    </div>
-                    <div class="chat-message-time">${time}</div>
-                </div>
-            `;
+            messageDiv.innerHTML = '';
+            
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = 'chat-message-avatar';
+            const avatarIcon = document.createElement('i');
+            avatarIcon.className = 'fas fa-' + (role === 'user' ? 'user' : 'robot');
+            avatarDiv.appendChild(avatarIcon);
+            
+            const wrapperDiv = document.createElement('div');
+            wrapperDiv.className = 'chat-message-wrapper';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'chat-message-content';
+            window.HtmlEscape.setTextContent(contentDiv, content);
+            
+            const timeDiv = document.createElement('div');
+            timeDiv.className = 'chat-message-time';
+            timeDiv.textContent = time;
+            
+            wrapperDiv.appendChild(contentDiv);
+            wrapperDiv.appendChild(timeDiv);
+            
+            messageDiv.appendChild(avatarDiv);
+            messageDiv.appendChild(wrapperDiv);
             
             chatBody.appendChild(messageDiv);
             scrollToBottom();
@@ -1650,16 +1799,25 @@
             typingDiv.className = 'chat-message assistant';
             typingDiv.id = 'typing-indicator';
             
-            typingDiv.innerHTML = `
-                <div class="chat-message-avatar">
-                    <i class="fas fa-robot"></i>
-                </div>
-                <div class="chat-typing-indicator">
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                    <div class="typing-dot"></div>
-                </div>
-            `;
+            typingDiv.innerHTML = '';
+            
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = 'chat-message-avatar';
+            const robotIcon = document.createElement('i');
+            robotIcon.className = 'fas fa-robot';
+            avatarDiv.appendChild(robotIcon);
+            
+            const indicatorDiv = document.createElement('div');
+            indicatorDiv.className = 'chat-typing-indicator';
+            
+            for (let i = 0; i < 3; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'typing-dot';
+                indicatorDiv.appendChild(dot);
+            }
+            
+            typingDiv.appendChild(avatarDiv);
+            typingDiv.appendChild(indicatorDiv);
             
             chatBody.appendChild(typingDiv);
             scrollToBottom();
@@ -1691,27 +1849,45 @@
             if (confirm('Are you sure you want to clear the chat history?')) {
                 localStorage.removeItem('chatHistory');
                 const chatBody = document.getElementById('chat-messages');
-                chatBody.innerHTML = `
-                    <div class="chat-welcome">
-                        <i class="fas fa-comments"></i>
-                        <h6>Welcome to IPLC AI Assistant</h6>
-                        <p>I can help you with questions about IPLC Standard Operating Procedures, forms, and evaluations.</p>
-                        <div class="chat-suggestions">
-                            <div class="suggestion-chip" onclick="sendSuggestion('What are the standard evaluation procedures?')">
-                                Standard evaluation procedures
-                            </div>
-                            <div class="suggestion-chip" onclick="sendSuggestion('How do I create a new form?')">
-                                Creating new forms
-                            </div>
-                            <div class="suggestion-chip" onclick="sendSuggestion('What are IPLC best practices?')">
-                                IPLC best practices
-                            </div>
-                            <div class="suggestion-chip" onclick="sendSuggestion('How do I analyze evaluation results?')">
-                                Analyzing results
-                            </div>
-                        </div>
-                    </div>
-                `;
+                chatBody.innerHTML = '';
+                
+                const welcomeDiv = document.createElement('div');
+                welcomeDiv.className = 'chat-welcome';
+                
+                const icon = document.createElement('i');
+                icon.className = 'fas fa-comments';
+                welcomeDiv.appendChild(icon);
+                
+                const heading = document.createElement('h6');
+                heading.textContent = 'Welcome to IPLC AI Assistant';
+                welcomeDiv.appendChild(heading);
+                
+                const para = document.createElement('p');
+                para.textContent = 'I can help you with questions about IPLC Standard Operating Procedures, forms, and evaluations.';
+                welcomeDiv.appendChild(para);
+                
+                const suggestionsDiv = document.createElement('div');
+                suggestionsDiv.className = 'chat-suggestions';
+                
+                const suggestions = [
+                    { text: 'Standard evaluation procedures', question: 'What are the standard evaluation procedures?' },
+                    { text: 'Creating new forms', question: 'How do I create a new form?' },
+                    { text: 'IPLC best practices', question: 'What are IPLC best practices?' },
+                    { text: 'Analyzing results', question: 'How do I analyze evaluation results?' }
+                ];
+                
+                suggestions.forEach(function(suggestion) {
+                    const chip = document.createElement('div');
+                    chip.className = 'suggestion-chip';
+                    chip.textContent = suggestion.text;
+                    chip.addEventListener('click', function() {
+                        sendSuggestion(suggestion.question);
+                    });
+                    suggestionsDiv.appendChild(chip);
+                });
+                
+                welcomeDiv.appendChild(suggestionsDiv);
+                chatBody.appendChild(welcomeDiv);
                 // Generate new conversation ID
                 conversationId = 'conv_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
             }

@@ -682,108 +682,207 @@
             const container = document.getElementById('templateQuestions');
             
             if (!currentTemplate || !currentTemplate.form || !currentTemplate.form.sections) {
-                container.innerHTML = '<div class="form-section"><p>No questions available for this template.</p></div>';
+                // Clear container safely
+                while (container.firstChild) {
+                    container.removeChild(container.firstChild);
+                }
+                
+                // Create elements using DOM manipulation
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'form-section';
+                
+                const p = document.createElement('p');
+                p.textContent = 'No questions available for this template.';
+                
+                sectionDiv.appendChild(p);
+                container.appendChild(sectionDiv);
                 return;
             }
 
-            let html = '';
+            // Clear container safely
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
             
             currentTemplate.form.sections.forEach((section, sectionIndex) => {
-                html += `
-                    <div class="form-section">
-                        <div class="section-header">
-                            <div class="section-icon">${getSectionIcon(section.title)}</div>
-                            <h2>${section.title}</h2>
-                        </div>
-                `;
+                const sectionDiv = document.createElement('div');
+                sectionDiv.className = 'form-section';
+                
+                // Create section header
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'section-header';
+                
+                const iconDiv = document.createElement('div');
+                iconDiv.className = 'section-icon';
+                iconDiv.textContent = getSectionIcon(section.title);
+                
+                const h2 = document.createElement('h2');
+                h2.textContent = section.title;
+                
+                headerDiv.appendChild(iconDiv);
+                headerDiv.appendChild(h2);
+                sectionDiv.appendChild(headerDiv);
                 
                 if (section.description) {
-                    html += `<p style="color: #6c757d; margin-bottom: 1.5rem;">${section.description}</p>`;
+                    const descP = document.createElement('p');
+                    descP.style.color = '#6c757d';
+                    descP.style.marginBottom = '1.5rem';
+                    descP.textContent = section.description;
+                    sectionDiv.appendChild(descP);
                 }
                 
                 section.questions.forEach((question, questionIndex) => {
                     const questionId = `section_${sectionIndex}_question_${questionIndex}`;
-                    html += renderQuestion(question, questionId);
+                    const questionElement = renderQuestion(question, questionId);
+                    sectionDiv.appendChild(questionElement);
                 });
                 
-                html += '</div>';
+                container.appendChild(sectionDiv);
             });
             
-            container.innerHTML = html;
             attachQuestionEventListeners();
         }
 
         function renderQuestion(question, questionId) {
-            let html = `
-                <div class="question-container" data-question-id="${questionId}">
-                    <div class="question-title">${question.text}</div>
-            `;
+            const containerDiv = document.createElement('div');
+            containerDiv.className = 'question-container';
+            containerDiv.setAttribute('data-question-id', questionId);
+            
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'question-title';
+            titleDiv.textContent = question.text;
+            containerDiv.appendChild(titleDiv);
             
             if (question.description) {
-                html += `<div class="question-description">${question.description}</div>`;
+                const descDiv = document.createElement('div');
+                descDiv.className = 'question-description';
+                descDiv.textContent = question.description;
+                containerDiv.appendChild(descDiv);
             }
             
             switch (question.type) {
                 case 'text':
-                    html += `<input type="text" id="${questionId}" name="${questionId}" class="form-control">`;
+                    const textInput = document.createElement('input');
+                    textInput.type = 'text';
+                    textInput.id = questionId;
+                    textInput.name = questionId;
+                    textInput.className = 'form-control';
+                    containerDiv.appendChild(textInput);
                     break;
                     
                 case 'textarea':
-                    html += `<textarea id="${questionId}" name="${questionId}" class="form-control" rows="4"></textarea>`;
+                    const textarea = document.createElement('textarea');
+                    textarea.id = questionId;
+                    textarea.name = questionId;
+                    textarea.className = 'form-control';
+                    textarea.rows = 4;
+                    containerDiv.appendChild(textarea);
                     break;
                     
                 case 'number':
-                    html += `<input type="number" id="${questionId}" name="${questionId}" class="form-control" 
-                            ${question.min !== undefined ? `min="${question.min}"` : ''} 
-                            ${question.max !== undefined ? `max="${question.max}"` : ''}>`;
+                    const numberInput = document.createElement('input');
+                    numberInput.type = 'number';
+                    numberInput.id = questionId;
+                    numberInput.name = questionId;
+                    numberInput.className = 'form-control';
+                    if (question.min !== undefined) numberInput.min = question.min;
+                    if (question.max !== undefined) numberInput.max = question.max;
+                    containerDiv.appendChild(numberInput);
                     break;
                     
                 case 'radio':
-                    html += '<div class="radio-group">';
+                    const radioGroup = document.createElement('div');
+                    radioGroup.className = 'radio-group';
+                    
                     question.options.forEach((option, index) => {
                         const optionId = `${questionId}_option_${index}`;
-                        html += `
-                            <div class="radio-option" onclick="selectRadio('${questionId}', '${option.value}')">
-                                <input type="radio" id="${optionId}" name="${questionId}" value="${option.value}">
-                                <label for="${optionId}">${option.label}</label>
-                            </div>
-                        `;
+                        
+                        const radioDiv = document.createElement('div');
+                        radioDiv.className = 'radio-option';
+                        radioDiv.onclick = function() {
+                            selectRadio(questionId, option.value);
+                        };
+                        
+                        const radioInput = document.createElement('input');
+                        radioInput.type = 'radio';
+                        radioInput.id = optionId;
+                        radioInput.name = questionId;
+                        radioInput.value = option.value;
+                        
+                        const label = document.createElement('label');
+                        label.htmlFor = optionId;
+                        label.textContent = option.label;
+                        
+                        radioDiv.appendChild(radioInput);
+                        radioDiv.appendChild(label);
+                        radioGroup.appendChild(radioDiv);
                     });
-                    html += '</div>';
+                    
+                    containerDiv.appendChild(radioGroup);
                     break;
                     
                 case 'checkbox':
-                    html += '<div class="checkbox-group">';
+                    const checkboxGroup = document.createElement('div');
+                    checkboxGroup.className = 'checkbox-group';
+                    
                     question.options.forEach((option, index) => {
                         const optionId = `${questionId}_option_${index}`;
-                        html += `
-                            <div class="checkbox-option" onclick="toggleCheckbox('${questionId}', '${option.value}')">
-                                <input type="checkbox" id="${optionId}" name="${questionId}" value="${option.value}">
-                                <label for="${optionId}">${option.label}</label>
-                            </div>
-                        `;
+                        
+                        const checkboxDiv = document.createElement('div');
+                        checkboxDiv.className = 'checkbox-option';
+                        checkboxDiv.onclick = function() {
+                            toggleCheckbox(questionId, option.value);
+                        };
+                        
+                        const checkboxInput = document.createElement('input');
+                        checkboxInput.type = 'checkbox';
+                        checkboxInput.id = optionId;
+                        checkboxInput.name = questionId;
+                        checkboxInput.value = option.value;
+                        
+                        const label = document.createElement('label');
+                        label.htmlFor = optionId;
+                        label.textContent = option.label;
+                        
+                        checkboxDiv.appendChild(checkboxInput);
+                        checkboxDiv.appendChild(label);
+                        checkboxGroup.appendChild(checkboxDiv);
                     });
-                    html += '</div>';
+                    
+                    containerDiv.appendChild(checkboxGroup);
                     break;
                     
                 case 'scale':
                     const min = question.min || 1;
                     const max = question.max || 5;
-                    html += '<div class="scale-container">';
+                    const scaleContainer = document.createElement('div');
+                    scaleContainer.className = 'scale-container';
+                    
                     for (let i = min; i <= max; i++) {
-                        html += `
-                            <div class="scale-option" onclick="selectScale('${questionId}', ${i})">
-                                <div class="scale-number">${i}</div>
-                                <div class="scale-label">${getScaleLabel(i, min, max)}</div>
-                            </div>
-                        `;
+                        const scaleOption = document.createElement('div');
+                        scaleOption.className = 'scale-option';
+                        scaleOption.onclick = function() {
+                            selectScale(questionId, i);
+                        };
+                        
+                        const scaleNumber = document.createElement('div');
+                        scaleNumber.className = 'scale-number';
+                        scaleNumber.textContent = i;
+                        
+                        const scaleLabel = document.createElement('div');
+                        scaleLabel.className = 'scale-label';
+                        scaleLabel.textContent = getScaleLabel(i, min, max);
+                        
+                        scaleOption.appendChild(scaleNumber);
+                        scaleOption.appendChild(scaleLabel);
+                        scaleContainer.appendChild(scaleOption);
                     }
-                    html += '</div>';
+                    
+                    containerDiv.appendChild(scaleContainer);
                     break;
             }
             
-            html += '</div>';
-            return html;
+            return containerDiv;
         }
 
         function getSectionIcon(title) {
@@ -1181,10 +1280,21 @@
             const button = document.getElementById('completeEvaluationBtn');
             
             if (loading) {
-                button.innerHTML = '<div class="loading-spinner"></div>Loading...';
+                // Clear button content safely
+                while (button.firstChild) {
+                    button.removeChild(button.firstChild);
+                }
+                
+                // Create loading spinner
+                const spinner = document.createElement('div');
+                spinner.className = 'loading-spinner';
+                
+                // Add spinner and text
+                button.appendChild(spinner);
+                button.appendChild(document.createTextNode('Loading...'));
                 button.disabled = true;
             } else {
-                button.innerHTML = 'Complete Evaluation';
+                button.textContent = 'Complete Evaluation';
                 button.disabled = false;
             }
         }

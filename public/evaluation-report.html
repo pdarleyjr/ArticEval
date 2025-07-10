@@ -589,6 +589,7 @@
         </div>
     </div>
 
+    <script src="assets/js/html-escape.js"></script>
     <script>
         let currentEvaluation = null;
         let currentTemplate = null;
@@ -688,11 +689,11 @@
             const sections = currentTemplate?.sections || [];
 
             if (Object.keys(responses).length === 0) {
-                sectionsContainer.innerHTML = `
-                    <div class="no-responses">
-                        No evaluation responses found.
-                    </div>
-                `;
+                sectionsContainer.innerHTML = '';
+                const noResponsesDiv = document.createElement('div');
+                noResponsesDiv.className = 'no-responses';
+                noResponsesDiv.textContent = 'No evaluation responses found.';
+                sectionsContainer.appendChild(noResponsesDiv);
                 return;
             }
 
@@ -703,44 +704,72 @@
             }
 
             // Render organized by sections
-            sectionsContainer.innerHTML = sections.map(section => {
-                const sectionResponses = (section.questions || []).map(question => {
+            sectionsContainer.innerHTML = '';
+            sections.forEach(section => {
+                const sectionItem = document.createElement('div');
+                sectionItem.className = 'section-item';
+                
+                const sectionTitle = document.createElement('div');
+                sectionTitle.className = 'section-title';
+                sectionTitle.textContent = section.name;
+                sectionItem.appendChild(sectionTitle);
+                
+                let hasResponses = false;
+                (section.questions || []).forEach(question => {
                     const response = responses[question.id];
-                    if (!response) return null;
+                    if (!response) return;
                     
-                    return `
-                        <div class="question-response">
-                            <div class="question-text">${question.text}</div>
-                            <div class="response-value ${question.type === 'textarea' ? 'response-textarea' : ''}">
-                                ${formatResponse(response, question.type)}
-                            </div>
-                        </div>
-                    `;
-                }).filter(Boolean).join('');
-
-                if (!sectionResponses) return '';
-
-                return `
-                    <div class="section-item">
-                        <div class="section-title">${section.name}</div>
-                        ${sectionResponses}
-                    </div>
-                `;
-            }).filter(Boolean).join('');
+                    hasResponses = true;
+                    const questionResponse = document.createElement('div');
+                    questionResponse.className = 'question-response';
+                    
+                    const questionText = document.createElement('div');
+                    questionText.className = 'question-text';
+                    questionText.textContent = question.text;
+                    questionResponse.appendChild(questionText);
+                    
+                    const responseValue = document.createElement('div');
+                    responseValue.className = 'response-value' + (question.type === 'textarea' ? ' response-textarea' : '');
+                    responseValue.textContent = formatResponse(response, question.type);
+                    questionResponse.appendChild(responseValue);
+                    
+                    sectionItem.appendChild(questionResponse);
+                });
+                
+                if (hasResponses) {
+                    sectionsContainer.appendChild(sectionItem);
+                }
+            });
         }
 
         function renderDirectResponses(container, responses) {
-            container.innerHTML = `
-                <div class="section-item">
-                    <div class="section-title">Evaluation Responses</div>
-                    ${Object.entries(responses).map(([questionId, response]) => `
-                        <div class="question-response">
-                            <div class="question-text">Question ${questionId}</div>
-                            <div class="response-value">${response}</div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
+            container.innerHTML = '';
+            const sectionItem = document.createElement('div');
+            sectionItem.className = 'section-item';
+            
+            const sectionTitle = document.createElement('div');
+            sectionTitle.className = 'section-title';
+            sectionTitle.textContent = 'Evaluation Responses';
+            sectionItem.appendChild(sectionTitle);
+            
+            Object.entries(responses).forEach(([questionId, response]) => {
+                const questionResponse = document.createElement('div');
+                questionResponse.className = 'question-response';
+                
+                const questionText = document.createElement('div');
+                questionText.className = 'question-text';
+                questionText.textContent = 'Question ' + questionId;
+                questionResponse.appendChild(questionText);
+                
+                const responseValue = document.createElement('div');
+                responseValue.className = 'response-value';
+                responseValue.textContent = response;
+                questionResponse.appendChild(responseValue);
+                
+                sectionItem.appendChild(questionResponse);
+            });
+            
+            container.appendChild(sectionItem);
         }
 
         function formatResponse(response, type) {
@@ -794,8 +823,17 @@
         async function generateAISummary() {
             try {
                 const button = document.getElementById('generateAISummaryBtn');
-                const originalText = button.innerHTML;
-                button.innerHTML = '<div class="loading-spinner"></div>Generating...';
+                // Store original button content as DOM nodes
+                const originalContent = [];
+                while (button.firstChild) {
+                    originalContent.push(button.removeChild(button.firstChild));
+                }
+                
+                // Add loading state
+                const spinner = document.createElement('div');
+                spinner.className = 'loading-spinner';
+                button.appendChild(spinner);
+                button.appendChild(document.createTextNode('Generating...'));
                 button.disabled = true;
 
                 const response = await fetch(`/api/ai/summary/${evaluationId}`, {
@@ -814,14 +852,24 @@
                     throw new Error(result.message || 'Failed to generate AI summary');
                 }
 
-                button.innerHTML = originalText;
+                // Restore original content
+                while (button.firstChild) {
+                    button.removeChild(button.firstChild);
+                }
+                originalContent.forEach(node => button.appendChild(node));
                 button.disabled = false;
             } catch (error) {
                 console.error('Error generating AI summary:', error);
                 showError('Failed to generate AI summary. Please try again.');
                 
                 const button = document.getElementById('generateAISummaryBtn');
-                button.innerHTML = originalText;
+                // Restore original content if available
+                if (typeof originalContent !== 'undefined' && originalContent.length > 0) {
+                    while (button.firstChild) {
+                        button.removeChild(button.firstChild);
+                    }
+                    originalContent.forEach(node => button.appendChild(node));
+                }
                 button.disabled = false;
             }
         }
@@ -835,8 +883,17 @@
         async function exportPDF() {
             try {
                 const button = document.getElementById('exportPDFBtn');
-                const originalText = button.innerHTML;
-                button.innerHTML = '<div class="loading-spinner"></div>Exporting...';
+                // Store original button content as DOM nodes
+                const originalContent = [];
+                while (button.firstChild) {
+                    originalContent.push(button.removeChild(button.firstChild));
+                }
+                
+                // Add loading state
+                const spinner = document.createElement('div');
+                spinner.className = 'loading-spinner';
+                button.appendChild(spinner);
+                button.appendChild(document.createTextNode('Exporting...'));
                 button.disabled = true;
 
                 // Create a simplified version for PDF export
@@ -861,14 +918,24 @@
                     throw new Error('Failed to generate PDF');
                 }
 
-                button.innerHTML = originalText;
+                // Restore original content
+                while (button.firstChild) {
+                    button.removeChild(button.firstChild);
+                }
+                originalContent.forEach(node => button.appendChild(node));
                 button.disabled = false;
             } catch (error) {
                 console.error('Error exporting PDF:', error);
                 showError('Failed to export PDF. Please try again or use the print function.');
                 
                 const button = document.getElementById('exportPDFBtn');
-                button.innerHTML = originalText;
+                // Restore original content if available
+                if (typeof originalContent !== 'undefined' && originalContent.length > 0) {
+                    while (button.firstChild) {
+                        button.removeChild(button.firstChild);
+                    }
+                    originalContent.forEach(node => button.appendChild(node));
+                }
                 button.disabled = false;
             }
         }

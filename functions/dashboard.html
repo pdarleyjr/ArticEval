@@ -621,6 +621,7 @@
         </main>
     </div>
 
+    <script src="/assets/js/html-escape.js"></script>
     <script>
         // Global state
         let currentUser = null;
@@ -743,20 +744,43 @@
             const tbody = document.querySelector('#top-templates-table tbody');
             
             if (templates.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center">No templates found</td></tr>';
+                tbody.innerHTML = '';
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.setAttribute('colspan', '4');
+                td.className = 'text-center';
+                td.textContent = 'No templates found';
+                tr.appendChild(td);
+                tbody.appendChild(tr);
                 return;
             }
             
-            tbody.innerHTML = templates.map(template => `
-                <tr>
-                    <td>${template.name}</td>
-                    <td>${template.submission_count}</td>
-                    <td>${template.average_score ? template.average_score.toFixed(1) + '%' : 'N/A'}</td>
-                    <td>
-                        <button class="btn btn-sm btn-primary" onclick="viewTemplate(${template.id})">View</button>
-                    </td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = '';
+            templates.forEach(template => {
+                const tr = document.createElement('tr');
+                
+                const nameTd = document.createElement('td');
+                window.HtmlEscape.setTextContent(nameTd, template.name);
+                tr.appendChild(nameTd);
+                
+                const countTd = document.createElement('td');
+                window.HtmlEscape.setTextContent(countTd, template.submission_count);
+                tr.appendChild(countTd);
+                
+                const scoreTd = document.createElement('td');
+                window.HtmlEscape.setTextContent(scoreTd, template.average_score ? template.average_score.toFixed(1) + '%' : 'N/A');
+                tr.appendChild(scoreTd);
+                
+                const actionTd = document.createElement('td');
+                const viewBtn = document.createElement('button');
+                viewBtn.className = 'btn btn-sm btn-primary';
+                viewBtn.textContent = 'View';
+                viewBtn.onclick = () => viewTemplate(template.id);
+                actionTd.appendChild(viewBtn);
+                tr.appendChild(actionTd);
+                
+                tbody.appendChild(tr);
+            });
         }
 
         // Load templates data
@@ -778,7 +802,14 @@
             const tbody = document.querySelector('#templates-table tbody');
             
             if (templates.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center">No templates found</td></tr>';
+                tbody.innerHTML = '';
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.setAttribute('colspan', '6');
+                td.className = 'text-center';
+                td.textContent = 'No templates found';
+                tr.appendChild(td);
+                tbody.appendChild(tr);
                 return;
             }
             

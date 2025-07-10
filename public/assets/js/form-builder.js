@@ -8878,10 +8878,15 @@ class IPLCFormBuilder {
         `;
         
         // Add icon and message
-        notification.innerHTML = `
-            <span style="font-size: 1.2em;">${config.icon}</span>
-            <span>${this.escapeHtml(message)}</span>
-        `;
+        const iconSpan = document.createElement('span');
+        iconSpan.style.fontSize = '1.2em';
+        iconSpan.textContent = config.icon;
+        
+        const messageSpan = document.createElement('span');
+        messageSpan.textContent = message;
+        
+        notification.appendChild(iconSpan);
+        notification.appendChild(messageSpan);
         
         // Add animation styles if not already present
         if (!document.getElementById('notification-animations')) {
@@ -9135,21 +9140,69 @@ class IPLCFormBuilder {
             animation: modalFadeIn 0.3s ease-out;
         `;
 
-        dialog.innerHTML = `
-            <div class="modal-header" style="padding: 1rem; border-bottom: 1px solid #dee2e6; display: flex; justify-content: space-between; align-items: center;">
-                <h5 class="modal-title" style="margin: 0; font-size: 1.25rem;">Select Element Type</h5>
-                <button type="button" class="btn-close touch-target" aria-label="Close">&times;</button>
-            </div>
-            <div class="modal-body" style="padding: 1rem;">
-                <select class="form-select" id="elementTypeSelect" style="width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem; font-size: 1rem;">
-                    ${types.map(t => `<option value="${t.value}">${t.label}</option>`).join('')}
-                </select>
-            </div>
-            <div class="modal-footer" style="padding: 1rem; border-top: 1px solid #dee2e6; display: flex; justify-content: flex-end; gap: 0.5rem;">
-                <button type="button" class="btn btn-secondary touch-target">Cancel</button>
-                <button type="button" class="btn btn-primary touch-target" id="confirmElementType">Add Element</button>
-            </div>
-        `;
+        // Create modal header
+        const modalHeader = document.createElement('div');
+        modalHeader.className = 'modal-header';
+        modalHeader.style.cssText = 'padding: 1rem; border-bottom: 1px solid #dee2e6; display: flex; justify-content: space-between; align-items: center;';
+        
+        const modalTitle = document.createElement('h5');
+        modalTitle.className = 'modal-title';
+        modalTitle.style.cssText = 'margin: 0; font-size: 1.25rem;';
+        modalTitle.textContent = 'Select Element Type';
+        
+        const closeButton = document.createElement('button');
+        closeButton.type = 'button';
+        closeButton.className = 'btn-close touch-target';
+        closeButton.setAttribute('aria-label', 'Close');
+        closeButton.textContent = '×';
+        
+        modalHeader.appendChild(modalTitle);
+        modalHeader.appendChild(closeButton);
+        
+        // Create modal body
+        const modalBody = document.createElement('div');
+        modalBody.className = 'modal-body';
+        modalBody.style.padding = '1rem';
+        
+        const select = document.createElement('select');
+        select.className = 'form-select';
+        select.id = 'elementTypeSelect';
+        select.style.cssText = 'width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem; font-size: 1rem;';
+        
+        // Add options
+        types.forEach(t => {
+            const option = document.createElement('option');
+            option.value = t.value;
+            option.textContent = t.label;
+            select.appendChild(option);
+        });
+        
+        modalBody.appendChild(select);
+        
+        // Create modal footer
+        const modalFooter = document.createElement('div');
+        modalFooter.className = 'modal-footer';
+        modalFooter.style.cssText = 'padding: 1rem; border-top: 1px solid #dee2e6; display: flex; justify-content: flex-end; gap: 0.5rem;';
+        
+        const cancelButton = document.createElement('button');
+        cancelButton.type = 'button';
+        cancelButton.className = 'btn btn-secondary touch-target';
+        cancelButton.setAttribute('data-dismiss', 'modal');
+        cancelButton.textContent = 'Cancel';
+        
+        const confirmButton = document.createElement('button');
+        confirmButton.type = 'button';
+        confirmButton.className = 'btn btn-primary touch-target';
+        confirmButton.id = 'confirmElementType';
+        confirmButton.textContent = 'Add Element';
+        
+        modalFooter.appendChild(cancelButton);
+        modalFooter.appendChild(confirmButton);
+        
+        // Append all to dialog
+        dialog.appendChild(modalHeader);
+        dialog.appendChild(modalBody);
+        dialog.appendChild(modalFooter);
 
         // Add animation styles if not already present
         if (!document.getElementById('modal-animation-styles')) {
@@ -9284,33 +9337,111 @@ class IPLCFormBuilder {
         `;
 
         // Create modal content
-        dialog.innerHTML = `
-            <div class="modal-header" style="padding: 1rem 1.5rem; border-bottom: 1px solid #dee2e6; flex-shrink: 0;">
-                <h5 class="modal-title" style="margin: 0; font-size: 1.25rem; font-weight: 500;">
-                    Edit ${type ? type.charAt(0).toUpperCase() + type.slice(1) : ''} Element
-                </h5>
-                <button type="button" class="btn-close touch-target">&times;</button>
-            </div>
-            <div class="modal-body" style="padding: 1.5rem; overflow-y: auto; flex: 1;">
-                <form id="elementEditForm">
-                    <div class="mb-3" style="margin-bottom: 1rem;">
-                        <label for="elementName" class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Name (ID):</label>
-                        <input type="text" class="form-control" id="elementName" value="${element.name || ''}"
-                               style="width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem; font-size: 1rem;">
-                    </div>
-                    <div class="mb-3" style="margin-bottom: 1rem;">
-                        <label for="elementTitle" class="form-label" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Title:</label>
-                        <input type="text" class="form-control" id="elementTitle" value="${element.title || ''}"
-                               style="width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem; font-size: 1rem;">
-                    </div>
-                    <div id="elementSpecificProperties"></div>
-                </form>
-            </div>
-            <div class="modal-footer" style="padding: 1rem 1.5rem; border-top: 1px solid #dee2e6; display: flex; justify-content: flex-end; gap: 0.5rem; flex-shrink: 0;">
-                <button type="button" class="btn btn-secondary touch-target">Cancel</button>
-                <button type="button" class="btn btn-primary touch-target" id="saveElementChanges">Save Changes</button>
-            </div>
-        `;
+        // Clear dialog content
+        while (dialog.firstChild) {
+            dialog.removeChild(dialog.firstChild);
+        }
+        
+        // Create modal header
+        const modalHeader = document.createElement('div');
+        modalHeader.className = 'modal-header';
+        modalHeader.style.cssText = 'padding: 1rem 1.5rem; border-bottom: 1px solid #dee2e6; flex-shrink: 0;';
+        
+        const modalTitle = document.createElement('h5');
+        modalTitle.className = 'modal-title';
+        modalTitle.style.cssText = 'margin: 0; font-size: 1.25rem; font-weight: 500;';
+        modalTitle.textContent = `Edit ${type ? type.charAt(0).toUpperCase() + type.slice(1) : ''} Element`;
+        
+        const closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.className = 'btn-close touch-target';
+        closeBtn.textContent = '×';
+        
+        modalHeader.appendChild(modalTitle);
+        modalHeader.appendChild(closeBtn);
+        
+        // Create modal body
+        const modalBody = document.createElement('div');
+        modalBody.className = 'modal-body';
+        modalBody.style.cssText = 'padding: 1.5rem; overflow-y: auto; flex: 1;';
+        
+        const form = document.createElement('form');
+        form.id = 'elementEditForm';
+        
+        // Create name field
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'mb-3';
+        nameDiv.style.marginBottom = '1rem';
+        
+        const nameLabel = document.createElement('label');
+        nameLabel.htmlFor = 'elementName';
+        nameLabel.className = 'form-label';
+        nameLabel.style.cssText = 'display: block; margin-bottom: 0.5rem; font-weight: 500;';
+        nameLabel.textContent = 'Name (ID):';
+        
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.className = 'form-control';
+        nameInput.id = 'elementName';
+        nameInput.value = element.name || '';
+        nameInput.style.cssText = 'width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem; font-size: 1rem;';
+        
+        nameDiv.appendChild(nameLabel);
+        nameDiv.appendChild(nameInput);
+        
+        // Create title field
+        const titleDiv = document.createElement('div');
+        titleDiv.className = 'mb-3';
+        titleDiv.style.marginBottom = '1rem';
+        
+        const titleLabel = document.createElement('label');
+        titleLabel.htmlFor = 'elementTitle';
+        titleLabel.className = 'form-label';
+        titleLabel.style.cssText = 'display: block; margin-bottom: 0.5rem; font-weight: 500;';
+        titleLabel.textContent = 'Title:';
+        
+        const titleInput = document.createElement('input');
+        titleInput.type = 'text';
+        titleInput.className = 'form-control';
+        titleInput.id = 'elementTitle';
+        titleInput.value = element.title || '';
+        titleInput.style.cssText = 'width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #ced4da; border-radius: 0.25rem; font-size: 1rem;';
+        
+        titleDiv.appendChild(titleLabel);
+        titleDiv.appendChild(titleInput);
+        
+        // Create placeholder for type-specific properties
+        const specificPropsDiv = document.createElement('div');
+        specificPropsDiv.id = 'elementSpecificProperties';
+        
+        form.appendChild(nameDiv);
+        form.appendChild(titleDiv);
+        form.appendChild(specificPropsDiv);
+        modalBody.appendChild(form);
+        
+        // Create modal footer
+        const modalFooter = document.createElement('div');
+        modalFooter.className = 'modal-footer';
+        modalFooter.style.cssText = 'padding: 1rem 1.5rem; border-top: 1px solid #dee2e6; display: flex; justify-content: flex-end; gap: 0.5rem; flex-shrink: 0;';
+        
+        const cancelBtn = document.createElement('button');
+        cancelBtn.type = 'button';
+        cancelBtn.className = 'btn btn-secondary touch-target';
+        cancelBtn.textContent = 'Cancel';
+        
+        const saveBtn = document.createElement('button');
+        saveBtn.type = 'button';
+        saveBtn.className = 'btn btn-primary touch-target';
+        saveBtn.id = 'saveElementChanges';
+        saveBtn.textContent = 'Save Changes';
+        
+        modalFooter.appendChild(cancelBtn);
+        modalFooter.appendChild(saveBtn);
+        
+        // Append all sections to dialog
+        dialog.appendChild(modalHeader);
+        dialog.appendChild(modalBody);
+        dialog.appendChild(modalFooter);
 
         // Append modal to backdrop and backdrop to body
         backdrop.appendChild(dialog);
@@ -9319,7 +9450,8 @@ class IPLCFormBuilder {
         // Add type-specific properties
         const specificProps = dialog.querySelector('#elementSpecificProperties');
         const elementType = type || element.type || 'text';
-        specificProps.innerHTML = this.getTypeSpecificFormFields(element, elementType);
+        const typeSpecificFields = this.getTypeSpecificFormFields(element, elementType);
+        specificProps.appendChild(typeSpecificFields);
 
         // Trigger reflow and add show classes for animation
         setTimeout(() => {
@@ -9399,67 +9531,190 @@ class IPLCFormBuilder {
 
     // Get type-specific form fields for the edit dialog
     getTypeSpecificFormFields(element, type) {
+        const container = document.createElement('div');
+        
         switch (type) {
             case 'text':
             case 'comment':
-                return `
-                    <div class="mb-3">
-                        <label for="elementPlaceholder" class="form-label">Placeholder:</label>
-                        <input type="text" class="form-control" id="elementPlaceholder" value="${element.placeholder || ''}">
-                    </div>
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" id="elementRequired" ${element.isRequired ? 'checked' : ''}>
-                        <label class="form-check-label" for="elementRequired">Required</label>
-                    </div>
-                `;
+                // Placeholder field
+                const placeholderDiv = HtmlEscape.createElement('div', { className: 'mb-3' });
+                const placeholderLabel = HtmlEscape.createElement('label', {
+                    className: 'form-label',
+                    htmlFor: 'elementPlaceholder'
+                });
+                HtmlEscape.setTextContent(placeholderLabel, 'Placeholder:');
+                placeholderDiv.appendChild(placeholderLabel);
+                
+                const placeholderInput = HtmlEscape.createElement('input', {
+                    type: 'text',
+                    className: 'form-control',
+                    id: 'elementPlaceholder'
+                });
+                placeholderInput.value = element.placeholder || '';
+                placeholderDiv.appendChild(placeholderInput);
+                container.appendChild(placeholderDiv);
+                
+                // Required checkbox
+                const requiredDiv = HtmlEscape.createElement('div', { className: 'form-check mb-3' });
+                const requiredInput = HtmlEscape.createElement('input', {
+                    type: 'checkbox',
+                    className: 'form-check-input',
+                    id: 'elementRequired'
+                });
+                if (element.isRequired) {
+                    requiredInput.checked = true;
+                }
+                requiredDiv.appendChild(requiredInput);
+                
+                const requiredLabel = HtmlEscape.createElement('label', {
+                    className: 'form-check-label',
+                    htmlFor: 'elementRequired'
+                });
+                HtmlEscape.setTextContent(requiredLabel, 'Required');
+                requiredDiv.appendChild(requiredLabel);
+                container.appendChild(requiredDiv);
+                break;
 
             case 'dropdown':
             case 'radiogroup':
             case 'checkbox':
-                return `
-                    <div class="mb-3">
-                        <label class="form-label">Choices (one per line):</label>
-                        <textarea class="form-control" id="elementChoices" rows="5">${
-                            element.choices ? element.choices.map(c => c.text || c).join('\n') : ''
-                        }</textarea>
-                    </div>
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" id="elementRequired" ${element.isRequired ? 'checked' : ''}>
-                        <label class="form-check-label" for="elementRequired">Required</label>
-                    </div>
-                `;
+                // Choices field
+                const choicesDiv = HtmlEscape.createElement('div', { className: 'mb-3' });
+                const choicesLabel = HtmlEscape.createElement('label', { className: 'form-label' });
+                HtmlEscape.setTextContent(choicesLabel, 'Choices (one per line):');
+                choicesDiv.appendChild(choicesLabel);
+                
+                const choicesTextarea = HtmlEscape.createElement('textarea', {
+                    className: 'form-control',
+                    id: 'elementChoices',
+                    rows: '5'
+                });
+                choicesTextarea.value = element.choices ?
+                    element.choices.map(c => c.text || c).join('\n') : '';
+                choicesDiv.appendChild(choicesTextarea);
+                container.appendChild(choicesDiv);
+                
+                // Required checkbox
+                const reqDiv = HtmlEscape.createElement('div', { className: 'form-check mb-3' });
+                const reqInput = HtmlEscape.createElement('input', {
+                    type: 'checkbox',
+                    className: 'form-check-input',
+                    id: 'elementRequired'
+                });
+                if (element.isRequired) {
+                    reqInput.checked = true;
+                }
+                reqDiv.appendChild(reqInput);
+                
+                const reqLabel = HtmlEscape.createElement('label', {
+                    className: 'form-check-label',
+                    htmlFor: 'elementRequired'
+                });
+                HtmlEscape.setTextContent(reqLabel, 'Required');
+                reqDiv.appendChild(reqLabel);
+                container.appendChild(reqDiv);
+                break;
 
             case 'rating':
-                return `
-                    <div class="mb-3">
-                        <label for="elementRateMin" class="form-label">Minimum Rating:</label>
-                        <input type="number" class="form-control" id="elementRateMin" value="${element.rateMin || 1}">
-                    </div>
-                    <div class="mb-3">
-                        <label for="elementRateMax" class="form-label">Maximum Rating:</label>
-                        <input type="number" class="form-control" id="elementRateMax" value="${element.rateMax || 5}">
-                    </div>
-                    <div class="mb-3">
-                        <label for="elementMinRateDescription" class="form-label">Min Description:</label>
-                        <input type="text" class="form-control" id="elementMinRateDescription" value="${element.minRateDescription || ''}">
-                    </div>
-                    <div class="mb-3">
-                        <label for="elementMaxRateDescription" class="form-label">Max Description:</label>
-                        <input type="text" class="form-control" id="elementMaxRateDescription" value="${element.maxRateDescription || ''}">
-                    </div>
-                `;
+                // Minimum Rating
+                const minDiv = HtmlEscape.createElement('div', { className: 'mb-3' });
+                const minLabel = HtmlEscape.createElement('label', {
+                    className: 'form-label',
+                    htmlFor: 'elementRateMin'
+                });
+                HtmlEscape.setTextContent(minLabel, 'Minimum Rating:');
+                minDiv.appendChild(minLabel);
+                
+                const minInput = HtmlEscape.createElement('input', {
+                    type: 'number',
+                    className: 'form-control',
+                    id: 'elementRateMin'
+                });
+                minInput.value = element.rateMin || 1;
+                minDiv.appendChild(minInput);
+                container.appendChild(minDiv);
+                
+                // Maximum Rating
+                const maxDiv = HtmlEscape.createElement('div', { className: 'mb-3' });
+                const maxLabel = HtmlEscape.createElement('label', {
+                    className: 'form-label',
+                    htmlFor: 'elementRateMax'
+                });
+                HtmlEscape.setTextContent(maxLabel, 'Maximum Rating:');
+                maxDiv.appendChild(maxLabel);
+                
+                const maxInput = HtmlEscape.createElement('input', {
+                    type: 'number',
+                    className: 'form-control',
+                    id: 'elementRateMax'
+                });
+                maxInput.value = element.rateMax || 5;
+                maxDiv.appendChild(maxInput);
+                container.appendChild(maxDiv);
+                
+                // Min Description
+                const minDescDiv = HtmlEscape.createElement('div', { className: 'mb-3' });
+                const minDescLabel = HtmlEscape.createElement('label', {
+                    className: 'form-label',
+                    htmlFor: 'elementMinRateDescription'
+                });
+                HtmlEscape.setTextContent(minDescLabel, 'Min Description:');
+                minDescDiv.appendChild(minDescLabel);
+                
+                const minDescInput = HtmlEscape.createElement('input', {
+                    type: 'text',
+                    className: 'form-control',
+                    id: 'elementMinRateDescription'
+                });
+                minDescInput.value = element.minRateDescription || '';
+                minDescDiv.appendChild(minDescInput);
+                container.appendChild(minDescDiv);
+                
+                // Max Description
+                const maxDescDiv = HtmlEscape.createElement('div', { className: 'mb-3' });
+                const maxDescLabel = HtmlEscape.createElement('label', {
+                    className: 'form-label',
+                    htmlFor: 'elementMaxRateDescription'
+                });
+                HtmlEscape.setTextContent(maxDescLabel, 'Max Description:');
+                maxDescDiv.appendChild(maxDescLabel);
+                
+                const maxDescInput = HtmlEscape.createElement('input', {
+                    type: 'text',
+                    className: 'form-control',
+                    id: 'elementMaxRateDescription'
+                });
+                maxDescInput.value = element.maxRateDescription || '';
+                maxDescDiv.appendChild(maxDescInput);
+                container.appendChild(maxDescDiv);
+                break;
 
             case 'html':
-                return `
-                    <div class="mb-3">
-                        <label for="elementHtml" class="form-label">HTML Content:</label>
-                        <textarea class="form-control" id="elementHtml" rows="5">${element.html || ''}</textarea>
-                    </div>
-                `;
+                // HTML Content field
+                const htmlDiv = HtmlEscape.createElement('div', { className: 'mb-3' });
+                const htmlLabel = HtmlEscape.createElement('label', {
+                    className: 'form-label',
+                    htmlFor: 'elementHtml'
+                });
+                HtmlEscape.setTextContent(htmlLabel, 'HTML Content:');
+                htmlDiv.appendChild(htmlLabel);
+                
+                const htmlTextarea = HtmlEscape.createElement('textarea', {
+                    className: 'form-control',
+                    id: 'elementHtml',
+                    rows: '5'
+                });
+                htmlTextarea.value = element.html || '';
+                htmlDiv.appendChild(htmlTextarea);
+                container.appendChild(htmlDiv);
+                break;
 
             default:
-                return '';
+                // Return empty container for unknown types
+                break;
         }
+        
+        return container;
     }
 
     // Gather type-specific properties from the edit dialog
@@ -9498,7 +9753,7 @@ class IPLCFormBuilder {
 
         const styles = document.createElement('style');
         styles.id = 'complex-editor-styles';
-        styles.innerHTML = `
+        styles.textContent = `
             .element-properties-panel {
                 background: #f8f9fa;
                 border: 1px solid #dee2e6;
