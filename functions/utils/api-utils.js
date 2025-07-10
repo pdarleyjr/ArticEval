@@ -38,12 +38,31 @@ export function handleError(error, status = 500) {
         timestamp: new Date().toISOString()
     });
 
+    // Determine user-friendly message based on status code
+    let userMessage = 'An error occurred. Please try again later.';
+    
+    if (status === 400) {
+        userMessage = 'Invalid request. Please check your input and try again.';
+    } else if (status === 401) {
+        userMessage = 'Authentication required. Please log in and try again.';
+    } else if (status === 403) {
+        userMessage = 'You do not have permission to access this resource.';
+    } else if (status === 404) {
+        userMessage = 'The requested resource was not found.';
+    } else if (status === 409) {
+        userMessage = 'The request could not be completed due to a conflict.';
+    } else if (status === 503) {
+        userMessage = 'Service temporarily unavailable. Please try again later.';
+    } else if (status >= 500) {
+        userMessage = 'Server error. Please try again later.';
+    }
+
     // Return a user-friendly, standardized error response
+    // Do not expose internal error messages or stack traces
     return createResponse(
         {
             error: true,
-            message: `An internal server error occurred: ${errorMessage}`,
-            details: 'Please try again later or contact support if the problem persists.'
+            message: userMessage
         },
         status
     );
