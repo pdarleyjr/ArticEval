@@ -234,7 +234,9 @@ export default defineConfig({
   // Worker configuration
   worker: {
     format: 'es',
-    plugins: []
+    plugins() {
+      return [];
+    }
   },
   
   // SSR configuration (not used but configured for completeness)
