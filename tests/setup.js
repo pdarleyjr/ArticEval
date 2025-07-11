@@ -81,9 +81,4 @@ Object.defineProperty(window, 'matchMedia', {
 // Reset mocks before each test
 beforeEach(() => {
   jest.clearAllMocks();
-  localStorage.getItem.mockClear();
-  localStorage.setItem.mockClear();
-  localStorage.removeItem.mockClear();
-  localStorage.clear.mockClear();
-  fetch.mockClear();
 });

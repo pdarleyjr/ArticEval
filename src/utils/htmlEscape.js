@@ -3,9 +3,18 @@
 
 class HtmlEscape {
     static escape(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+        if (text == null) return '';
+        
+        const str = String(text);
+        const escapeMap = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        };
+        
+        return str.replace(/[&<>"']/g, char => escapeMap[char]);
     }
 
     static createElement(tag, attributes = {}) {
@@ -24,6 +33,28 @@ class HtmlEscape {
 
     static setTextContent(element, text) {
         element.textContent = text;
+    }
+
+    static unescape(text) {
+        if (text == null) return '';
+        
+        const str = String(text);
+        
+        // Map of HTML entities to their unescaped values
+        const unescapeMap = {
+            '&amp;': '&',
+            '&lt;': '<',
+            '&gt;': '>',
+            '&quot;': '"',
+            '&#39;': "'",
+            '&#x27;': "'",
+            '&#x2F;': '/'
+        };
+        
+        // Replace only complete HTML entities (ending with semicolon)
+        return str.replace(/&(?:amp|lt|gt|quot|#39|#x27|#x2F);/g, match => {
+            return unescapeMap[match] || match;
+        });
     }
 }
 

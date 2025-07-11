@@ -1,10 +1,10 @@
 import { jest } from '@jest/globals';
-import { createDebounce } from '../../src/utils/debounce.js';
+import { debounce } from '../../src/utils/debounce.js';
 
 // Tell Jest to use fake timers
 jest.useFakeTimers();
 
-describe('createDebounce', () => {
+describe('debounce', () => {
   let mockFunction;
   let debouncedFunction;
 
@@ -21,18 +21,18 @@ describe('createDebounce', () => {
   });
 
   it('should create a debounced function', () => {
-    debouncedFunction = createDebounce(mockFunction, 100);
+    debouncedFunction = debounce(mockFunction, 100);
     expect(typeof debouncedFunction).toBe('function');
   });
 
   it('should not call the function immediately', () => {
-    debouncedFunction = createDebounce(mockFunction, 100);
+    debouncedFunction = debounce(mockFunction, 100);
     debouncedFunction();
     expect(mockFunction).not.toHaveBeenCalled();
   });
 
   it('should call the function after the delay', () => {
-    debouncedFunction = createDebounce(mockFunction, 100);
+    debouncedFunction = debounce(mockFunction, 100);
     debouncedFunction('arg1', 'arg2');
     
     // Fast-forward time by 100ms
@@ -43,7 +43,7 @@ describe('createDebounce', () => {
   });
 
   it('should only call the function once for multiple rapid calls', () => {
-    debouncedFunction = createDebounce(mockFunction, 100);
+    debouncedFunction = debounce(mockFunction, 100);
     
     // Call the debounced function multiple times rapidly
     debouncedFunction('call1');
@@ -60,7 +60,7 @@ describe('createDebounce', () => {
   });
 
   it('should reset the timer on subsequent calls', () => {
-    debouncedFunction = createDebounce(mockFunction, 100);
+    debouncedFunction = debounce(mockFunction, 100);
     
     debouncedFunction('first');
     
@@ -83,8 +83,8 @@ describe('createDebounce', () => {
 
   it('should allow multiple independent debounced functions', () => {
     const mockFunction2 = jest.fn();
-    const debouncedFunction1 = createDebounce(mockFunction, 100);
-    const debouncedFunction2 = createDebounce(mockFunction2, 200);
+    const debouncedFunction1 = debounce(mockFunction, 100);
+    const debouncedFunction2 = debounce(mockFunction2, 200);
     
     debouncedFunction1('func1');
     debouncedFunction2('func2');
@@ -106,7 +106,7 @@ describe('createDebounce', () => {
   });
 
   it('should handle zero delay', () => {
-    debouncedFunction = createDebounce(mockFunction, 0);
+    debouncedFunction = debounce(mockFunction, 0);
     debouncedFunction('immediate');
     
     // Even with 0 delay, it should still be async
@@ -125,7 +125,7 @@ describe('createDebounce', () => {
       return this.value;
     });
     
-    debouncedFunction = createDebounce(mockFunctionWithContext, 100);
+    debouncedFunction = debounce(mockFunctionWithContext, 100);
     debouncedFunction.call(context);
     
     jest.advanceTimersByTime(100);

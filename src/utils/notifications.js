@@ -1,17 +1,34 @@
 // Notification utility for displaying alerts and messages
 
 class NotificationManager {
-    constructor() {
+    constructor(containerId = 'notification-container') {
+        this.containerId = containerId;
         this.container = null;
         this.timeout = null;
         this.init();
     }
 
     init() {
-        // Create container if it doesn't exist
-        if (!document.getElementById('notification-container')) {
+        // Find the parent container
+        let parentContainer = document.getElementById(this.containerId);
+        
+        // If parent doesn't exist, create app container and use that
+        if (!parentContainer) {
+            parentContainer = document.getElementById('app');
+            if (!parentContainer) {
+                parentContainer = document.createElement('div');
+                parentContainer.id = 'app';
+                document.body.appendChild(parentContainer);
+            }
+        }
+        
+        // Check if notification container already exists within parent
+        this.container = parentContainer.querySelector('.notification-container');
+        
+        // Create notification container if it doesn't exist
+        if (!this.container) {
             this.container = document.createElement('div');
-            this.container.id = 'notification-container';
+            this.container.className = 'notification-container';
             this.container.style.cssText = `
                 position: fixed;
                 top: 20px;
@@ -19,9 +36,7 @@ class NotificationManager {
                 z-index: 10000;
                 max-width: 400px;
             `;
-            document.body.appendChild(this.container);
-        } else {
-            this.container = document.getElementById('notification-container');
+            parentContainer.appendChild(this.container);
         }
     }
 
@@ -133,4 +148,6 @@ if (!document.getElementById('notification-styles')) {
     document.head.appendChild(style);
 }
 
+// Export both the class and the singleton instance
+export { NotificationManager };
 export default notifications;
