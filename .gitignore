@@ -34,6 +34,7 @@ ai-project-documentation.json
 *-ai-documentation.json
 ai-analysis-*.json
 IPLC GitHub Eval.code-workspace
+form-builder-analysis.md
 
 # Generated log files from scripts
 scripts/loading-log.json
@@ -57,3 +58,47 @@ templates/Articulation Evaluation_pg6.png
 templates/Articulation Evaluation.docx
 docs/task-notes/2025-07-09-diagnostics.md
 ERROR_TRACKING.md
+
+*storybook.log
+storybook-static
+
+# Build output
+dist/
+*.map
+
+# Generated CSS files
+*-inline.css
+
+# Temporary documentation
+GROK-4-HANDOFF-PROMPT.md
+
+# Local development files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Cache directories
+.cache/
+.parcel-cache/
+.next/
+.nuxt/
+.vuepress/dist
+.serverless/
+.fusebox/
+.dynamodb/
+.tern-port
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*

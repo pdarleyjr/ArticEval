@@ -27,32 +27,7 @@
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     
     <!-- Custom styles -->
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: #f5f5f5;
-            color: #333;
-        }
-        
-        /* Header */
-        .header {
-            background-color: #fff;
-            border-bottom: 1px solid #e0e0e0;
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        
-        .header h1 {
-            font-size: 1.5rem;
+    <link rel="stylesheet" href="/assets/css/builder-inline.css">
             color: #0047AB;
             font-weight: 600;
         }
@@ -676,13 +651,15 @@
         </div>
     </div>
     
-    <!-- HTML Escape utilities for XSS prevention -->
-    <script src="/assets/js/html-escape.js"></script>
-    
-    <!-- Load our custom form builder -->
-    <script src="/assets/js/form-builder.js"></script>
-    <script src="/assets/js/form-builder-tour.js"></script>
-    <script src="/assets/js/ai-summary-renderer.js"></script>
+    <!-- Load the modular form builder bundle -->
+    <script type="module">
+        import { FormBuilder } from '../src/index.js';
+        import './assets/js/form-builder-tour.js';
+        import './assets/js/ai-summary-renderer.js';
+        
+        // Make FormBuilder available as IPLCFormBuilder for backward compatibility
+        window.IPLCFormBuilder = FormBuilder;
+    </script>
 
     <script>
         // Initialize the form builder

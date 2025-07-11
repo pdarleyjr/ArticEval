@@ -1,0 +1,199 @@
+// Toolbox panel styles
+
+.form-builder__toolbox {
+  &-search {
+    padding: $spacing-md;
+    background-color: #fafafa;
+    border-bottom: 1px solid #ddd;
+    
+    input {
+      width: 100%;
+      padding: $spacing-sm $spacing-md;
+      border: 1px solid #ddd;
+      border-radius: $border-radius;
+      font-size: $font-size-base;
+      background-color: white;
+      
+      &:focus {
+        outline: none;
+        border-color: $primary-color;
+        box-shadow: 0 0 0 3px rgba($primary-color, 0.1);
+      }
+      
+      &::placeholder {
+        color: #999;
+      }
+    }
+  }
+  
+  &-categories {
+    padding: $spacing-md;
+    overflow-y: auto;
+    flex: 1;
+  }
+  
+  &-category {
+    margin-bottom: $spacing-lg;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+    
+    &-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: $spacing-sm 0;
+      margin-bottom: $spacing-sm;
+      font-weight: $font-weight-medium;
+      color: #333;
+      cursor: pointer;
+      user-select: none;
+      
+      &:hover {
+        color: $primary-color;
+      }
+      
+      &::after {
+        content: '▼';
+        font-size: 12px;
+        transition: transform $transition-fast;
+      }
+      
+      &--collapsed::after {
+        transform: rotate(-90deg);
+      }
+    }
+    
+    &-items {
+      display: grid;
+      gap: $spacing-sm;
+      
+      &--collapsed {
+        display: none;
+      }
+    }
+  }
+  
+  &-item {
+    padding: $spacing-md;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: $border-radius;
+    cursor: move;
+    transition: all $transition-fast;
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    user-select: none;
+    
+    &:hover {
+      background-color: #f8f8f8;
+      border-color: $primary-color;
+      transform: translateX(2px);
+      box-shadow: $box-shadow;
+    }
+    
+    &:active {
+      cursor: grabbing;
+      transform: scale(0.98);
+    }
+    
+    &--dragging {
+      opacity: 0.5;
+      cursor: grabbing;
+    }
+    
+    &-icon {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+      color: $primary-color;
+      
+      svg {
+        width: 100%;
+        height: 100%;
+      }
+    }
+    
+    &-label {
+      flex: 1;
+      font-size: $font-size-small;
+      color: #333;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    &-badge {
+      background-color: $primary-color;
+      color: white;
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 10px;
+      font-weight: $font-weight-medium;
+    }
+    
+    // Question type specific colors
+    &[data-type="text"] &-icon { color: #2196F3; }
+    &[data-type="radiogroup"] &-icon { color: #4CAF50; }
+    &[data-type="checkbox"] &-icon { color: #FF9800; }
+    &[data-type="dropdown"] &-icon { color: #9C27B0; }
+    &[data-type="rating"] &-icon { color: #FFC107; }
+    &[data-type="boolean"] &-icon { color: #795548; }
+    &[data-type="matrix"] &-icon { color: #607D8B; }
+    &[data-type="file"] &-icon { color: #E91E63; }
+    &[data-type="image"] &-icon { color: #00BCD4; }
+    &[data-type="html"] &-icon { color: #FF5722; }
+    &[data-type="expression"] &-icon { color: #3F51B5; }
+  }
+  
+  // Quick actions
+  &-quick-actions {
+    padding: $spacing-md;
+    background-color: #fafafa;
+    border-top: 1px solid #ddd;
+    display: flex;
+    gap: $spacing-sm;
+    
+    button {
+      flex: 1;
+      padding: $spacing-sm;
+      font-size: $font-size-small;
+      background-color: white;
+      border: 1px solid #ddd;
+      color: #666;
+      
+      &:hover {
+        background-color: #f5f5f5;
+        border-color: $primary-color;
+        color: $primary-color;
+      }
+      
+      svg {
+        width: 16px;
+        height: 16px;
+        margin-right: $spacing-xs;
+        vertical-align: middle;
+      }
+    }
+  }
+}
+
+// Mobile adjustments
+@media (max-width: $breakpoint-tablet) {
+  .form-builder__toolbox {
+    &-item {
+      padding: $spacing-sm;
+      
+      &-icon {
+        width: 20px;
+        height: 20px;
+      }
+    }
+    
+    &-category-items {
+      gap: $spacing-xs;
+    }
+  }
+}

@@ -1,57 +1,113 @@
 {
-  "name": "articulation-eval",
-  "version": "1.0.0",
+  "name": "iplc-form-builder",
+  "version": "2.0.0",
+  "description": "IPLC Form Builder - Modern ES6 modular architecture with SurveyJS",
   "type": "module",
-  "description": "Speech-Language Evaluation System",
+  "private": true,
+  "author": "IPLC Development Team",
+  "license": "UNLICENSED",
+  "homepage": "https://github.com/peterdarley/ArticEval",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/peterdarley/ArticEval.git"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
   "scripts": {
-    "start": "npx serve -s public -l 3000",
-    "dev": "npx serve . -l 3000",
-    "build": "echo \"No build required for this configuration.\"",
-    "test-articulation": "npx serve . -l 3001",
-    "test-articulation-node": "node test-articulation-info.js",
-    "db:init": "wrangler d1 execute iplc-eval-db --env production --remote --file=schema.sql",
-    "db:reset": "wrangler d1 execute iplc-eval-db --env production --remote --command=\"DROP TABLE IF EXISTS users; DROP TABLE IF EXISTS form_templates; DROP TABLE IF EXISTS form_submissions; DROP TABLE IF EXISTS user_sessions; DROP TABLE IF EXISTS form_analytics; DROP TABLE IF EXISTS ai_summaries; DROP TABLE IF EXISTS ai_feedback;\" && npm run db:init",
-    "chat:load": "node scripts/loadChatData.js",
-    "chat:load:prod": "API_ENDPOINT=https://articeval.pages.dev/api/ai/chat/load node scripts/loadChatData.js",
-    "chat:seed": "node scripts/loadChatData.js",
-    "chat:verify": "node scripts/verify-chat.js",
-    "test:regression": "playwright test"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "analyze": "ANALYZE=true vite build",
+    "clean": "rimraf dist",
+    "clean:all": "rimraf dist node_modules package-lock.json",
+    "lint": "eslint src --ext .js,.jsx --fix",
+    "lint:check": "eslint src --ext .js,.jsx",
+    "format": "prettier --write \"src/**/*.{js,jsx,json,css,scss,md}\"",
+    "format:check": "prettier --check \"src/**/*.{js,jsx,json,css,scss,md}\"",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build",
+    "prepare": "husky install",
+    "pre-commit": "lint-staged",
+    "deploy": "npm run build && wrangler pages deploy dist",
+    "deploy:preview": "npm run build && wrangler pages deploy dist --branch preview"
   },
   "dependencies": {
-    "@langchain/cloudflare": "^0.1.0",
-    "@langchain/core": "^0.3.62",
-    "@langchain/textsplitters": "^0.1.0",
-    "jspdf": "^3.0.0",
-    "node-fetch": "^3.3.2",
-    "serve": "^14.2.1"
-  },
-  "serve": {
-    "headers": [
-      {
-        "source": "**/*.js",
-        "headers": [
-          {
-            "key": "Content-Type",
-            "value": "text/javascript"
-          }
-        ]
-      },
-      {
-        "source": "**/*.mjs",
-        "headers": [
-          {
-            "key": "Content-Type",
-            "value": "text/javascript"
-          }
-        ]
-      }
-    ]
+    "knockout": "^3.5.1",
+    "qrcode": "^1.5.3",
+    "survey-core": "^1.9.139",
+    "survey-creator-core": "^1.9.139",
+    "survey-creator-knockout": "^1.9.139"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250709.0",
-    "@playwright/test": "^1.53.2",
-    "esbuild": "^0.25.6",
-    "playwright": "^1.53.2",
-    "wrangler": "^4.23.0"
-  }
+    "@babel/core": "^7.23.7",
+    "@babel/preset-env": "^7.28.0",
+    "@cloudflare/workers-types": "^4.20231218.0",
+    "@playwright/test": "^1.40.1",
+    "@storybook/addon-actions": "^7.6.6",
+    "@storybook/addon-docs": "^9.0.16",
+    "@storybook/addon-essentials": "^7.6.6",
+    "@storybook/addon-links": "^7.6.6",
+    "@storybook/html": "^7.6.6",
+    "@storybook/html-vite": "^7.6.6",
+    "@testing-library/dom": "^9.3.3",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/user-event": "^14.5.1",
+    "@types/jest": "^29.5.11",
+    "@vitejs/plugin-legacy": "^5.2.0",
+    "babel-jest": "^29.7.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.1.2",
+    "eslint-plugin-storybook": "^9.0.16",
+    "husky": "^8.0.3",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.1.1",
+    "rimraf": "^5.0.5",
+    "rollup-plugin-visualizer": "^5.12.0",
+    "sass": "^1.69.7",
+    "storybook": "^7.6.6",
+    "terser": "^5.26.0",
+    "vite": "^5.0.10",
+    "wrangler": "^3.22.1"
+  },
+  "lint-staged": {
+    "*.{js,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,css,scss,md}": [
+      "prettier --write"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "keywords": [
+    "form-builder",
+    "surveyjs",
+    "cloudflare-pages",
+    "vite",
+    "es6-modules",
+    "drag-drop",
+    "ai-assistant"
+  ]
 }

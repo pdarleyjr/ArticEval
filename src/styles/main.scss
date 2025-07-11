@@ -1,0 +1,16 @@
+// Main styles entry point
+// Import variables first as other files may depend on them
+@import 'variables';
+
+// Base styles
+@import 'base';
+@import 'layout';
+@import 'utilities';
+
+// Component styles
+@import 'components/builder';
+@import 'components/dialogs';
+@import 'components/notifications';
+@import 'components/preview';
+@import 'components/properties';
+@import 'components/toolbox';

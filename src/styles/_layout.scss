@@ -1,0 +1,311 @@
+// Main layout structure
+.form-builder {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background-color: #f5f5f5;
+}
+
+// Top toolbar
+.form-builder__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: $toolbar-height;
+  padding: 0 $spacing-lg;
+  background-color: white;
+  border-bottom: 1px solid #ddd;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  z-index: $z-toolbar;
+  
+  &-group {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+  }
+  
+  &-title {
+    font-size: $font-size-large;
+    font-weight: $font-weight-medium;
+    color: #333;
+    margin: 0;
+  }
+}
+
+// Main content area
+.form-builder__content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+// Left toolbox/element palette
+.form-builder__toolbox {
+  width: $toolbox-width;
+  background-color: white;
+  border-right: 1px solid #ddd;
+  overflow-y: auto;
+  overflow-x: hidden;
+  transition: transform $transition-medium;
+  
+  @media (max-width: $breakpoint-tablet) {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: $z-panel;
+    transform: translateX(-100%);
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+    
+    &--open {
+      transform: translateX(0);
+    }
+  }
+  
+  &-header {
+    padding: $spacing-md $spacing-lg;
+    border-bottom: 1px solid #eee;
+    background-color: #fafafa;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  
+  &-section {
+    padding: $spacing-md $spacing-lg;
+    border-bottom: 1px solid #eee;
+    
+    &-title {
+      font-size: $font-size-small;
+      font-weight: $font-weight-medium;
+      text-transform: uppercase;
+      color: #666;
+      margin-bottom: $spacing-sm;
+    }
+  }
+}
+
+// Center design surface
+.form-builder__design-surface {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #fafafa;
+  overflow: hidden;
+  
+  &-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: $spacing-xl;
+    
+    @media (max-width: $breakpoint-tablet) {
+      padding: $spacing-md;
+    }
+  }
+  
+  &-container {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: white;
+    border-radius: $border-radius;
+    box-shadow: $box-shadow;
+    min-height: 600px;
+    padding: $spacing-xl;
+    position: relative;
+    
+    &--empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      .empty-state {
+        text-align: center;
+        color: #999;
+        
+        &__icon {
+          font-size: 3rem;
+          margin-bottom: $spacing-md;
+          opacity: 0.5;
+        }
+        
+        &__text {
+          font-size: $font-size-large;
+          margin-bottom: $spacing-sm;
+        }
+        
+        &__hint {
+          font-size: $font-size-small;
+          color: #aaa;
+        }
+      }
+    }
+  }
+}
+
+// Right property panel
+.form-builder__property-panel {
+  width: $property-panel-width;
+  background-color: white;
+  border-left: 1px solid #ddd;
+  overflow-y: auto;
+  overflow-x: hidden;
+  transition: transform $transition-medium;
+  
+  @media (max-width: $breakpoint-desktop) {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: $z-panel;
+    transform: translateX(100%);
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
+    
+    &--open {
+      transform: translateX(0);
+    }
+  }
+  
+  &-header {
+    padding: $spacing-md $spacing-lg;
+    border-bottom: 1px solid #eee;
+    background-color: #fafafa;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    
+    h3 {
+      margin: 0;
+      font-size: $font-size-base;
+      font-weight: $font-weight-medium;
+    }
+  }
+  
+  &-content {
+    padding: $spacing-lg;
+  }
+  
+  &-section {
+    margin-bottom: $spacing-xl;
+    
+    &-title {
+      font-size: $font-size-small;
+      font-weight: $font-weight-medium;
+      text-transform: uppercase;
+      color: #666;
+      margin-bottom: $spacing-md;
+      padding-bottom: $spacing-xs;
+      border-bottom: 1px solid #eee;
+    }
+  }
+}
+
+// Mobile toggle buttons
+.mobile-toggle {
+  display: none;
+  position: fixed;
+  bottom: $spacing-lg;
+  padding: $spacing-md;
+  background-color: $primary-color;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  box-shadow: $box-shadow-heavy;
+  width: 56px;
+  height: 56px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: $z-modal;
+  transition: all $transition-fast;
+  
+  @media (max-width: $breakpoint-tablet) {
+    display: flex;
+  }
+  
+  &:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  }
+  
+  &--toolbox {
+    left: $spacing-lg;
+  }
+  
+  &--properties {
+    right: $spacing-lg;
+    
+    @media (max-width: $breakpoint-desktop) {
+      display: flex;
+    }
+  }
+  
+  svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+// Overlay for mobile panels
+.mobile-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: $z-overlay;
+  opacity: 0;
+  transition: opacity $transition-medium;
+  
+  &--visible {
+    display: block;
+    opacity: 1;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: $breakpoint-desktop) {
+  .form-builder__content {
+    position: relative;
+  }
+}
+
+@media (max-width: $breakpoint-tablet) {
+  .form-builder__design-surface-wrapper {
+    padding: $spacing-md;
+  }
+  
+  .form-builder__design-surface-container {
+    padding: $spacing-md;
+  }
+}
+
+// Print styles
+@media print {
+  .form-builder__toolbar,
+  .form-builder__toolbox,
+  .form-builder__property-panel,
+  .mobile-toggle {
+    display: none !important;
+  }
+  
+  .form-builder__design-surface {
+    padding: 0;
+    
+    &-wrapper {
+      padding: 0;
+    }
+    
+    &-container {
+      box-shadow: none;
+      max-width: 100%;
+    }
+  }
+}

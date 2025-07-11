@@ -1,0 +1,53 @@
+{
+  "elements": {
+    "text": {
+      "inputType": "text",
+      "placeholder": "Enter text here"
+    },
+    "dropdown": {
+      "choices": ["Option 1", "Option 2", "Option 3"]
+    },
+    "radiogroup": {
+      "choices": ["Yes", "No"]
+    },
+    "checkbox": {
+      "choices": ["Option A", "Option B"]
+    },
+    "comment": {
+      "rows": 3,
+      "placeholder": "Enter your comments"
+    },
+    "rating": {
+      "rateMin": 1,
+      "rateMax": 5
+    },
+    "boolean": {
+      "labelTrue": "Yes",
+      "labelFalse": "No"
+    },
+    "signaturepad": {
+      "width": 300,
+      "height": 150,
+      "penColor": "blue",
+      "backgroundColor": "white"
+    }
+  },
+  "categories": {
+    "clientInfo": {
+      "defaults": {
+        "name": { "inputType": "text" },
+        "phone": { "inputType": "tel" },
+        "email": { "inputType": "email" },
+        "date": { "inputType": "date" }
+      }
+    },
+    "slp": {
+      "defaults": {
+        "severity": {
+          "type": "rating",
+          "rateValues": ["WNL", "Mild", "Moderate", "Severe"]
+        }
+      }
+    }
+  }
+}
