@@ -41,12 +41,11 @@ class NotificationManager {
     }
 
     show(message, type = 'info', duration = 3000) {
-        // Clear existing notification
-        this.clear();
-
+        // Don't clear existing notifications to allow multiple
+        
         // Create notification element
         const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
+        notification.className = `notification ${type}`;
         notification.style.cssText = `
             padding: 16px 24px;
             margin-bottom: 10px;
@@ -58,22 +57,61 @@ class NotificationManager {
             display: flex;
             align-items: center;
             gap: 10px;
+            position: relative;
+            opacity: 0;
+            transition: opacity 0.3s ease-out;
         `;
 
-        // Add icon based on type
+        // Add icon and message content
         const icon = this.getIcon(type);
         if (icon) {
-            notification.innerHTML = `${icon} <span>${message}</span>`;
-        } else {
-            notification.textContent = message;
+            const iconElement = document.createElement('span');
+            iconElement.innerHTML = icon;
+            notification.appendChild(iconElement);
         }
+        
+        // Add message text (always escape HTML)
+        const messageSpan = document.createElement('span');
+        messageSpan.textContent = message;
+        notification.appendChild(messageSpan);
+
+        // Add close button
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'close-button';
+        closeBtn.innerHTML = '×';
+        closeBtn.style.cssText = `
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            line-height: 1;
+            opacity: 0.7;
+        `;
+        closeBtn.addEventListener('click', () => {
+            notification.remove();
+        });
+        notification.appendChild(closeBtn);
 
         this.container.appendChild(notification);
 
+        // Add 'show' class after a brief delay for animation
+        setTimeout(() => {
+            notification.classList.add('show');
+            notification.style.opacity = '1';
+        }, 10);
+
         // Auto-hide after duration
         if (duration > 0) {
-            this.timeout = setTimeout(() => {
-                this.clear();
+            setTimeout(() => {
+                notification.remove();
             }, duration);
         }
 
