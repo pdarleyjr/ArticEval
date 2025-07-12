@@ -13,7 +13,7 @@ const STORE_CONFIG = {
 const initialState = {
   // Current form data
   currentForm: null,
-  
+
   // UI state
   ui: {
     selectedElement: null,
@@ -25,7 +25,7 @@ const initialState = {
     showGrid: false,
     showRulers: false
   },
-  
+
   // Editor state
   editor: {
     isDirty: false,
@@ -35,7 +35,7 @@ const initialState = {
     autoSave: true,
     readOnly: false
   },
-  
+
   // Drag and drop state
   dragDrop: {
     isDragging: false,
@@ -43,7 +43,7 @@ const initialState = {
     dropTarget: null,
     dragOffset: { x: 0, y: 0 }
   },
-  
+
   // AI Helper state
   ai: {
     isOpen: false,
@@ -51,7 +51,7 @@ const initialState = {
     conversation: [],
     suggestions: []
   },
-  
+
   // Preview state
   preview: {
     isOpen: false,
@@ -59,7 +59,7 @@ const initialState = {
     theme: 'default',
     orientation: 'portrait'
   },
-  
+
   // Validation state
   validation: {
     errors: [],
@@ -67,7 +67,7 @@ const initialState = {
     isValidating: false,
     lastValidated: null
   },
-  
+
   // User preferences
   preferences: {
     language: 'en',
@@ -76,7 +76,7 @@ const initialState = {
     enableShortcuts: true,
     enableAnimations: true
   },
-  
+
   // Session data
   session: {
     user: null,
@@ -93,7 +93,7 @@ export const ActionTypes = {
   ADD_FORM_ELEMENT: 'ADD_FORM_ELEMENT',
   REMOVE_FORM_ELEMENT: 'REMOVE_FORM_ELEMENT',
   MOVE_FORM_ELEMENT: 'MOVE_FORM_ELEMENT',
-  
+
   // UI actions
   SELECT_ELEMENT: 'SELECT_ELEMENT',
   TOGGLE_SECTION: 'TOGGLE_SECTION',
@@ -101,43 +101,43 @@ export const ActionTypes = {
   TOGGLE_SIDEBAR: 'TOGGLE_SIDEBAR',
   SET_THEME: 'SET_THEME',
   SET_ZOOM: 'SET_ZOOM',
-  
+
   // Editor actions
   SET_DIRTY: 'SET_DIRTY',
   SET_SAVING: 'SET_SAVING',
   SET_LOADING: 'SET_LOADING',
   SET_LAST_SAVED: 'SET_LAST_SAVED',
   TOGGLE_AUTO_SAVE: 'TOGGLE_AUTO_SAVE',
-  
+
   // Drag and drop actions
   START_DRAG: 'START_DRAG',
   UPDATE_DRAG: 'UPDATE_DRAG',
   END_DRAG: 'END_DRAG',
   SET_DROP_TARGET: 'SET_DROP_TARGET',
-  
+
   // AI actions
   TOGGLE_AI: 'TOGGLE_AI',
   SET_AI_PROCESSING: 'SET_AI_PROCESSING',
   ADD_AI_MESSAGE: 'ADD_AI_MESSAGE',
   SET_AI_SUGGESTIONS: 'SET_AI_SUGGESTIONS',
-  
+
   // Preview actions
   TOGGLE_PREVIEW: 'TOGGLE_PREVIEW',
   SET_PREVIEW_DEVICE: 'SET_PREVIEW_DEVICE',
   SET_PREVIEW_THEME: 'SET_PREVIEW_THEME',
-  
+
   // Validation actions
   SET_VALIDATION_ERRORS: 'SET_VALIDATION_ERRORS',
   ADD_VALIDATION_ERROR: 'ADD_VALIDATION_ERROR',
   CLEAR_VALIDATION: 'CLEAR_VALIDATION',
-  
+
   // Preference actions
   UPDATE_PREFERENCES: 'UPDATE_PREFERENCES',
-  
+
   // Session actions
   SET_USER: 'SET_USER',
   UPDATE_ACTIVITY: 'UPDATE_ACTIVITY',
-  
+
   // Global actions
   RESET_STATE: 'RESET_STATE',
   LOAD_STATE: 'LOAD_STATE',
@@ -153,16 +153,16 @@ class Store {
     this.subscribers = new Map();
     this.middleware = [];
     this.isDispatching = false;
-    
+
     // Load persisted state
     this.loadPersistedState();
-    
+
     // Setup auto-persist
     this.persistDebounced = this.debounce(
       this.persistState.bind(this),
       STORE_CONFIG.persistDebounce
     );
-    
+
     // Setup dev tools
     if (STORE_CONFIG.enableDevTools && window.__REDUX_DEVTOOLS_EXTENSION__) {
       this.devTools = window.__REDUX_DEVTOOLS_EXTENSION__.connect({
@@ -171,41 +171,41 @@ class Store {
       this.devTools.init(this.state);
     }
   }
-  
+
   // Get current state
   getState() {
     return this.state;
   }
-  
+
   // Subscribe to state changes
   subscribe(callback, selector = null) {
     const id = Math.random().toString(36).substr(2, 9);
-    
+
     this.subscribers.set(id, {
       callback,
       selector
     });
-    
+
     // Return unsubscribe function
     return () => {
       this.subscribers.delete(id);
     };
   }
-  
+
   // Add middleware
   use(middleware) {
     this.middleware.push(middleware);
   }
-  
+
   // Dispatch action
   dispatch(action) {
     if (this.isDispatching) {
       throw new Error('Cannot dispatch while dispatching');
     }
-    
+
     try {
       this.isDispatching = true;
-      
+
       // Run middleware
       let finalAction = action;
       for (const middleware of this.middleware) {
@@ -217,34 +217,33 @@ class Store {
           finalAction = result; // Middleware modified action
         }
       }
-      
+
       // Store previous state for history
       const previousState = this.deepClone(this.state);
-      
+
       // Apply action
       this.state = this.reducer(this.state, finalAction);
-      
+
       // Add to history (skip for certain actions)
       if (!this.isHistoryAction(finalAction.type)) {
         this.addToHistory(previousState, finalAction);
       }
-      
+
       // Notify subscribers
       this.notifySubscribers(previousState);
-      
+
       // Update dev tools
       if (this.devTools) {
         this.devTools.send(finalAction, this.state);
       }
-      
+
       // Persist state
       this.persistDebounced();
-      
     } finally {
       this.isDispatching = false;
     }
   }
-  
+
   // Main reducer
   reducer(state, action) {
     switch (action.type) {
@@ -258,7 +257,7 @@ class Store {
             isDirty: false
           }
         };
-        
+
       case ActionTypes.UPDATE_FORM_PROPERTY:
         return {
           ...state,
@@ -272,16 +271,16 @@ class Store {
             isDirty: true
           }
         };
-        
+
       case ActionTypes.ADD_FORM_ELEMENT:
         return this.addFormElement(state, action.payload);
-        
+
       case ActionTypes.REMOVE_FORM_ELEMENT:
         return this.removeFormElement(state, action.payload);
-        
+
       case ActionTypes.MOVE_FORM_ELEMENT:
         return this.moveFormElement(state, action.payload);
-        
+
       // UI actions
       case ActionTypes.SELECT_ELEMENT:
         return {
@@ -291,7 +290,7 @@ class Store {
             selectedElement: action.payload
           }
         };
-        
+
       case ActionTypes.TOGGLE_SECTION:
         const expandedSections = new Set(state.ui.expandedSections);
         if (expandedSections.has(action.payload)) {
@@ -306,7 +305,7 @@ class Store {
             expandedSections
           }
         };
-        
+
       case ActionTypes.SET_ACTIVE_TAB:
         return {
           ...state,
@@ -315,7 +314,7 @@ class Store {
             activeTab: action.payload
           }
         };
-        
+
       case ActionTypes.TOGGLE_SIDEBAR:
         return {
           ...state,
@@ -324,7 +323,7 @@ class Store {
             sidebarCollapsed: !state.ui.sidebarCollapsed
           }
         };
-        
+
       case ActionTypes.SET_THEME:
         return {
           ...state,
@@ -333,7 +332,7 @@ class Store {
             theme: action.payload
           }
         };
-        
+
       case ActionTypes.SET_ZOOM:
         return {
           ...state,
@@ -342,7 +341,7 @@ class Store {
             zoom: action.payload
           }
         };
-        
+
       // Editor actions
       case ActionTypes.SET_DIRTY:
         return {
@@ -352,7 +351,7 @@ class Store {
             isDirty: action.payload
           }
         };
-        
+
       case ActionTypes.SET_SAVING:
         return {
           ...state,
@@ -361,7 +360,7 @@ class Store {
             isSaving: action.payload
           }
         };
-        
+
       case ActionTypes.SET_LOADING:
         return {
           ...state,
@@ -370,7 +369,7 @@ class Store {
             isLoading: action.payload
           }
         };
-        
+
       case ActionTypes.SET_LAST_SAVED:
         return {
           ...state,
@@ -380,7 +379,7 @@ class Store {
             isDirty: false
           }
         };
-        
+
       case ActionTypes.TOGGLE_AUTO_SAVE:
         return {
           ...state,
@@ -389,7 +388,7 @@ class Store {
             autoSave: !state.editor.autoSave
           }
         };
-        
+
       // Drag and drop actions
       case ActionTypes.START_DRAG:
         return {
@@ -401,7 +400,7 @@ class Store {
             dragOffset: action.payload.offset || { x: 0, y: 0 }
           }
         };
-        
+
       case ActionTypes.UPDATE_DRAG:
         return {
           ...state,
@@ -410,7 +409,7 @@ class Store {
             ...action.payload
           }
         };
-        
+
       case ActionTypes.END_DRAG:
         return {
           ...state,
@@ -421,7 +420,7 @@ class Store {
             dropTarget: null
           }
         };
-        
+
       case ActionTypes.SET_DROP_TARGET:
         return {
           ...state,
@@ -430,7 +429,7 @@ class Store {
             dropTarget: action.payload
           }
         };
-        
+
       // AI actions
       case ActionTypes.TOGGLE_AI:
         return {
@@ -440,7 +439,7 @@ class Store {
             isOpen: !state.ai.isOpen
           }
         };
-        
+
       case ActionTypes.SET_AI_PROCESSING:
         return {
           ...state,
@@ -449,7 +448,7 @@ class Store {
             isProcessing: action.payload
           }
         };
-        
+
       case ActionTypes.ADD_AI_MESSAGE:
         return {
           ...state,
@@ -458,7 +457,7 @@ class Store {
             conversation: [...state.ai.conversation, action.payload]
           }
         };
-        
+
       case ActionTypes.SET_AI_SUGGESTIONS:
         return {
           ...state,
@@ -467,7 +466,7 @@ class Store {
             suggestions: action.payload
           }
         };
-        
+
       // Preview actions
       case ActionTypes.TOGGLE_PREVIEW:
         return {
@@ -477,7 +476,7 @@ class Store {
             isOpen: !state.preview.isOpen
           }
         };
-        
+
       case ActionTypes.SET_PREVIEW_DEVICE:
         return {
           ...state,
@@ -486,7 +485,7 @@ class Store {
             device: action.payload
           }
         };
-        
+
       case ActionTypes.SET_PREVIEW_THEME:
         return {
           ...state,
@@ -495,7 +494,7 @@ class Store {
             theme: action.payload
           }
         };
-        
+
       // Validation actions
       case ActionTypes.SET_VALIDATION_ERRORS:
         return {
@@ -508,7 +507,7 @@ class Store {
             lastValidated: Date.now()
           }
         };
-        
+
       case ActionTypes.ADD_VALIDATION_ERROR:
         return {
           ...state,
@@ -517,7 +516,7 @@ class Store {
             errors: [...state.validation.errors, action.payload]
           }
         };
-        
+
       case ActionTypes.CLEAR_VALIDATION:
         return {
           ...state,
@@ -528,7 +527,7 @@ class Store {
             isValidating: false
           }
         };
-        
+
       // Preference actions
       case ActionTypes.UPDATE_PREFERENCES:
         return {
@@ -538,7 +537,7 @@ class Store {
             ...action.payload
           }
         };
-        
+
       // Session actions
       case ActionTypes.SET_USER:
         return {
@@ -549,7 +548,7 @@ class Store {
             permissions: action.payload.permissions || []
           }
         };
-        
+
       case ActionTypes.UPDATE_ACTIVITY:
         return {
           ...state,
@@ -558,36 +557,38 @@ class Store {
             lastActivity: Date.now()
           }
         };
-        
+
       // Global actions
       case ActionTypes.RESET_STATE:
         return this.deepClone(initialState);
-        
+
       case ActionTypes.LOAD_STATE:
         return {
           ...this.deepClone(action.payload),
           session: state.session // Preserve session
         };
-        
+
       case ActionTypes.UNDO:
         return this.performUndo(state);
-        
+
       case ActionTypes.REDO:
         return this.performRedo(state);
-        
+
       default:
         return state;
     }
   }
-  
+
   // Helper: Update nested property
   updateNestedProperty(obj, path, value) {
-    if (!obj) return obj;
-    
+    if (!obj) {
+      return obj;
+    }
+
     const newObj = this.deepClone(obj);
     const parts = path.split('.');
     const lastPart = parts.pop();
-    
+
     let target = newObj;
     for (const part of parts) {
       if (!target[part] || typeof target[part] !== 'object') {
@@ -595,31 +596,31 @@ class Store {
       }
       target = target[part];
     }
-    
+
     target[lastPart] = value;
     return newObj;
   }
-  
+
   // Helper: Add form element
   addFormElement(state, payload) {
     const { pageIndex, element, position } = payload;
     const newForm = this.deepClone(state.currentForm);
-    
+
     if (!newForm.surveyJSON.pages[pageIndex]) {
       newForm.surveyJSON.pages[pageIndex] = { elements: [] };
     }
-    
+
     const page = newForm.surveyJSON.pages[pageIndex];
     if (!page.elements) {
       page.elements = [];
     }
-    
+
     if (position !== undefined) {
       page.elements.splice(position, 0, element);
     } else {
       page.elements.push(element);
     }
-    
+
     return {
       ...state,
       currentForm: newForm,
@@ -629,16 +630,16 @@ class Store {
       }
     };
   }
-  
+
   // Helper: Remove form element
   removeFormElement(state, payload) {
     const { pageIndex, elementIndex } = payload;
     const newForm = this.deepClone(state.currentForm);
-    
+
     if (newForm.surveyJSON.pages[pageIndex]?.elements) {
       newForm.surveyJSON.pages[pageIndex].elements.splice(elementIndex, 1);
     }
-    
+
     return {
       ...state,
       currentForm: newForm,
@@ -652,15 +653,15 @@ class Store {
       }
     };
   }
-  
+
   // Helper: Move form element
   moveFormElement(state, payload) {
     const { fromPage, fromIndex, toPage, toIndex } = payload;
     const newForm = this.deepClone(state.currentForm);
-    
+
     // Remove from source
     const element = newForm.surveyJSON.pages[fromPage].elements.splice(fromIndex, 1)[0];
-    
+
     // Add to destination
     if (!newForm.surveyJSON.pages[toPage]) {
       newForm.surveyJSON.pages[toPage] = { elements: [] };
@@ -668,9 +669,9 @@ class Store {
     if (!newForm.surveyJSON.pages[toPage].elements) {
       newForm.surveyJSON.pages[toPage].elements = [];
     }
-    
+
     newForm.surveyJSON.pages[toPage].elements.splice(toIndex, 0, element);
-    
+
     return {
       ...state,
       currentForm: newForm,
@@ -680,19 +681,19 @@ class Store {
       }
     };
   }
-  
+
   // History management
   addToHistory(previousState, action) {
     // Remove future history if we're not at the end
     this.history = this.history.slice(0, this.historyPointer + 1);
-    
+
     // Add new entry
     this.history.push({
       state: previousState,
-      action: action,
+      action,
       timestamp: Date.now()
     });
-    
+
     // Limit history size
     if (this.history.length > STORE_CONFIG.maxHistory) {
       this.history.shift();
@@ -700,7 +701,7 @@ class Store {
       this.historyPointer++;
     }
   }
-  
+
   // Perform undo
   performUndo(currentState) {
     if (this.canUndo()) {
@@ -710,7 +711,7 @@ class Store {
     }
     return currentState;
   }
-  
+
   // Perform redo
   performRedo(currentState) {
     if (this.canRedo()) {
@@ -723,17 +724,17 @@ class Store {
     }
     return currentState;
   }
-  
+
   // Check if can undo
   canUndo() {
     return this.historyPointer >= 0;
   }
-  
+
   // Check if can redo
   canRedo() {
     return this.historyPointer < this.history.length - 1;
   }
-  
+
   // Check if action should be added to history
   isHistoryAction(type) {
     const skipTypes = [
@@ -744,17 +745,17 @@ class Store {
       ActionTypes.UPDATE_ACTIVITY,
       ActionTypes.UPDATE_DRAG
     ];
-    
+
     return skipTypes.includes(type);
   }
-  
+
   // Notify subscribers
   notifySubscribers(previousState) {
     this.subscribers.forEach(({ callback, selector }) => {
       if (selector) {
         const prevValue = selector(previousState);
         const newValue = selector(this.state);
-        
+
         if (prevValue !== newValue) {
           callback(this.state, previousState);
         }
@@ -763,7 +764,7 @@ class Store {
       }
     });
   }
-  
+
   // Persist state to localStorage
   persistState() {
     try {
@@ -774,23 +775,20 @@ class Store {
           conversation: this.state.ai.conversation.slice(-10) // Keep last 10 messages
         }
       };
-      
-      localStorage.setItem(
-        STORE_CONFIG.persistKey,
-        JSON.stringify(stateToPersist)
-      );
+
+      localStorage.setItem(STORE_CONFIG.persistKey, JSON.stringify(stateToPersist));
     } catch (error) {
       console.error('Failed to persist state:', error);
     }
   }
-  
+
   // Load persisted state
   loadPersistedState() {
     try {
       const persisted = localStorage.getItem(STORE_CONFIG.persistKey);
       if (persisted) {
         const parsed = JSON.parse(persisted);
-        
+
         // Merge with initial state
         this.state = {
           ...this.state,
@@ -812,12 +810,12 @@ class Store {
       console.error('Failed to load persisted state:', error);
     }
   }
-  
+
   // Deep clone helper
   deepClone(obj) {
     return JSON.parse(JSON.stringify(obj));
   }
-  
+
   // Debounce helper
   debounce(func, wait) {
     let timeout;
@@ -830,7 +828,7 @@ class Store {
       timeout = setTimeout(later, wait);
     };
   }
-  
+
   // Action creators
   actions = {
     // Form actions
@@ -838,225 +836,223 @@ class Store {
       type: ActionTypes.SET_CURRENT_FORM,
       payload: form
     }),
-    
+
     updateFormProperty: (path, value) => ({
       type: ActionTypes.UPDATE_FORM_PROPERTY,
       payload: { path, value }
     }),
-    
+
     addFormElement: (pageIndex, element, position) => ({
       type: ActionTypes.ADD_FORM_ELEMENT,
       payload: { pageIndex, element, position }
     }),
-    
+
     removeFormElement: (pageIndex, elementIndex) => ({
       type: ActionTypes.REMOVE_FORM_ELEMENT,
       payload: { pageIndex, elementIndex }
     }),
-    
+
     moveFormElement: (fromPage, fromIndex, toPage, toIndex) => ({
       type: ActionTypes.MOVE_FORM_ELEMENT,
       payload: { fromPage, fromIndex, toPage, toIndex }
     }),
-    
+
     // UI actions
     selectElement: (element) => ({
       type: ActionTypes.SELECT_ELEMENT,
       payload: element
     }),
-    
+
     toggleSection: (section) => ({
       type: ActionTypes.TOGGLE_SECTION,
       payload: section
     }),
-    
+
     setActiveTab: (tab) => ({
       type: ActionTypes.SET_ACTIVE_TAB,
       payload: tab
     }),
-    
+
     toggleSidebar: () => ({
       type: ActionTypes.TOGGLE_SIDEBAR
     }),
-    
+
     setTheme: (theme) => ({
       type: ActionTypes.SET_THEME,
       payload: theme
     }),
-    
+
     setZoom: (zoom) => ({
       type: ActionTypes.SET_ZOOM,
       payload: zoom
     }),
-    
+
     // Editor actions
     setDirty: (isDirty) => ({
       type: ActionTypes.SET_DIRTY,
       payload: isDirty
     }),
-    
+
     setSaving: (isSaving) => ({
       type: ActionTypes.SET_SAVING,
       payload: isSaving
     }),
-    
+
     setLoading: (isLoading) => ({
       type: ActionTypes.SET_LOADING,
       payload: isLoading
     }),
-    
+
     setLastSaved: (timestamp) => ({
       type: ActionTypes.SET_LAST_SAVED,
       payload: timestamp
     }),
-    
+
     toggleAutoSave: () => ({
       type: ActionTypes.TOGGLE_AUTO_SAVE
     }),
-    
+
     // Drag and drop actions
     startDrag: (element, offset) => ({
       type: ActionTypes.START_DRAG,
       payload: { element, offset }
     }),
-    
+
     updateDrag: (updates) => ({
       type: ActionTypes.UPDATE_DRAG,
       payload: updates
     }),
-    
+
     endDrag: () => ({
       type: ActionTypes.END_DRAG
     }),
-    
+
     setDropTarget: (target) => ({
       type: ActionTypes.SET_DROP_TARGET,
       payload: target
     }),
-    
+
     // AI actions
     toggleAI: () => ({
       type: ActionTypes.TOGGLE_AI
     }),
-    
+
     setAIProcessing: (isProcessing) => ({
       type: ActionTypes.SET_AI_PROCESSING,
       payload: isProcessing
     }),
-    
+
     addAIMessage: (message) => ({
       type: ActionTypes.ADD_AI_MESSAGE,
       payload: message
     }),
-    
+
     setAISuggestions: (suggestions) => ({
       type: ActionTypes.SET_AI_SUGGESTIONS,
       payload: suggestions
     }),
-    
+
     // Preview actions
     togglePreview: () => ({
       type: ActionTypes.TOGGLE_PREVIEW
     }),
-    
+
     setPreviewDevice: (device) => ({
       type: ActionTypes.SET_PREVIEW_DEVICE,
       payload: device
     }),
-    
+
     setPreviewTheme: (theme) => ({
       type: ActionTypes.SET_PREVIEW_THEME,
       payload: theme
     }),
-    
+
     // Validation actions
     setValidationErrors: (errors, warnings) => ({
       type: ActionTypes.SET_VALIDATION_ERRORS,
       payload: { errors, warnings }
     }),
-    
+
     addValidationError: (error) => ({
       type: ActionTypes.ADD_VALIDATION_ERROR,
       payload: error
     }),
-    
+
     clearValidation: () => ({
       type: ActionTypes.CLEAR_VALIDATION
     }),
-    
+
     // Preference actions
     updatePreferences: (preferences) => ({
       type: ActionTypes.UPDATE_PREFERENCES,
       payload: preferences
     }),
-    
+
     // Session actions
     setUser: (user, permissions) => ({
       type: ActionTypes.SET_USER,
       payload: { user, permissions }
     }),
-    
+
     updateActivity: () => ({
       type: ActionTypes.UPDATE_ACTIVITY
     }),
-    
+
     // Global actions
     resetState: () => ({
       type: ActionTypes.RESET_STATE
     }),
-    
+
     loadState: (state) => ({
       type: ActionTypes.LOAD_STATE,
       payload: state
     }),
-    
+
     undo: () => ({
       type: ActionTypes.UNDO
     }),
-    
+
     redo: () => ({
       type: ActionTypes.REDO
     })
   };
-  
+
   // Selectors
   selectors = {
     // Get current form
     getCurrentForm: (state) => state.currentForm,
-    
+
     // Get selected element
     getSelectedElement: (state) => {
       if (!state.ui.selectedElement || !state.currentForm) {
         return null;
       }
-      
+
       const { pageIndex, elementIndex } = state.ui.selectedElement;
       return state.currentForm.surveyJSON.pages[pageIndex]?.elements[elementIndex];
     },
-    
+
     // Get UI state
     getUIState: (state) => state.ui,
-    
+
     // Get editor state
     getEditorState: (state) => state.editor,
-    
+
     // Get validation errors
     getValidationErrors: (state) => state.validation.errors,
-    
+
     // Get user permissions
     getUserPermissions: (state) => state.session.permissions,
-    
+
     // Check if user has permission
-    hasPermission: (state, permission) => {
-      return state.session.permissions.includes(permission);
-    },
-    
+    hasPermission: (state, permission) => state.session.permissions.includes(permission),
+
     // Get theme
     getTheme: (state) => state.ui.theme,
-    
+
     // Is form dirty
     isFormDirty: (state) => state.editor.isDirty,
-    
+
     // Can undo/redo
     canUndo: () => this.canUndo(),
     canRedo: () => this.canRedo()
@@ -1076,7 +1072,7 @@ export const loggerMiddleware = (store, action) => {
   console.log('Payload:', action.payload);
   console.log('Previous State:', store.getState());
   console.groupEnd();
-  
+
   return action;
 };
 
@@ -1085,14 +1081,14 @@ export const validationMiddleware = (store, action) => {
   // Validate actions that modify form
   if (action.type === ActionTypes.UPDATE_FORM_PROPERTY) {
     const { path, value } = action.payload;
-    
+
     // Example validation
     if (path === 'title' && (!value || value.length > 255)) {
       notifications.error('Title must be between 1 and 255 characters');
       return false; // Cancel action
     }
   }
-  
+
   return action;
 };
 
@@ -1105,14 +1101,14 @@ export const activityMiddleware = (store, action) => {
     ActionTypes.REMOVE_FORM_ELEMENT,
     ActionTypes.MOVE_FORM_ELEMENT
   ];
-  
+
   if (userActions.includes(action.type)) {
     // Dispatch activity update after current action
     setTimeout(() => {
       store.dispatch(store.actions.updateActivity());
     }, 0);
   }
-  
+
   return action;
 };
 
@@ -1127,9 +1123,9 @@ export function batchActions(actions) {
 // Batch middleware
 export const batchMiddleware = (store, action) => {
   if (action.type === 'BATCH_ACTIONS') {
-    action.payload.forEach(a => store.dispatch(a));
+    action.payload.forEach((a) => store.dispatch(a));
     return false; // Don't process batch action itself
   }
-  
+
   return action;
 };

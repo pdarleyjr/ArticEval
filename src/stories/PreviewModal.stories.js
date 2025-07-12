@@ -3,20 +3,25 @@ import { PreviewModal } from '../components/PreviewModal.js';
 // Mock survey data for stories
 const mockSurvey = {
   getJSON: () => ({
-    title: "Sample Survey",
-    pages: [{
-      name: "page1",
-      elements: [{
-        type: "text",
-        name: "question1",
-        title: "What is your name?"
-      }, {
-        type: "radiogroup",
-        name: "question2",
-        title: "How satisfied are you?",
-        choices: ["Very satisfied", "Satisfied", "Neutral", "Dissatisfied", "Very dissatisfied"]
-      }]
-    }]
+    title: 'Sample Survey',
+    pages: [
+      {
+        name: 'page1',
+        elements: [
+          {
+            type: 'text',
+            name: 'question1',
+            title: 'What is your name?'
+          },
+          {
+            type: 'radiogroup',
+            name: 'question2',
+            title: 'How satisfied are you?',
+            choices: ['Very satisfied', 'Satisfied', 'Neutral', 'Dissatisfied', 'Very dissatisfied']
+          }
+        ]
+      }
+    ]
   })
 };
 
@@ -28,21 +33,21 @@ export default {
     const container = document.createElement('div');
     container.style.height = '600px';
     container.style.position = 'relative';
-    
+
     // Create button to open modal
     const button = document.createElement('button');
     button.textContent = 'Open Preview';
     button.className = 'btn btn-primary';
-    
+
     // Initialize PreviewModal
     const previewModal = new PreviewModal(mockSurvey, args);
-    
+
     button.addEventListener('click', () => {
       previewModal.open();
     });
-    
+
     container.appendChild(button);
-    
+
     return container;
   },
   argTypes: {

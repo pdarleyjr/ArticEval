@@ -36,7 +36,7 @@ export const createHeader = ({ user, onLogout, onLogin, onCreateAccount }) => {
         size: 'small',
         label: 'Sign up',
         onClick: onCreateAccount,
-        primary: true,
+        primary: true
       })
     );
   }

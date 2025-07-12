@@ -14,22 +14,22 @@ export function initializeEventHandlers(survey) {
   elementTypeDialog = window.elementTypeDialog;
   editDialog = window.editDialog;
   previewModal = window.previewModal;
-  
+
   // Set up UI button handlers
   setupUIButtonHandlers(survey);
-  
+
   // Set up form change handlers
   setupFormChangeHandlers(survey);
-  
+
   // Set up keyboard shortcuts
   setupKeyboardShortcuts(survey);
-  
+
   // Set up responsive handlers
   setupResponsiveHandlers();
-  
+
   // Set up property panel handlers
   setupPropertyPanelHandlers(survey);
-  
+
   // Set up page navigation
   setupPageNavigation(survey);
 }
@@ -42,7 +42,7 @@ function setupUIButtonHandlers(survey) {
       elementTypeDialog?.show();
     });
   }
-  
+
   // Preview button
   const previewBtn = document.getElementById('previewBtn');
   if (previewBtn) {
@@ -50,7 +50,7 @@ function setupUIButtonHandlers(survey) {
       handlePreview(survey);
     });
   }
-  
+
   // Save button
   const saveBtn = document.getElementById('saveBtn');
   if (saveBtn) {
@@ -58,7 +58,7 @@ function setupUIButtonHandlers(survey) {
       handleSave(survey);
     });
   }
-  
+
   // Undo button
   const undoBtn = document.getElementById('undoBtn');
   if (undoBtn) {
@@ -66,7 +66,7 @@ function setupUIButtonHandlers(survey) {
       handleUndo(survey);
     });
   }
-  
+
   // Redo button
   const redoBtn = document.getElementById('redoBtn');
   if (redoBtn) {
@@ -74,7 +74,7 @@ function setupUIButtonHandlers(survey) {
       handleRedo(survey);
     });
   }
-  
+
   // JSON Editor toggle
   const jsonEditorBtn = document.getElementById('jsonEditorBtn');
   if (jsonEditorBtn) {
@@ -82,7 +82,7 @@ function setupUIButtonHandlers(survey) {
       handleJSONEditor(survey);
     });
   }
-  
+
   // Settings button
   const settingsBtn = document.getElementById('settingsBtn');
   if (settingsBtn) {
@@ -90,7 +90,7 @@ function setupUIButtonHandlers(survey) {
       handleSettings(survey);
     });
   }
-  
+
   // Clear form button
   const clearFormBtn = document.getElementById('clearFormBtn');
   if (clearFormBtn) {
@@ -105,37 +105,37 @@ function setupFormChangeHandlers(survey) {
   const autoSave = debounce(() => {
     handleAutoSave(survey);
   }, 30000); // 30 seconds
-  
+
   // Track changes for auto-save
   survey.onValueChanged.add(() => {
     store.set('hasUnsavedChanges', true);
     autoSave();
   });
-  
+
   // Track structure changes
   survey.onQuestionAdded.add((sender, options) => {
     store.set('hasUnsavedChanges', true);
     store.addToHistory(survey.toJSON());
     updateUndoRedoButtons();
     autoSave();
-    
+
     // Select the new question
     selectQuestion(options.question);
   });
-  
+
   survey.onQuestionRemoved.add(() => {
     store.set('hasUnsavedChanges', true);
     store.addToHistory(survey.toJSON());
     updateUndoRedoButtons();
     autoSave();
   });
-  
+
   // Track property changes
   survey.onPropertyChanged.add(() => {
     store.set('hasUnsavedChanges', true);
     autoSave();
   });
-  
+
   // Track page changes
   survey.onCurrentPageChanged.add((sender, options) => {
     updatePageIndicator(survey);
@@ -150,25 +150,25 @@ function setupKeyboardShortcuts(survey) {
       e.preventDefault();
       handleSave(survey);
     }
-    
+
     // Ctrl/Cmd + Z: Undo
     if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
       e.preventDefault();
       handleUndo(survey);
     }
-    
+
     // Ctrl/Cmd + Shift + Z or Ctrl/Cmd + Y: Redo
     if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
       e.preventDefault();
       handleRedo(survey);
     }
-    
+
     // Ctrl/Cmd + P: Preview
     if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
       e.preventDefault();
       handlePreview(survey);
     }
-    
+
     // Delete: Remove selected element
     if (e.key === 'Delete' && !isInputFocused()) {
       const selectedQuestion = store.get('selectedQuestion');
@@ -176,7 +176,7 @@ function setupKeyboardShortcuts(survey) {
         handleDeleteQuestion(survey, selectedQuestion);
       }
     }
-    
+
     // Escape: Clear selection
     if (e.key === 'Escape') {
       clearSelection();
@@ -189,14 +189,14 @@ function setupResponsiveHandlers() {
   const handleResize = debounce(() => {
     updateLayoutForScreenSize();
   }, 250);
-  
+
   window.addEventListener('resize', handleResize);
-  
+
   // Handle orientation change
   window.addEventListener('orientationchange', () => {
     setTimeout(updateLayoutForScreenSize, 100);
   });
-  
+
   // Initial layout update
   updateLayoutForScreenSize();
 }
@@ -209,18 +209,20 @@ function setupPropertyPanelHandlers(survey) {
       document.querySelector('.property-panel')?.classList.toggle('property-panel--open');
     });
   }
-  
+
   // Handle question selection
   survey.onAfterRenderQuestion.add((sender, options) => {
     const element = options.htmlElement;
-    if (!element) return;
-    
+    if (!element) {
+      return;
+    }
+
     element.addEventListener('click', (e) => {
       if (!e.target.closest('.sv_q_title_actions')) {
         selectQuestion(options.question);
       }
     });
-    
+
     // Add edit button to question
     addQuestionActions(element, options.question);
   });
@@ -236,7 +238,7 @@ function setupPageNavigation(survey) {
       }
     });
   }
-  
+
   // Next page button
   const nextPageBtn = document.getElementById('nextPageBtn');
   if (nextPageBtn) {
@@ -246,7 +248,7 @@ function setupPageNavigation(survey) {
       }
     });
   }
-  
+
   // Add page button
   const addPageBtn = document.getElementById('addPageBtn');
   if (addPageBtn) {
@@ -254,7 +256,7 @@ function setupPageNavigation(survey) {
       handleAddPage(survey);
     });
   }
-  
+
   // Page dropdown
   const pageDropdown = document.getElementById('pageDropdown');
   if (pageDropdown) {
@@ -274,10 +276,13 @@ function handlePreview(survey) {
     const previewWindow = window.open('/template-preview.html', '_blank');
     if (previewWindow) {
       previewWindow.addEventListener('load', () => {
-        previewWindow.postMessage({
-          type: 'loadSurvey',
-          data: survey.toJSON()
-        }, '*');
+        previewWindow.postMessage(
+          {
+            type: 'loadSurvey',
+            data: survey.toJSON()
+          },
+          '*'
+        );
       });
     }
   }
@@ -289,18 +294,17 @@ async function handleSave(survey) {
     saveBtn.disabled = true;
     saveBtn.textContent = 'Saving...';
   }
-  
+
   try {
     const formData = {
       ...store.get('formMetadata', {}),
       definition: survey.toJSON()
     };
-    
+
     await formService.save(formData);
-    
+
     store.set('hasUnsavedChanges', false);
     notifications.success('Form saved successfully');
-    
   } catch (error) {
     console.error('Save failed:', error);
     notifications.error('Failed to save form');
@@ -313,17 +317,19 @@ async function handleSave(survey) {
 }
 
 async function handleAutoSave(survey) {
-  if (!store.get('hasUnsavedChanges')) return;
-  
+  if (!store.get('hasUnsavedChanges')) {
+    return;
+  }
+
   try {
     const formData = {
       ...store.get('formMetadata', {}),
       definition: survey.toJSON()
     };
-    
+
     await formService.save(formData);
     store.set('hasUnsavedChanges', false);
-    
+
     // Show subtle notification
     const indicator = document.getElementById('autoSaveIndicator');
     if (indicator) {
@@ -333,7 +339,6 @@ async function handleAutoSave(survey) {
         indicator.classList.remove('visible');
       }, 2000);
     }
-    
   } catch (error) {
     console.error('Auto-save failed:', error);
   }
@@ -379,9 +384,9 @@ function handleSettings(survey) {
 function handleClearForm(survey) {
   if (confirm('Are you sure you want to clear the entire form? This cannot be undone.')) {
     survey.clear();
-    survey.pages.forEach(page => survey.removePage(page));
+    survey.pages.forEach((page) => survey.removePage(page));
     survey.addNewPage('page1');
-    
+
     store.addToHistory(survey.toJSON());
     updateUndoRedoButtons();
     notifications.info('Form cleared');
@@ -403,7 +408,7 @@ function handleAddPage(survey) {
   const pageCount = survey.pageCount;
   const newPage = survey.addNewPage(`page${pageCount + 1}`);
   newPage.title = `Page ${pageCount + 1}`;
-  
+
   survey.currentPage = newPage;
   updatePageDropdown(survey);
   notifications.success('New page added');
@@ -412,36 +417,38 @@ function handleAddPage(survey) {
 // UI update functions
 function selectQuestion(question) {
   // Clear previous selection
-  document.querySelectorAll('.form-element--selected').forEach(el => {
+  document.querySelectorAll('.form-element--selected').forEach((el) => {
     el.classList.remove('form-element--selected');
   });
-  
+
   // Add selection to new element
   const element = document.querySelector(`[data-question-name="${question.name}"]`);
   if (element) {
     element.classList.add('form-element--selected');
   }
-  
+
   // Store selected question
   store.set('selectedQuestion', question);
-  
+
   // Show properties in property panel
   showQuestionProperties(question);
 }
 
 function clearSelection() {
-  document.querySelectorAll('.form-element--selected').forEach(el => {
+  document.querySelectorAll('.form-element--selected').forEach((el) => {
     el.classList.remove('form-element--selected');
   });
-  
+
   store.set('selectedQuestion', null);
   clearPropertyPanel();
 }
 
 function showQuestionProperties(question) {
   const propertyPanel = document.querySelector('.property-panel__content');
-  if (!propertyPanel) return;
-  
+  if (!propertyPanel) {
+    return;
+  }
+
   // This would be handled by a more sophisticated property editor
   // For now, just show basic info
   propertyPanel.innerHTML = `
@@ -459,9 +466,9 @@ function showQuestionProperties(question) {
       <input type="text" value="${question.getType()}" readonly>
     </div>
   `;
-  
+
   // Add change handlers
-  propertyPanel.querySelectorAll('input[data-property]').forEach(input => {
+  propertyPanel.querySelectorAll('input[data-property]').forEach((input) => {
     input.addEventListener('change', (e) => {
       const property = e.target.dataset.property;
       question[property] = e.target.value;
@@ -472,17 +479,20 @@ function showQuestionProperties(question) {
 function clearPropertyPanel() {
   const propertyPanel = document.querySelector('.property-panel__content');
   if (propertyPanel) {
-    propertyPanel.innerHTML = '<p class="property-panel__empty">Select an element to view its properties</p>';
+    propertyPanel.innerHTML =
+      '<p class="property-panel__empty">Select an element to view its properties</p>';
   }
 }
 
 function addQuestionActions(element, question) {
   const titleElement = element.querySelector('.sv_q_title');
-  if (!titleElement) return;
-  
+  if (!titleElement) {
+    return;
+  }
+
   const actionsContainer = document.createElement('div');
   actionsContainer.className = 'sv_q_title_actions';
-  
+
   // Edit button
   const editBtn = document.createElement('button');
   editBtn.className = 'sv_q_action_btn';
@@ -492,7 +502,7 @@ function addQuestionActions(element, question) {
     e.stopPropagation();
     editDialog?.show(question);
   });
-  
+
   // Delete button
   const deleteBtn = document.createElement('button');
   deleteBtn.className = 'sv_q_action_btn sv_q_action_btn--danger';
@@ -502,7 +512,7 @@ function addQuestionActions(element, question) {
     e.stopPropagation();
     handleDeleteQuestion(question.survey, question);
   });
-  
+
   actionsContainer.appendChild(editBtn);
   actionsContainer.appendChild(deleteBtn);
   titleElement.appendChild(actionsContainer);
@@ -511,11 +521,11 @@ function addQuestionActions(element, question) {
 function updateUndoRedoButtons() {
   const undoBtn = document.getElementById('undoBtn');
   const redoBtn = document.getElementById('redoBtn');
-  
+
   if (undoBtn) {
     undoBtn.disabled = !store.canUndo();
   }
-  
+
   if (redoBtn) {
     redoBtn.disabled = !store.canRedo();
   }
@@ -531,11 +541,11 @@ function updatePageIndicator(survey) {
 function updateNavigationButtons(survey) {
   const prevBtn = document.getElementById('prevPageBtn');
   const nextBtn = document.getElementById('nextPageBtn');
-  
+
   if (prevBtn) {
     prevBtn.disabled = survey.currentPageNo === 0;
   }
-  
+
   if (nextBtn) {
     nextBtn.disabled = survey.currentPageNo === survey.pageCount - 1;
   }
@@ -543,8 +553,10 @@ function updateNavigationButtons(survey) {
 
 function updatePageDropdown(survey) {
   const dropdown = document.getElementById('pageDropdown');
-  if (!dropdown) return;
-  
+  if (!dropdown) {
+    return;
+  }
+
   dropdown.innerHTML = '';
   survey.pages.forEach((page, index) => {
     const option = document.createElement('option');
@@ -552,17 +564,17 @@ function updatePageDropdown(survey) {
     option.textContent = page.title || `Page ${index + 1}`;
     dropdown.appendChild(option);
   });
-  
+
   dropdown.value = survey.currentPageNo;
 }
 
 function updateLayoutForScreenSize() {
   const width = window.innerWidth;
   const body = document.body;
-  
+
   // Remove all size classes
   body.classList.remove('is-mobile', 'is-tablet', 'is-desktop');
-  
+
   // Add appropriate class
   if (width < 768) {
     body.classList.add('is-mobile');
@@ -571,7 +583,7 @@ function updateLayoutForScreenSize() {
   } else {
     body.classList.add('is-desktop');
   }
-  
+
   // Handle panel visibility
   if (width < 768) {
     // On mobile, hide panels by default
@@ -582,11 +594,12 @@ function updateLayoutForScreenSize() {
 
 function isInputFocused() {
   const activeElement = document.activeElement;
-  return activeElement && (
-    activeElement.tagName === 'INPUT' ||
-    activeElement.tagName === 'TEXTAREA' ||
-    activeElement.tagName === 'SELECT' ||
-    activeElement.contentEditable === 'true'
+  return (
+    activeElement &&
+    (activeElement.tagName === 'INPUT' ||
+      activeElement.tagName === 'TEXTAREA' ||
+      activeElement.tagName === 'SELECT' ||
+      activeElement.contentEditable === 'true')
   );
 }
 
@@ -611,18 +624,18 @@ function createJSONEditorDialog(survey) {
       </div>
     </div>
   `;
-  
+
   document.body.appendChild(dialog);
-  
+
   // Add event handlers
   dialog.querySelector('.dialog__close').addEventListener('click', () => {
     dialog.classList.remove('dialog--open');
   });
-  
+
   dialog.querySelector('[data-action="cancel"]').addEventListener('click', () => {
     dialog.classList.remove('dialog--open');
   });
-  
+
   dialog.querySelector('[data-action="apply"]').addEventListener('click', () => {
     try {
       const json = JSON.parse(dialog.querySelector('textarea').value);
@@ -633,7 +646,7 @@ function createJSONEditorDialog(survey) {
       notifications.error('Invalid JSON');
     }
   });
-  
+
   dialog.classList.add('dialog--open');
 }
 
@@ -678,27 +691,29 @@ function createSettingsDialog(survey) {
       </div>
     </div>
   `;
-  
+
   document.body.appendChild(dialog);
-  
+
   // Add event handlers
   dialog.querySelector('.dialog__close').addEventListener('click', () => {
     dialog.classList.remove('dialog--open');
   });
-  
+
   dialog.querySelector('[data-action="cancel"]').addEventListener('click', () => {
     dialog.classList.remove('dialog--open');
   });
-  
+
   dialog.querySelector('[data-action="save"]').addEventListener('click', () => {
     survey.title = dialog.querySelector('#formTitle').value;
     survey.description = dialog.querySelector('#formDescription').value;
     survey.showProgressBar = dialog.querySelector('#showProgressBar').value;
-    survey.showQuestionNumbers = dialog.querySelector('#showQuestionNumbers').checked ? 'on' : 'off';
-    
+    survey.showQuestionNumbers = dialog.querySelector('#showQuestionNumbers').checked
+      ? 'on'
+      : 'off';
+
     dialog.classList.remove('dialog--open');
     notifications.success('Settings saved');
   });
-  
+
   dialog.classList.add('dialog--open');
 }

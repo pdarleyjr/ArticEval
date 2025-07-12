@@ -42,7 +42,7 @@ class FormBuilder {
       this.showLoadingState();
 
       // API is already initialized when imported
-      
+
       // Configure SurveyJS
       this.survey = await configureSurvey();
 
@@ -66,7 +66,6 @@ class FormBuilder {
 
       this.initialized = true;
       notifications.success('Form Builder loaded successfully');
-
     } catch (error) {
       console.error('Failed to initialize Form Builder:', error);
       notifications.error('Failed to initialize Form Builder');
@@ -95,19 +94,24 @@ class FormBuilder {
 
   setupToolbox() {
     const toolboxElement = document.getElementById('toolbox');
-    if (!toolboxElement) return;
+    if (!toolboxElement) {
+      return;
+    }
 
     // Search functionality
     const searchInput = toolboxElement.querySelector('#toolbox-search');
     if (searchInput) {
-      searchInput.addEventListener('input', debounce((e) => {
-        this.filterToolboxItems(e.target.value);
-      }, 300));
+      searchInput.addEventListener(
+        'input',
+        debounce((e) => {
+          this.filterToolboxItems(e.target.value);
+        }, 300)
+      );
     }
 
     // Category expansion
     const categoryHeaders = toolboxElement.querySelectorAll('.toolbox-category-header');
-    categoryHeaders.forEach(header => {
+    categoryHeaders.forEach((header) => {
       header.addEventListener('click', () => {
         const category = header.closest('.toolbox-category');
         category.classList.toggle('toolbox-category--collapsed');
@@ -117,7 +121,9 @@ class FormBuilder {
 
   setupPropertyPanel() {
     const propertyPanel = document.getElementById('property-panel');
-    if (!propertyPanel) return;
+    if (!propertyPanel) {
+      return;
+    }
 
     // Panel toggle
     const toggleBtn = propertyPanel.querySelector('.property-panel-toggle');
@@ -177,7 +183,9 @@ class FormBuilder {
 
   async loadSavedForm() {
     const formId = this.getFormIdFromUrl();
-    if (!formId) return;
+    if (!formId) {
+      return;
+    }
 
     try {
       const formData = await this.formService.getForm(formId);
@@ -196,13 +204,13 @@ class FormBuilder {
     try {
       const formData = this.survey.toJSON();
       const formId = this.getFormIdFromUrl() || this.generateFormId();
-      
+
       await this.formService.saveForm(formId, formData);
-      
+
       if (!isAutoSave) {
         notifications.success('Form saved successfully');
       }
-      
+
       // Update URL if new form
       if (!this.getFormIdFromUrl()) {
         window.history.replaceState({}, '', `?id=${formId}`);
@@ -217,19 +225,19 @@ class FormBuilder {
     try {
       // Show loading state
       const loadingEl = this.showPreviewLoadingState();
-      
+
       // Lazy load the PreviewModal component
       if (!window.previewModal) {
         const { PreviewModal } = await import('./components/PreviewModal.js');
         // PreviewModal constructor automatically attaches to window.previewModal
         new PreviewModal();
       }
-      
+
       // Hide loading state
       if (loadingEl) {
         loadingEl.remove();
       }
-      
+
       // Show the preview
       const formData = this.survey.toJSON();
       window.previewModal.show(formData);
@@ -238,7 +246,7 @@ class FormBuilder {
       notifications.error('Failed to load preview. Please try again.');
     }
   }
-  
+
   showPreviewLoadingState() {
     const loadingEl = document.createElement('div');
     loadingEl.className = 'preview-loading';
@@ -253,15 +261,15 @@ class FormBuilder {
   filterToolboxItems(searchTerm) {
     const items = document.querySelectorAll('.toolbox-item');
     const categories = document.querySelectorAll('.toolbox-category');
-    
-    items.forEach(item => {
+
+    items.forEach((item) => {
       const label = item.querySelector('.toolbox-item-label').textContent.toLowerCase();
       const matches = label.includes(searchTerm.toLowerCase());
       item.style.display = matches ? '' : 'none';
     });
 
     // Hide empty categories
-    categories.forEach(category => {
+    categories.forEach((category) => {
       const visibleItems = category.querySelectorAll('.toolbox-item:not([style*="display: none"])');
       category.style.display = visibleItems.length > 0 ? '' : 'none';
     });
@@ -269,10 +277,13 @@ class FormBuilder {
 
   updatePropertyPanel(element) {
     const propertyContent = document.querySelector('.property-panel-content');
-    if (!propertyContent) return;
+    if (!propertyContent) {
+      return;
+    }
 
     if (!element) {
-      propertyContent.innerHTML = '<p class="property-panel-empty">Select an element to edit its properties</p>';
+      propertyContent.innerHTML =
+        '<p class="property-panel-empty">Select an element to edit its properties</p>';
       return;
     }
 
@@ -314,9 +325,9 @@ if (document.readyState === 'loading') {
 function initializeApp() {
   // Create global instance
   window.formBuilder = new FormBuilder();
-  
+
   // Initialize the application
-  window.formBuilder.init().catch(error => {
+  window.formBuilder.init().catch((error) => {
     console.error('Failed to initialize application:', error);
   });
 }

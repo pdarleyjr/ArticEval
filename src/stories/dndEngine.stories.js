@@ -163,12 +163,16 @@ const Template = (args) => {
     
     <div class="element-toolbox">
       <div class="toolbox-title">Form Elements</div>
-      ${args.elementTypes.map(element => `
+      ${args.elementTypes
+    .map(
+      (element) => `
         <div class="draggable-element" draggable="true" data-element-type="${element.type}">
           <span class="element-icon">${element.icon}</span>
           <span class="element-label">${element.label}</span>
         </div>
-      `).join('')}
+      `
+    )
+    .join('')}
     </div>
     
     <div class="drop-zone-container">
@@ -180,50 +184,50 @@ const Template = (args) => {
       <div class="element-count">0 elements added</div>
     </div>
   `;
-  
+
   // Simulate DndEngine functionality
   setTimeout(() => {
     const draggables = container.querySelectorAll('.draggable-element');
     const dropZone = container.getElementById('dropZone');
     const elementCount = container.querySelector('.element-count');
     let droppedCount = 0;
-    
-    draggables.forEach(draggable => {
+
+    draggables.forEach((draggable) => {
       draggable.addEventListener('dragstart', (e) => {
         e.dataTransfer.effectAllowed = 'copy';
         e.dataTransfer.setData('elementType', draggable.dataset.elementType);
         draggable.classList.add('dragging');
       });
-      
+
       draggable.addEventListener('dragend', () => {
         draggable.classList.remove('dragging');
       });
     });
-    
+
     dropZone.addEventListener('dragover', (e) => {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'copy';
       dropZone.classList.add('drag-over');
     });
-    
+
     dropZone.addEventListener('dragleave', () => {
       dropZone.classList.remove('drag-over');
     });
-    
+
     dropZone.addEventListener('drop', (e) => {
       e.preventDefault();
       dropZone.classList.remove('drag-over');
-      
+
       const elementType = e.dataTransfer.getData('elementType');
-      const elementConfig = args.elementTypes.find(el => el.type === elementType);
-      
+      const elementConfig = args.elementTypes.find((el) => el.type === elementType);
+
       if (elementConfig) {
         // Remove empty state if it exists
         const emptyState = dropZone.querySelector('.empty-state');
         if (emptyState) {
           emptyState.remove();
         }
-        
+
         // Create dropped element
         const droppedElement = document.createElement('div');
         droppedElement.className = 'dropped-element';
@@ -231,14 +235,14 @@ const Template = (args) => {
           <span class="element-icon">${elementConfig.icon}</span>
           <span>${elementConfig.label} ${droppedCount + 1}</span>
         `;
-        
+
         dropZone.appendChild(droppedElement);
         droppedCount++;
         elementCount.textContent = `${droppedCount} element${droppedCount !== 1 ? 's' : ''} added`;
       }
     });
   }, 100);
-  
+
   return container;
 };
 

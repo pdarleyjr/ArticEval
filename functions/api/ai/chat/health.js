@@ -1,5 +1,5 @@
-import { CloudflareVectorizeStore } from '@langchain/cloudflare';
-import { CloudflareWorkersAIEmbeddings } from '@langchain/cloudflare';
+import { CloudflareVectorizeStore } from '@langchain/community/vectorstores/cloudflare_vectorize';
+import { CloudflareWorkersAIEmbeddings } from '@langchain/community/embeddings/cloudflare_workersai';
 import { createResponse } from '../../../utils/api-utils.js';
 
 // Helper function for exponential backoff retry

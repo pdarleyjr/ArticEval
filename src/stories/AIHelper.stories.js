@@ -37,13 +37,13 @@ export default {
       </div>
       <div id="ai-helper-container"></div>
     `;
-    
+
     // Initialize AIHelper
     const aiHelper = new AIHelper(mockSurvey, {
       ...mockApiConfig,
       ...args.apiConfig
     });
-    
+
     // Add event listener to open button
     const openButton = container.querySelector('#open-ai-helper');
     openButton.addEventListener('click', () => {
@@ -52,13 +52,13 @@ export default {
         panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
       }
     });
-    
+
     // Append AI helper panel to container
     const helperContainer = container.querySelector('#ai-helper-container');
     if (aiHelper.panel) {
       helperContainer.appendChild(aiHelper.panel);
     }
-    
+
     return container;
   },
   argTypes: {

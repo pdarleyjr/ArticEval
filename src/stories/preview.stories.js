@@ -5,7 +5,8 @@ export default {
   parameters: {
     docs: {
       description: {
-        component: 'Preview component for displaying form preview with injected CSS styling. Shows how the form will appear to end users.'
+        component:
+          'Preview component for displaying form preview with injected CSS styling. Shows how the form will appear to end users.'
       }
     }
   },
@@ -338,7 +339,9 @@ const Template = (args) => {
       <span>👁️ Show Preview</span>
     </button>
     
-    ${args.showModal ? `
+    ${
+  args.showModal
+    ? `
       <div class="preview-modal" id="previewModal">
         <div class="preview-content">
           <div class="preview-header">
@@ -350,7 +353,8 @@ const Template = (args) => {
           </div>
         </div>
       </div>
-    ` : `
+    `
+    : `
       <div class="inline-preview">
         <div class="inline-preview-header">
           <h3 class="preview-title">Form Preview</h3>
@@ -359,15 +363,16 @@ const Template = (args) => {
           ${renderPreviewContent(args)}
         </div>
       </div>
-    `}
+    `
+}
   `;
-  
+
   // Add interactivity
   setTimeout(() => {
     const showBtn = container.querySelector('#showPreviewBtn');
     const modal = container.querySelector('#previewModal');
     const closeBtn = container.querySelector('#closePreviewBtn');
-    
+
     if (showBtn && modal) {
       showBtn.addEventListener('click', () => {
         modal.classList.add('show');
@@ -375,13 +380,13 @@ const Template = (args) => {
         console.log('Preview.injectBuilderCSS() called');
       });
     }
-    
+
     if (closeBtn && modal) {
       closeBtn.addEventListener('click', () => {
         modal.classList.remove('show');
         console.log('Preview.close() called');
       });
-      
+
       // Close on backdrop click
       modal.addEventListener('click', (e) => {
         if (e.target === modal) {
@@ -389,7 +394,7 @@ const Template = (args) => {
         }
       });
     }
-    
+
     // Add rating interactivity
     const stars = container.querySelectorAll('.rating-star');
     stars.forEach((star, index) => {
@@ -400,7 +405,7 @@ const Template = (args) => {
       });
     });
   }, 100);
-  
+
   return container;
 };
 
@@ -414,26 +419,28 @@ function renderPreviewContent(args) {
     <div class="form-preview theme-${args.theme}">
       <h1 class="form-title">${args.formData.title}</h1>
       
-      ${args.formData.pages[0].elements.map(element => {
-        if (element.type === 'text') {
-          return `
+      ${args.formData.pages[0].elements
+    .map((element) => {
+      if (element.type === 'text') {
+        return `
             <div class="form-element">
               <label class="form-label">${element.title}</label>
               <input type="text" class="form-input" placeholder="Enter your answer here..." />
             </div>
           `;
-        } else if (element.type === 'rating') {
-          return `
+      } else if (element.type === 'rating') {
+        return `
             <div class="form-element">
               <label class="form-label">${element.title}</label>
               <div class="rating-container">
-                ${[1,2,3,4,5].map(i => `<span class="rating-star">★</span>`).join('')}
+                ${[1, 2, 3, 4, 5].map((i) => '<span class="rating-star">★</span>').join('')}
               </div>
             </div>
           `;
-        }
-        return '';
-      }).join('')}
+      }
+      return '';
+    })
+    .join('')}
       
       <div class="form-actions">
         <button class="form-button form-button-primary">Submit</button>

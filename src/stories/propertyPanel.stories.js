@@ -5,7 +5,8 @@ export default {
   parameters: {
     docs: {
       description: {
-        component: 'Property panel for editing form element properties. Displays different property controls based on the selected element type.'
+        component:
+          'Property panel for editing form element properties. Displays different property controls based on the selected element type.'
       }
     }
   },
@@ -238,25 +239,25 @@ const Template = (args) => {
       </div>
     </div>
   `;
-  
+
   // Add toggle functionality
   setTimeout(() => {
     const panel = container.querySelector('#propertiesPanel');
     const toggleBtn = container.querySelector('.toggle-btn');
-    
+
     toggleBtn.addEventListener('click', () => {
       panel.classList.toggle('collapsed');
     });
-    
+
     // Add input change listeners
     const inputs = container.querySelectorAll('.property-control');
-    inputs.forEach(input => {
+    inputs.forEach((input) => {
       input.addEventListener('change', (e) => {
         console.log(`Property changed: ${input.name} = ${input.value}`);
       });
     });
   }, 100);
-  
+
   return container;
 };
 
@@ -306,7 +307,7 @@ function renderProperties(elementType) {
       </div>
     </div>
   `;
-  
+
   const typeSpecificProperties = {
     text: `
       <div class="property-group">
@@ -438,7 +439,7 @@ Choice 3</textarea>
       </div>
     `
   };
-  
+
   return commonProperties + (typeSpecificProperties[elementType] || '');
 }
 

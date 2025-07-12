@@ -3,22 +3,22 @@ import './stories.css';
 
 // Mock data
 const mockSurveyData = {
-  logoPosition: "right",
+  logoPosition: 'right',
   pages: [
     {
-      name: "page1",
+      name: 'page1',
       elements: [
         {
-          type: "text",
-          name: "name",
-          title: "What is your name?",
+          type: 'text',
+          name: 'name',
+          title: 'What is your name?',
           isRequired: true
         },
         {
-          type: "radiogroup",
-          name: "experience",
-          title: "How would you rate your experience?",
-          choices: ["Excellent", "Good", "Fair", "Poor"]
+          type: 'radiogroup',
+          name: 'experience',
+          title: 'How would you rate your experience?',
+          choices: ['Excellent', 'Good', 'Fair', 'Poor']
         }
       ]
     }
@@ -28,7 +28,7 @@ const mockSurveyData = {
 export default {
   title: 'Form Builder/FormBuilder',
   parameters: {
-    layout: 'fullscreen',
+    layout: 'fullscreen'
   },
   argTypes: {
     theme: {
@@ -166,14 +166,14 @@ const createFormBuilderContainer = () => {
       <div class="loading-spinner"></div>
     </div>
   `;
-  
+
   return container;
 };
 
 // Template function
 const Template = (args) => {
   const container = createFormBuilderContainer();
-  
+
   // Mock window.SurveyCreator if not available
   if (!window.Survey || !window.SurveyCreator) {
     container.innerHTML = `
@@ -186,7 +186,7 @@ const Template = (args) => {
     `;
     return container;
   }
-  
+
   // Initialize FormBuilder after DOM is ready
   setTimeout(() => {
     try {
@@ -195,26 +195,30 @@ const Template = (args) => {
       if (loadingOverlay) {
         loadingOverlay.style.display = 'none';
       }
-      
+
       // Create FormBuilder instance
       const formBuilder = new FormBuilder();
-      
+
       // Mock the initialization since we're in Storybook
       if (args.theme) {
         Survey.StylesManager.applyTheme(args.theme);
       }
-      
+
       // Configure based on args
       if (!args.showToolbox) {
         const toolbox = container.querySelector('#toolbox-container');
-        if (toolbox) toolbox.style.display = 'none';
+        if (toolbox) {
+          toolbox.style.display = 'none';
+        }
       }
-      
+
       if (!args.showPropertyGrid) {
         const propertyGrid = container.querySelector('#property-grid-container');
-        if (propertyGrid) propertyGrid.style.display = 'none';
+        if (propertyGrid) {
+          propertyGrid.style.display = 'none';
+        }
       }
-      
+
       // Simulate initialization
       const creatorDiv = container.querySelector('#surveyCreator');
       creatorDiv.innerHTML = `
@@ -232,24 +236,23 @@ ${JSON.stringify(mockSurveyData, null, 2)}
           </div>
         </div>
       `;
-      
+
       // Add event listeners
       const saveBtn = container.querySelector('.btn-save');
       const previewBtn = container.querySelector('.btn-preview');
       const aiBtn = container.querySelector('.btn-ai');
-      
+
       saveBtn?.addEventListener('click', () => {
         alert('Save functionality would trigger here');
       });
-      
+
       previewBtn?.addEventListener('click', () => {
         alert('Preview modal would open here');
       });
-      
+
       aiBtn?.addEventListener('click', () => {
         alert('AI Assistant would open here');
       });
-      
     } catch (error) {
       console.error('Error initializing FormBuilder:', error);
       const creatorDiv = container.querySelector('#surveyCreator');
@@ -261,7 +264,7 @@ ${JSON.stringify(mockSurveyData, null, 2)}
       `;
     }
   }, 100);
-  
+
   return container;
 };
 
@@ -340,13 +343,13 @@ FastAutoSave.parameters = {
 // Integration example
 export const WithMockData = () => {
   const container = createFormBuilderContainer();
-  
+
   setTimeout(() => {
     const loadingOverlay = container.querySelector('#loading-overlay');
     if (loadingOverlay) {
       loadingOverlay.style.display = 'none';
     }
-    
+
     // Create a more complex mock visualization
     const creatorDiv = container.querySelector('#surveyCreator');
     creatorDiv.innerHTML = `
@@ -394,7 +397,7 @@ export const WithMockData = () => {
       </div>
     `;
   }, 100);
-  
+
   return container;
 };
 WithMockData.parameters = {

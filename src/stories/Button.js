@@ -5,7 +5,7 @@ export const createButton = ({
   size = 'medium',
   backgroundColor,
   label,
-  onClick,
+  onClick
 }) => {
   const btn = document.createElement('button');
   btn.type = 'button';

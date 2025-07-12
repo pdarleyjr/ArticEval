@@ -10,9 +10,7 @@ const mockElement = {
   description: 'Please enter your full name',
   isRequired: true,
   placeHolder: 'John Doe',
-  validators: [
-    { type: 'text', minLength: 2, maxLength: 50 }
-  ]
+  validators: [{ type: 'text', minLength: 2, maxLength: 50 }]
 };
 
 const mockRadioElement = {
@@ -51,7 +49,7 @@ export default {
   render: (args) => {
     const container = document.createElement('div');
     container.style.cssText = 'padding: 20px;';
-    
+
     const button = document.createElement('button');
     button.textContent = args.buttonText || 'Edit Question';
     button.style.cssText = `
@@ -63,29 +61,34 @@ export default {
       cursor: pointer;
       font-size: 16px;
     `;
-    
+
     const resultDiv = document.createElement('div');
-    resultDiv.style.cssText = 'margin-top: 20px; padding: 10px; background: #f5f5f5; border-radius: 4px;';
+    resultDiv.style.cssText =
+      'margin-top: 20px; padding: 10px; background: #f5f5f5; border-radius: 4px;';
     resultDiv.textContent = 'Click the button to open the edit dialog';
-    
+
     const editDialog = new EditDialog({
       onSave: (updatedElement) => {
         resultDiv.innerHTML = `<strong>Saved:</strong><pre>${JSON.stringify(updatedElement, null, 2)}</pre>`;
-        if (args.onSave) args.onSave(updatedElement);
+        if (args.onSave) {
+          args.onSave(updatedElement);
+        }
       },
       onDelete: () => {
         resultDiv.innerHTML = '<strong>Element deleted!</strong>';
-        if (args.onDelete) args.onDelete();
+        if (args.onDelete) {
+          args.onDelete();
+        }
       }
     });
-    
+
     button.addEventListener('click', () => {
       editDialog.show(args.element || mockElement);
     });
-    
+
     container.appendChild(button);
     container.appendChild(resultDiv);
-    
+
     return container;
   },
   argTypes: {
@@ -149,13 +152,7 @@ export const RequiredQuestion = {
       title: 'Select your country',
       description: 'This field is required',
       isRequired: true,
-      choices: [
-        'United States',
-        'Canada',
-        'United Kingdom',
-        'Australia',
-        'Other'
-      ],
+      choices: ['United States', 'Canada', 'United Kingdom', 'Australia', 'Other'],
       hasOther: true
     },
     buttonText: 'Edit Required Dropdown'

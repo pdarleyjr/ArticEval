@@ -26,9 +26,7 @@ export const createPage = () => {
     rerenderHeader();
   };
 
-  const createHeaderElement = () => {
-    return createHeader({ onLogin, onLogout, onCreateAccount, user });
-  };
+  const createHeaderElement = () => createHeader({ onLogin, onLogout, onCreateAccount, user });
 
   header = createHeaderElement();
   article.appendChild(header);

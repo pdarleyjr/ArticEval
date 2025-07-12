@@ -1,4 +1,6 @@
 // Base styles and resets
+@use 'variables' as *;
+
 * {
   box-sizing: border-box;
 }

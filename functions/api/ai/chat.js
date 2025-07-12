@@ -1,5 +1,5 @@
-import { CloudflareVectorizeStore } from '@langchain/cloudflare';
-import { CloudflareWorkersAIEmbeddings } from '@langchain/cloudflare';
+import { CloudflareVectorizeStore } from '@langchain/community/vectorstores/cloudflare_vectorize';
+import { CloudflareWorkersAIEmbeddings } from '@langchain/community/embeddings/cloudflare_workersai';
 import { createResponse, handleCORS, handleError } from '../../utils/api-utils.js';
 
 // Helper function for safe JSON parsing from string

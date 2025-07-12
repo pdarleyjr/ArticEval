@@ -12,45 +12,49 @@ export class PreviewModal {
       allowEdit: false,
       ...options
     };
-    
+
     this.modal = null;
     this.previewSurvey = null;
     this.isOpen = false;
-    
+
     // Bind methods
     this.open = this.open.bind(this);
     this.close = this.close.bind(this);
     this.toggleFullscreen = this.toggleFullscreen.bind(this);
     this.switchDevice = this.switchDevice.bind(this);
   }
-  
+
   open() {
-    if (this.isOpen) return;
-    
+    if (this.isOpen) {
+      return;
+    }
+
     // Create modal
     this.createModal();
-    
+
     // Initialize preview survey
     this.initializePreviewSurvey();
-    
+
     // Show modal
     document.body.appendChild(this.modal);
     this.modal.classList.add('show');
     this.isOpen = true;
-    
+
     // Focus trap
     this.setupFocusTrap();
-    
+
     // Analytics
     this.trackPreviewOpen();
   }
-  
+
   close() {
-    if (!this.isOpen) return;
-    
+    if (!this.isOpen) {
+      return;
+    }
+
     // Remove modal with animation
     this.modal.classList.remove('show');
-    
+
     setTimeout(() => {
       if (this.modal && this.modal.parentNode) {
         this.modal.parentNode.removeChild(this.modal);
@@ -59,11 +63,11 @@ export class PreviewModal {
       this.previewSurvey = null;
       this.isOpen = false;
     }, 300);
-    
+
     // Remove event listeners
     this.removeEventListeners();
   }
-  
+
   createModal() {
     this.modal = document.createElement('div');
     this.modal.className = 'preview-modal';
@@ -121,45 +125,45 @@ export class PreviewModal {
         </div>
       </div>
     `;
-    
+
     // Setup event listeners
     this.setupEventListeners();
   }
-  
+
   setupEventListeners() {
     // Close buttons
     this.modal.querySelector('.preview-close-btn').addEventListener('click', this.close);
     this.modal.querySelector('.close-preview-btn').addEventListener('click', this.close);
     this.modal.querySelector('.preview-modal-overlay').addEventListener('click', this.close);
-    
+
     // Device selector
-    this.modal.querySelectorAll('.device-btn').forEach(btn => {
+    this.modal.querySelectorAll('.device-btn').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         const device = e.currentTarget.dataset.device;
         this.switchDevice(device);
       });
     });
-    
+
     // Theme toggle
     this.modal.querySelector('.preview-theme-btn').addEventListener('click', () => {
       this.toggleTheme();
     });
-    
+
     // Fullscreen toggle
     this.modal.querySelector('.preview-fullscreen-btn').addEventListener('click', () => {
       this.toggleFullscreen();
     });
-    
+
     // Share button
     this.modal.querySelector('.share-btn').addEventListener('click', () => {
       this.sharePreview();
     });
-    
+
     // Test data button
     this.modal.querySelector('.test-data-btn').addEventListener('click', () => {
       this.loadTestData();
     });
-    
+
     // Keyboard shortcuts
     this.handleKeyboard = (e) => {
       if (e.key === 'Escape') {
@@ -169,63 +173,63 @@ export class PreviewModal {
         this.toggleFullscreen();
       }
     };
-    
+
     document.addEventListener('keydown', this.handleKeyboard);
   }
-  
+
   removeEventListeners() {
     document.removeEventListener('keydown', this.handleKeyboard);
   }
-  
+
   initializePreviewSurvey() {
     // Clone survey JSON
     const surveyJSON = this.survey.toJSON();
-    
+
     // Create preview survey instance
     this.previewSurvey = new Survey.Model(surveyJSON);
-    
+
     // Configure preview settings
     this.configurePreviewSurvey();
-    
+
     // Render survey
     const container = this.modal.querySelector('#preview-survey');
     this.previewSurvey.render(container);
-    
+
     // Setup preview event handlers
     this.setupPreviewHandlers();
-    
+
     // Update info
     this.updatePreviewInfo();
   }
-  
+
   configurePreviewSurvey() {
     // Set preview mode
     this.previewSurvey.mode = 'display';
-    
+
     // Configure appearance
     this.previewSurvey.showNavigationButtons = this.options.showNavigationButtons !== false;
     this.previewSurvey.showProgressBar = this.options.showProgressBar ? 'top' : 'off';
     this.previewSurvey.showCompletedPage = this.options.showCompleteButton;
-    
+
     // Set theme
     this.previewSurvey.applyTheme(this.options.theme);
-    
+
     // Disable design mode features
     this.previewSurvey.allowCompleteSurveyAutomatic = false;
     this.previewSurvey.sendResultOnPageNext = false;
-    
+
     // Configure validation
     this.previewSurvey.checkErrorsMode = 'onValueChanged';
     this.previewSurvey.textUpdateMode = 'onTyping';
   }
-  
+
   setupPreviewHandlers() {
     // Page changed
     this.previewSurvey.onCurrentPageChanged.add(() => {
       this.updatePreviewInfo();
       this.scrollToTop();
     });
-    
+
     // Value changed
     this.previewSurvey.onValueChanged.add((sender, options) => {
       // Track interactions
@@ -234,12 +238,12 @@ export class PreviewModal {
         value: options.value
       });
     });
-    
+
     // Complete
     this.previewSurvey.onComplete.add(() => {
       this.handlePreviewComplete();
     });
-    
+
     // Validation error
     this.previewSurvey.onValidationError.add((sender, options) => {
       this.trackInteraction('validation_error', {
@@ -248,54 +252,54 @@ export class PreviewModal {
       });
     });
   }
-  
+
   switchDevice(device) {
     // Update active button
-    this.modal.querySelectorAll('.device-btn').forEach(btn => {
+    this.modal.querySelectorAll('.device-btn').forEach((btn) => {
       btn.classList.toggle('active', btn.dataset.device === device);
     });
-    
+
     // Update frame class
     const frame = this.modal.querySelector('.preview-device-frame');
     frame.className = `preview-device-frame ${device}`;
-    
+
     // Track device switch
     this.trackInteraction('device_switch', { device });
-    
+
     // Update preview info
     this.updateDeviceInfo(device);
   }
-  
+
   toggleTheme() {
     const themes = ['modern', 'default', 'bootstrap', 'winterstone', 'orange'];
     const currentTheme = this.previewSurvey.theme || 'modern';
     const currentIndex = themes.indexOf(currentTheme);
     const nextTheme = themes[(currentIndex + 1) % themes.length];
-    
+
     // Apply new theme
     this.previewSurvey.applyTheme(nextTheme);
-    
+
     // Show notification
     notifications.info(`Theme changed to: ${nextTheme}`);
-    
+
     // Track theme change
     this.trackInteraction('theme_change', { theme: nextTheme });
   }
-  
+
   toggleFullscreen() {
     const container = this.modal.querySelector('.preview-modal-container');
     const isFullscreen = container.classList.contains('fullscreen');
-    
+
     container.classList.toggle('fullscreen');
-    
+
     // Update icon
     const icon = this.modal.querySelector('.preview-fullscreen-btn i');
     icon.className = isFullscreen ? 'fas fa-expand' : 'fas fa-compress';
-    
+
     // Track fullscreen toggle
     this.trackInteraction('fullscreen_toggle', { fullscreen: !isFullscreen });
   }
-  
+
   sharePreview() {
     // Generate shareable link
     const shareData = {
@@ -303,7 +307,7 @@ export class PreviewModal {
       timestamp: Date.now(),
       expiresIn: 24 * 60 * 60 * 1000 // 24 hours
     };
-    
+
     // Create share modal
     const shareModal = document.createElement('div');
     shareModal.className = 'share-modal';
@@ -328,50 +332,50 @@ export class PreviewModal {
         <button class="btn primary close-share-btn">Done</button>
       </div>
     `;
-    
+
     // Add to modal
     this.modal.appendChild(shareModal);
-    
+
     // Setup share modal events
     this.setupShareModalEvents(shareModal);
-    
+
     // Show with animation
     setTimeout(() => shareModal.classList.add('show'), 10);
   }
-  
+
   setupShareModalEvents(shareModal) {
     // Copy link
     const copyBtn = shareModal.querySelector('.copy-link-btn');
     const input = shareModal.querySelector('.share-link-input');
-    
+
     copyBtn.addEventListener('click', () => {
       input.select();
       document.execCommand('copy');
-      
+
       // Show feedback
       copyBtn.innerHTML = '<i class="fas fa-check"></i>';
       setTimeout(() => {
         copyBtn.innerHTML = '<i class="fas fa-copy"></i>';
       }, 2000);
-      
+
       notifications.success('Link copied to clipboard!');
     });
-    
+
     // Share options
-    shareModal.querySelectorAll('.share-option-btn').forEach(btn => {
+    shareModal.querySelectorAll('.share-option-btn').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         const method = e.currentTarget.dataset.method;
         this.handleShareMethod(method, input.value);
       });
     });
-    
+
     // Close
     shareModal.querySelector('.close-share-btn').addEventListener('click', () => {
       shareModal.classList.remove('show');
       setTimeout(() => shareModal.remove(), 300);
     });
   }
-  
+
   generateShareLink(data) {
     // In production, this would generate a real shareable link
     const baseUrl = window.location.origin;
@@ -380,10 +384,10 @@ export class PreviewModal {
       token: btoa(JSON.stringify(data)),
       t: data.timestamp
     });
-    
+
     return `${baseUrl}/preview?${params.toString()}`;
   }
-  
+
   handleShareMethod(method, link) {
     switch (method) {
       case 'email':
@@ -391,13 +395,13 @@ export class PreviewModal {
         const body = encodeURIComponent(`Click here to preview the form:\n\n${link}`);
         window.open(`mailto:?subject=${subject}&body=${body}`);
         break;
-        
+
       case 'qr':
         this.showQRCode(link);
         break;
     }
   }
-  
+
   showQRCode(link) {
     // Create QR code modal
     const qrModal = document.createElement('div');
@@ -410,9 +414,9 @@ export class PreviewModal {
         <button class="btn primary">Close</button>
       </div>
     `;
-    
+
     this.modal.appendChild(qrModal);
-    
+
     // Generate QR code (requires qrcode.js library)
     if (window.QRCode) {
       new QRCode(qrModal.querySelector('#qr-code'), {
@@ -428,47 +432,48 @@ export class PreviewModal {
         </p>
       `;
     }
-    
+
     // Close button
     qrModal.querySelector('button').addEventListener('click', () => {
       qrModal.remove();
     });
-    
+
     // Show with animation
     setTimeout(() => qrModal.classList.add('show'), 10);
   }
-  
+
   loadTestData() {
     // Generate test data based on question types
     const testData = this.generateTestData();
-    
+
     // Apply test data
-    Object.keys(testData).forEach(key => {
+    Object.keys(testData).forEach((key) => {
       this.previewSurvey.setValue(key, testData[key]);
     });
-    
+
     notifications.success('Test data loaded');
-    
+
     // Track test data load
     this.trackInteraction('test_data_loaded');
   }
-  
+
   generateTestData() {
     const testData = {};
-    
-    this.previewSurvey.getAllQuestions().forEach(question => {
+
+    this.previewSurvey.getAllQuestions().forEach((question) => {
       const name = question.name;
       const type = question.getType();
-      
+
       switch (type) {
         case 'text':
           testData[name] = this.generateTextData(question);
           break;
-          
+
         case 'comment':
-          testData[name] = 'This is a sample comment for testing purposes. It contains multiple sentences to show how longer text appears.';
+          testData[name] =
+            'This is a sample comment for testing purposes. It contains multiple sentences to show how longer text appears.';
           break;
-          
+
         case 'radiogroup':
         case 'dropdown':
           if (question.choices && question.choices.length > 0) {
@@ -476,10 +481,13 @@ export class PreviewModal {
             testData[name] = question.choices[randomIndex].value || question.choices[randomIndex];
           }
           break;
-          
+
         case 'checkbox':
           if (question.choices && question.choices.length > 0) {
-            const selectedCount = Math.min(2, Math.floor(Math.random() * question.choices.length) + 1);
+            const selectedCount = Math.min(
+              2,
+              Math.floor(Math.random() * question.choices.length) + 1
+            );
             const selected = [];
             for (let i = 0; i < selectedCount; i++) {
               const choice = question.choices[i];
@@ -488,51 +496,52 @@ export class PreviewModal {
             testData[name] = selected;
           }
           break;
-          
+
         case 'boolean':
           testData[name] = Math.random() > 0.5;
           break;
-          
+
         case 'rating':
           const min = question.rateMin || 1;
           const max = question.rateMax || 5;
           testData[name] = Math.floor(Math.random() * (max - min + 1)) + min;
           break;
-          
+
         case 'matrix':
           const matrixData = {};
           if (question.rows) {
-            question.rows.forEach(row => {
+            question.rows.forEach((row) => {
               const rowValue = row.value || row;
               if (question.columns && question.columns.length > 0) {
-                const randomCol = question.columns[Math.floor(Math.random() * question.columns.length)];
+                const randomCol =
+                  question.columns[Math.floor(Math.random() * question.columns.length)];
                 matrixData[rowValue] = randomCol.value || randomCol;
               }
             });
           }
           testData[name] = matrixData;
           break;
-          
+
         case 'file':
           // Skip file questions
           break;
-          
+
         case 'signaturepad':
           // Skip signature questions
           break;
-          
+
         default:
           // For other types, try to set a generic value
           testData[name] = `Test value for ${type}`;
       }
     });
-    
+
     return testData;
   }
-  
+
   generateTextData(question) {
     const inputType = question.inputType || 'text';
-    
+
     switch (inputType) {
       case 'email':
         return 'test@example.com';
@@ -550,7 +559,7 @@ export class PreviewModal {
         return 'Sample text response';
     }
   }
-  
+
   handlePreviewComplete() {
     // Show completion screen
     const container = this.modal.querySelector('#preview-survey');
@@ -569,28 +578,28 @@ export class PreviewModal {
         </div>
       </div>
     `;
-    
+
     // Setup complete screen events
     container.querySelector('.restart-preview').addEventListener('click', () => {
       this.restartPreview();
     });
-    
+
     container.querySelector('.view-results').addEventListener('click', () => {
       this.showPreviewResults();
     });
-    
+
     // Track completion
     this.trackInteraction('preview_completed');
   }
-  
+
   restartPreview() {
     // Reinitialize preview survey
     this.initializePreviewSurvey();
   }
-  
+
   showPreviewResults() {
     const data = this.previewSurvey.data;
-    
+
     // Create results modal
     const resultsModal = document.createElement('div');
     resultsModal.className = 'results-modal';
@@ -608,9 +617,9 @@ export class PreviewModal {
         </div>
       </div>
     `;
-    
+
     this.modal.appendChild(resultsModal);
-    
+
     // Setup events
     resultsModal.querySelector('.copy-results').addEventListener('click', () => {
       const textArea = document.createElement('textarea');
@@ -619,58 +628,60 @@ export class PreviewModal {
       textArea.select();
       document.execCommand('copy');
       document.body.removeChild(textArea);
-      
+
       notifications.success('Results copied to clipboard');
     });
-    
+
     resultsModal.querySelector('.close-results').addEventListener('click', () => {
       resultsModal.remove();
     });
-    
+
     // Show with animation
     setTimeout(() => resultsModal.classList.add('show'), 10);
   }
-  
+
   updatePreviewInfo() {
     // Update page info
     const pageInfo = this.modal.querySelector('.preview-page-info');
     const currentPage = this.previewSurvey.currentPageNo + 1;
     const totalPages = this.previewSurvey.visiblePageCount;
     pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
-    
+
     // Update progress info
     const progressInfo = this.modal.querySelector('.preview-progress-info');
     const progress = Math.round(this.previewSurvey.getProgress());
     progressInfo.textContent = `${progress}% Complete`;
   }
-  
+
   updateDeviceInfo(device) {
     const deviceSizes = {
       desktop: { width: '100%', info: 'Desktop View' },
       tablet: { width: '768px', info: 'Tablet View (768px)' },
       mobile: { width: '375px', info: 'Mobile View (375px)' }
     };
-    
+
     const info = deviceSizes[device];
     notifications.info(info.info);
   }
-  
+
   scrollToTop() {
     const screen = this.modal.querySelector('.preview-device-screen');
     screen.scrollTop = 0;
   }
-  
+
   setupFocusTrap() {
     const focusableElements = this.modal.querySelectorAll(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     );
-    
+
     const firstElement = focusableElements[0];
     const lastElement = focusableElements[focusableElements.length - 1];
-    
+
     this.handleTab = (e) => {
-      if (e.key !== 'Tab') return;
-      
+      if (e.key !== 'Tab') {
+        return;
+      }
+
       if (e.shiftKey && document.activeElement === firstElement) {
         e.preventDefault();
         lastElement.focus();
@@ -679,13 +690,13 @@ export class PreviewModal {
         firstElement.focus();
       }
     };
-    
+
     this.modal.addEventListener('keydown', this.handleTab);
-    
+
     // Focus first element
     setTimeout(() => firstElement.focus(), 100);
   }
-  
+
   trackPreviewOpen() {
     // Analytics tracking
     if (window.gtag) {
@@ -696,7 +707,7 @@ export class PreviewModal {
       });
     }
   }
-  
+
   trackInteraction(action, data = {}) {
     // Analytics tracking
     if (window.gtag) {
@@ -706,23 +717,23 @@ export class PreviewModal {
       });
     }
   }
-  
+
   // Public API
   isVisible() {
     return this.isOpen;
   }
-  
+
   refresh() {
     if (this.isOpen && this.previewSurvey) {
       // Update survey JSON
       const surveyJSON = this.survey.toJSON();
       this.previewSurvey.fromJSON(surveyJSON);
-      
+
       // Update info
       this.updatePreviewInfo();
     }
   }
-  
+
   destroy() {
     this.close();
     this.survey = null;
