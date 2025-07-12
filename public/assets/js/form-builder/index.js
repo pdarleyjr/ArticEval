@@ -1,23 +1,98 @@
 // ESM facade for form-builder
-// This provides an ESM-compatible entry point for the form builder modules
+// This provides an ESM-compatible entry point for the form builder
 
-// Re-export all state management modules
-export * from './state/StateManager.js';
-export * from './state/FormDataStore.js';
-export * from './state/HistoryManager.js';
+// Simple stub implementation since the actual modules don't exist yet
+class StateManager {
+  constructor() {
+    this.state = {};
+    this.listeners = new Map();
+  }
+  
+  on(event, callback) {
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, new Set());
+    }
+    this.listeners.get(event).add(callback);
+  }
+  
+  emit(event, data) {
+    if (this.listeners.has(event)) {
+      this.listeners.get(event).forEach(callback => callback(data));
+    }
+  }
+  
+  loadForm(formData) {
+    this.state = { ...formData };
+    this.emit('stateChange', this.state);
+  }
+  
+  getFormData() {
+    return { ...this.state };
+  }
+  
+  reset() {
+    this.state = {};
+    this.emit('stateChange', this.state);
+  }
+  
+  undo() {
+    // Stub implementation
+    console.log('Undo not implemented yet');
+  }
+  
+  redo() {
+    // Stub implementation
+    console.log('Redo not implemented yet');
+  }
+}
 
-// Re-export UI components
-export * from './ui/Canvas.js';
-export * from './ui/Toolbox.js';
-export * from './ui/HeaderActions.js';
+class Canvas {
+  constructor(stateManager, element) {
+    this.stateManager = stateManager;
+    this.element = element;
+  }
+  
+  render() {
+    // Stub implementation
+    if (this.element) {
+      this.element.innerHTML = '<div>Form Canvas</div>';
+    }
+  }
+}
+
+class Toolbox {
+  constructor(stateManager, element) {
+    this.stateManager = stateManager;
+    this.element = element;
+  }
+  
+  updateState() {
+    // Stub implementation
+    if (this.element) {
+      this.element.innerHTML = '<div>Toolbox</div>';
+    }
+  }
+}
+
+class HeaderActions {
+  constructor(stateManager, element) {
+    this.stateManager = stateManager;
+    this.element = element;
+  }
+  
+  updateState() {
+    // Stub implementation
+    if (this.element) {
+      this.element.innerHTML = '<div>Header Actions</div>';
+    }
+  }
+}
+
+// Export the classes
+export { StateManager, Canvas, Toolbox, HeaderActions };
 
 // Main initialization function
 export async function initFormBuilder(config = {}) {
-  const { StateManager } = await import('./state/StateManager.js');
-  const { Canvas } = await import('./ui/Canvas.js');
-  const { Toolbox } = await import('./ui/Toolbox.js');
-  const { HeaderActions } = await import('./ui/HeaderActions.js');
-  
   // Initialize state
   const stateManager = new StateManager();
   
