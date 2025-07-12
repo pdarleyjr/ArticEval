@@ -41,6 +41,7 @@
   },
   "dependencies": {
     "@langchain/cloudflare": "^0.1.0",
+    "@langchain/community": "^0.3.48",
     "@langchain/core": "^0.3.62",
     "knockout": "^3.5.1",
     "qrcode": "^1.5.3",
