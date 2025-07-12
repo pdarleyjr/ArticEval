@@ -653,9 +653,47 @@
     
     <!-- Load the modular form builder bundle -->
     <script type="module">
-        import { FormBuilder } from '../src/index.js';
+        import { initFormBuilder } from './assets/js/form-builder/index.js';
         import './assets/js/form-builder-tour.js';
         import './assets/js/ai-summary-renderer.js';
+        
+        // Create a FormBuilder class that wraps the initFormBuilder function
+        class FormBuilder {
+            constructor(containerId) {
+                this.containerId = containerId;
+                this.container = document.getElementById(containerId);
+                this.hasUnsavedChanges = false;
+                this.formData = null;
+                this._init();
+            }
+            
+            async _init() {
+                // Initialize the form builder using the function-based API
+                this.builder = await initFormBuilder({
+                    canvasElement: this.container,
+                    toolboxElement: document.getElementById('toolbox-container'),
+                    headerElement: document.getElementById('header-container')
+                });
+                
+                // Track changes
+                this.builder.stateManager.on('stateChange', () => {
+                    this.hasUnsavedChanges = true;
+                });
+            }
+            
+            async save() {
+                try {
+                    this.formData = this.builder.getFormData();
+                    // TODO: Implement actual save logic
+                    console.log('Saving form data:', this.formData);
+                    this.hasUnsavedChanges = false;
+                    return true;
+                } catch (error) {
+                    console.error('Error saving form:', error);
+                    return false;
+                }
+            }
+        }
         
         // Make FormBuilder available as IPLCFormBuilder for backward compatibility
         window.IPLCFormBuilder = FormBuilder;
