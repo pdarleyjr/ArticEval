@@ -70,7 +70,7 @@ async function handleGetTemplates(request, env, templateId) {
 
     } else {
       // List all templates
-      const dbResult = await env.DB.prepare(
+      const { results } = await env.DB.prepare(
         `SELECT ft.id, ft.name, ft.description, ft.sections, ft.created_by, ft.created_at, ft.updated_at,
                 ft.is_locked, ft.passcode,
                 'Anonymous' as creator_name,
@@ -81,7 +81,7 @@ async function handleGetTemplates(request, env, templateId) {
          ORDER BY ft.updated_at DESC`
       ).all();
 
-      const templates = dbResult && dbResult.results ? dbResult.results : [];
+      const templates = results || [];
 
       const processedTemplates = templates.map(template => {
         if (template.sections) {

@@ -1,7 +1,6 @@
 import { createResponse, handleCORS, handleError } from '../../utils/api-utils.js';
 
-export async function onRequest(context) {
-  const { request, env } = context;
+export async function onRequest(request, env, context) {
   
   // Handle CORS preflight
   if (request.method === 'OPTIONS') {
